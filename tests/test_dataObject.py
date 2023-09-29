@@ -1,7 +1,7 @@
 import os
 import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
-from outputDataObject import outputDataUpdateObject
+from src.outputDataObject import outputDataUpdateObject
 
 
 def test_exists():
