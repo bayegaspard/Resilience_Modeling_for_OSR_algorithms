@@ -1,0 +1,201 @@
+:root {
+    --bg-color-1: hsl(217, 60%, 60%);
+    --fg-color-1: hsl(217, 60%, 95%);
+
+    --bg-color-2: hsl(217, 60%, 100%);
+    --fg-color-2: hsl(217, 60%, 12%);
+
+    --header-font: monospace;
+    --body-font: monospace;
+}
+
+
+body {
+    background-color: hsl(237, 49%, 90%);
+    padding: 0; margin:0;
+}
+
+/* header bar */
+.header-row {
+    background-color: var(--bg-color-1);
+    color: var(--fg-color-1);
+
+    /*position:absolute;
+    left: 0; top: 0;*/
+    width: 100%;
+
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: row;
+    justify-content: space-evenly;
+    align-items: flex-end;
+}
+
+.header-row h1 {
+    font-family: var(--header-font);
+    font-size: 32px;
+    font-weight: normal;
+    padding-right: 26px;
+    padding-left: 26px;
+}
+
+
+/* header bar > time slider */
+.header-row div {
+    flex-grow: 1;
+    flex-basis: 50%;
+    align-self: flex-end;
+}
+
+.header-row div .rc-slider {
+    position:relative;
+    /*top: 66%;*/
+    vertical-align:center;
+    color: white;
+}
+
+.header-row .rc-slider-mark-text {
+    color: var(--fg-color-1);
+}
+
+.header-row .rc-slider-mark-text {
+    font-family: var(--body-font);
+}
+
+
+/* main content cards */
+.dashboard-card-cont {
+    /*position: absolute;
+    top: 82px;*/
+
+    width: auto;
+    padding: 16px;
+    max-width: 100vw;
+
+    display: flex;
+    flex-grow: 1;
+    flex-direction: row;
+    flex-wrap: wrap;
+}
+
+.card {
+    background-color: var(--bg-color-2);
+    color: var(--fg-color-2);
+    /*font-family: monospace;*/
+
+    border-radius: 15px;
+    overflow: hidden;
+    padding: 16px;
+    display:flex;
+    flex-direction: column;
+
+    margin: 8px;
+    min-width: 128px; min-height: 128px;
+    flex-grow: 1;
+    max-height: max-content;/*33vh;*/
+    max-width: 904px; /* smallest card (280) + largest card (624). consider adjusting per */
+}
+
+.card-header {
+    background-color: var(--bg-color-1);
+    color: var(--fg-color-1);
+
+    display: block;
+    width: 110%;
+    margin: 0;
+    padding: 8px;
+    padding-left: 16px;
+    position: relative;
+    left: -16px; top: -16px;
+
+    font-family: var(--header-font);
+    font-size: 20px;
+    font-weight: 400; 
+}
+
+/* card > charts */
+.piecont {
+    /*max-width: 480px;*/
+    flex-basis: 280px;
+    flex-shrink: 1;
+    flex-grow: 1;
+}
+.piecont .dash-graph {
+    min-width: 280px;
+    flex-shrink: 1;
+    flex-grow: 1;
+    min-height: 280px;
+}
+.histcont {
+    /*max-width: 624px;*/
+    /*max-height:max-content;*/
+    flex-basis: 624px;
+    flex-shrink: 1;
+    flex-grow: 1;
+}
+.histcont .dash-graph {
+    min-width: 280px;
+    flex-shrink: 1;
+    flex-grow: 1;
+    min-height: 280px;
+}
+.tabcont {
+    flex-basis: 624px;
+    display: block;
+    min-height: 280px;
+}
+.tabcont .dash-table-container {
+    overflow: auto;
+    height: 100%;
+}
+
+.healthcont {
+    /*max-width: 480px;*/
+    flex-basis: 520px;
+    flex-shrink: 1;
+    flex-grow: 0;
+}
+.healthcont .row {
+    min-width: 280px;
+    flex-shrink: 1;
+    flex-grow: 1;
+    min-height: 280px;
+    display:flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+}
+.healthcont .row .col {
+    flex-basis: 30%;
+    flex-grow: 1;
+}
+.healthcont .row div p {
+    font-family: var(--body-font);
+}
+.healthcont .row .dash-graph {
+    min-width: 280px;
+    flex-basis: 280px;
+    flex-shrink: 1;
+    flex-grow: 1;
+    min-height: 280px;
+}
+.col hr {
+    width: 100%;
+    height: 0px;
+    border-bottom: 1px dotted black;
+}
+.col {
+    display:flex;
+    flex-direction: column;
+    justify-content: center;
+    height:100%;
+}
+.col p {
+    margin: 8px;
+}
+
+
+/* inputs */
+.cardbutton {
+    width: 100%;
+    font-family: monospace;
+}
