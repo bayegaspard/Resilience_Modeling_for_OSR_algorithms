@@ -10,9 +10,7 @@ dash.register_page(__name__, path="/")
 dum = outputDataUpdateObject.dummy()
 
 
-df = px.data.tips()#pd.read_csv('https://raw.githubusercontent.com/plotly/datasets/master/solar.csv')
-#fig = px.histogram(df, x="total_bill", labels={"total_bill": "hours"}, color="sex")
-#fig.show()
+df = px.data.tips()
 
 layout = html.Div([
     html.Span([
@@ -30,7 +28,7 @@ layout = html.Div([
         ]),
         html.Div(className='card tabcont', children=[
             html.H2(className='card-header', children='Suspicious packets'),
-            dash_table.DataTable(data=df.to_dict('records'), columns=[{"name": i, "id": i} for i in df.columns], sort_action='native', filter_action='native', page_action='native', page_size=6)
+            dash_table.DataTable(data=df.to_dict('records'), columns=[{"name": i, "id": i} for i in df.columns], sort_action='native', filter_action='native', page_action='native', page_size=6, id='packet-table')
         ]),
         html.Div(className='card healthcont', children=[
             html.H2(className='card-header', children='Model health'),
@@ -48,5 +46,33 @@ layout = html.Div([
                 ], className='col')
             ])
         ])
-    ])
+    ]),
+    html.Div(
+        className='card',
+        id='packet-viewer',
+        children=[
+            html.H3("192.168.8.23 -> 192.168.3.17", className="card-header"),
+            dcc.Input(type="text", placeholder="Packet Identification"),
+            html.P("Confidence: 0%"),
+            html.Div(className="row nowrap", children=[
+                html.Div(className="col", children=[
+                    html.P("Packet header info"),
+                ]),
+                html.Button('<-'),
+                html.Span("0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000", className="packet-hex"),
+                html.Button('->'),
+                html.Div(className="col", children=[
+                    html.P("Predictions"),
+                ]),
+            ]),
+        ],
+    ),
 ])
+
+
+@dash.callback(
+    dash.Output(component_id='packet-viewer', component_property='className'),
+    dash.Input(component_id='packet-table', component_property='selected_rows')
+)
+def examinePacket():
+    return 
