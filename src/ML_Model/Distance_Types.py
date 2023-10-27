@@ -94,7 +94,6 @@ class forwardHook():
                 self.distances[name] = distance_measures(output, self.means[name], self.class_vals, dist_types_dict[self.distFunct])
             else:
                 self.distances[name] += distance_measures(output, self.means[name], self.class_vals, dist_types_dict[self.distFunct])
-            
             self.class_vals = None
 
 

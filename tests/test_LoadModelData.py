@@ -2,6 +2,7 @@ import os
 import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))) + "/src")
+sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))) + "/src/ML_Model")
 import Dataload
 import torch
 import Config
