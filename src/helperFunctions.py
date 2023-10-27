@@ -3,8 +3,6 @@ import Config as Config
 import os
 import pandas as pd
 import torch
-import GPU
-import FileHandling
 import numpy as np
 from sklearn.metrics import (precision_score, recall_score, accuracy_score)
 from sklearn.metrics import confusion_matrix
@@ -75,203 +73,6 @@ def deleteSaves():
 
 def printconfmat(outputs: torch.Tensor, labels: torch.Tensor):
     print(f"{confusion_matrix(labels, outputs.argmax(dim=1))}")
-
-
-def configMod_testRotate(stage=0, step=0):
-    if Config.loops2[stage] == "optimizer":
-        Config.parameters[Config.loops2[stage]] = Config.loops[stage][step]
-    elif Config.loops2[stage] == "Unknowns":
-        Config.parameters["Unknowns_clss"][0] = Config.loops[stage][step]
-        Config.parameters["Unknowns"] = f"{len(Config.loops[stage][step])} Unknowns"
-        Config.parameters["Knowns_clss"][0] = Config.loopOverUnknowns()
-        setrelabel()
-    elif Config.loops2[stage] == "None":
-        pass
-    else:
-        Config.parameters[Config.loops2[stage]][0] = Config.loops[stage][step]
-
-
-# Handels running the loop
-def testRotate(notes=(0, 0, 0)):
-    """
-    testRotate() is one of the two functions that modifies the global variables in Config.py.
-    Specifically this function is called when the config LOOP is set to 1.
-    And it will rotate the parameters in Config.py to go through all the variations of the parameters.
-    After calling testRotate() running the model with the function main.run_model() will use diffrent parameters.
-    It will automatically change the Config parameter LOOP to 0 and return False to indicate that it is done.
-
-    testRotate() takes one parameter:
-        notes - notes is a tuple containing three integers that mark the current position of the loop.
-            At the start notes should be (0, 0, 0) it will then increment to (0, 1, 0) and it will be returned.
-            At the next call of testRotate() please give it the privious output of the function to allow it to continue.
-            After all parameters have been looped, testRotate() will return False instead of a tuple.
-
-    testRotate() returns one of two parameters:
-        notes - a tuple containing three ints that marks the current position of the loop.
-        False - a false value is returned if the loop has been entirely completed.
-
-    """
-    global relabel, rerelabel
-    stage = notes[0]
-    step = notes[1]
-    al = notes[2]
-
-    deleteSaves()
-    if step + 1 < len(Config.loops[stage]):
-        step = step + 1
-
-        configMod_testRotate(stage, step)
-
-        return (stage, step, al)
-
-    # reset this stage
-    step = 0
-
-    configMod_testRotate(stage, step)
-
-    # Go to next stage
-    if stage + 1 < len(Config.loops):
-        stage = stage + 1
-        # Skip the next rotate algorithm step and just go to rotate step
-        return (stage, step, al)
-
-    # Reset stage
-    stage = 0
-
-    if al + 1 < len(Config.alg):
-        al = al + 1
-        Config.parameters["OOD Type"][0] = Config.alg[al]
-        Config.algorithmSpecificSettings(Config.alg[al])
-        return (stage, step, al)
-
-    # Done with looping
-    Config.parameters["LOOP"][0] = False
-    return False
-
-
-def incrementLoop(notes=(0)):
-    """
-    incrementLoop() is one of the two functions that modifies the global variables in Config.py.
-    Specifically this function is called when the config LOOP is set to 2.
-    And it will incrementally introduce unknowns into the training data, this is done to get data for the resiliance tesing group.
-    After calling incrementLoop() running the model with the function main.run_model() will continue to train the same model and use fewer unknowns.
-    It will automatically change the Config parameter LOOP to 0 and return False to indicate that it is done.
-
-    incrementLoop() takes one parameter:
-        notes - integer, stores the current position of the loop.
-
-    incrementLoop() returns one of two values:
-        notes - an integer that marks the current position of the loop to be fed back trough the function.
-        False - outputs false when the loop has been entirely completed.
-
-    """
-    Config.parameters["attemptLoad"][0] = 1
-    notes = notes + 1
-    if notes >= len(Config.incGroups):
-        Config.parameters["LOOP"][0] = False
-        return False
-    Config.parameters["Unknowns_clss"][0] = Config.incGroups[notes]
-    Config.parameters["Unknowns"] = f"{len(Config.incGroups[notes])} Unknowns"
-    Config.parameters["Knowns_clss"][0] = Config.loopOverUnknowns(Config.incGroups[notes])
-    setrelabel()
-
-    # Find diffrence with this code: https: //stackoverflow.com/a/3462160
-    FileHandling.incrementLoopModData(list(set(Config.incGroups[notes - 1]) - set(Config.incGroups[notes])))
-    return notes
-
-
-# Resiliance loop
-def resilianceLoop():
-    Config.parameters["num_epochs"][0] = 0
-    Config.parameters["testlength"][0] = 1
-    current = Config.parameters["loopLevel"][0]
-    file = pd.read_csv("datasets/percentages.csv", index_col=None)
-    if current + 1 < len(file):
-        Config.parameters["loopLevel"][0] = current + 1
-        Config.parameters["threshold"][0] = Config.thresholds[file["Threshold "].iloc[current + 1] - 1]
-    else:
-        Config.parameters["LOOP"][0] = 0
-
-
-# This puts the notes into a readable form
-# notes are how it keeps track of where in the loop it is.
-def getcurrentlychanged(notes):
-    """
-    getcurrentlychanged() turns the notes from the function testRotate() into a readable string to tag data with.
-
-    it takes one parameter:
-        -notes, a three integer tuple.
-    it outputs a string saying what algorithm is being used with what changing parameter and the current setting of that parameter
-    """
-
-    algorithm = Config.alg[notes[2]]
-    currentlyChanging = Config.loops2[notes[0]]
-    if currentlyChanging == "None":
-        return "algorithm"
-    currentSetting = Config.loops[notes[0]][notes[1]]
-    if notes[1] == 0:
-        currentSetting = "Default"
-    return str(algorithm) + " " + str(currentlyChanging) + " " + str(currentSetting)
-
-
-# This puts the notes into a readable form
-# notes are how it keeps track of where in the loop it is.
-def getcurrentlychanged_Stage(notes):
-    """
-    getcurrentlychanged() turns the notes from the function testRotate() into a readable string to tag data with.
-
-    it takes one parameter:
-        -notes, a three integer tuple.
-    it outputs a string saying what algorithm is being used with what changing parameter and the current setting of that parameter
-    """
-
-    currentlyChanging = Config.loops2[notes[0]]
-    if currentlyChanging == "None":
-        return "algorithm"
-    return str(currentlyChanging)
-
-
-def getcurrentlychanged_Step(notes):
-    """
-    getcurrentlychanged() turns the notes from the function testRotate() into a readable string to tag data with.
-
-    it takes one parameter:
-        -notes, a three integer tuple.
-    it outputs a string saying what algorithm is being used with what changing parameter and the current setting of that parameter
-    """
-
-    currentlyChanging = Config.loops[notes[0]][notes[1]]
-    if currentlyChanging == "None":
-        return "Default"
-    return str(currentlyChanging)
-
-
-# This bit of code will loop through the entire loop and print all of the variations.
-def looptest():
-    """
-    This is the testing code for the testRotate() function.
-    It will print out all of the currently possible variations of the parameters and the number of parameters that is.
-    No parameters or outputs
-    """
-    out = pd.DataFrame(())
-    # out2 = pd.DataFrame(())
-
-    count = 0
-    notes = (0, 0, 0)
-    while notes:
-        current = pd.DataFrame(Config.parameters)
-        # current2 = pd.DataFrame(Config.class_split["unknowns_clss"])
-        out = pd.concat([out, current.iloc[0]], axis=1)
-        # out2 = pd.concat([out2, current2], axis=1)
-        print(getcurrentlychanged(notes))
-        notes = testRotate(notes)
-        count = count + 1
-
-    out = pd.concat([current.iloc[0], out], axis=1)
-
-    out.to_csv("Testing.csv")
-    # out2.to_csv("Testing2.csv")
-    print(f"That means the model will have to run {count} times")
 
 
 class NoExamples(Exception):
@@ -386,7 +187,7 @@ def renameClassesLabeled(modelOut: torch.Tensor, labels: torch.Tensor):
     return newout, labels
 
 
-device = torch.get_device()  # selects a device, cpu or gpu
+device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")  # selects a device, cpu or gpu
 
 
 class LossPerEpoch():
@@ -408,8 +209,8 @@ class LossPerEpoch():
             -targets: the values that are represented by each class.
 
         """
-        target = GPU.to_device(target, device)
-        predicted = GPU.to_device(predicted, device)
+        target = target.to(device, non_blocking=True)
+        predicted = predicted.to(device, non_blocking=True)
         if predicted.ndim == 2:
             predicted = predicted.argmax(dim=1)
         locations = predicted != target
@@ -522,5 +323,4 @@ def shuffleCSVs():
 
 
 if __name__ == "__main__":
-    looptest()
-    print(f"Torch cuda utilizaton percent: {torch.cuda.utilization()}")
+    pass

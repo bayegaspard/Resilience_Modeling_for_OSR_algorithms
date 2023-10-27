@@ -2,3 +2,5 @@
 *.json
 *.pyc
 .DS_Store
+*.csv
+*.pt

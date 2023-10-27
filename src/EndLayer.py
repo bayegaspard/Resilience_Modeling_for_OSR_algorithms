@@ -36,7 +36,7 @@ class EndLayers(nn.Module):
         self.weibulInfo = None
         self.resetvals()
 
-    def forward(self, output_true: torch.Tensor, y: torch.Tensor, type=None) -> torch.Tensor:
+    def forward(self, output_true: torch.Tensor, y=None, type=None) -> torch.Tensor:
         """
         Module forward command, is used by __call__().
         This function takes the logits from the privious models and evaluates them according to the selected function.
@@ -52,11 +52,12 @@ class EndLayers(nn.Module):
         if type is None:
             type = self.end_type
 
-        if type == "Energy":
-            # Energy kind of reverses things.
-            self.rocData[0] = y == Config.parameters["CLASSES"][0]
-        else:
-            self.rocData[0] = y != Config.parameters["CLASSES"][0]
+        if y is not None and False:
+            if type == "Energy":
+                # Energy kind of reverses things.
+                self.rocData[0] = y == Config.parameters["CLASSES"][0]
+            else:
+                self.rocData[0] = y != Config.parameters["CLASSES"][0]
 
         # modify outputs if nessisary for algorithm
         output_modified = self.typesOfMod.get(type, self.typesOfMod["none"])(self, output_true)
@@ -143,20 +144,20 @@ class EndLayers(nn.Module):
         """
         This is just Softmax. It adds a column of zeros to fit in with the rest of the algorithms.
         """
-        self.Save_score.append(percentages.max(dim=1)[0].mean())
+        # self.Save_score.append(percentages.max(dim=1)[0].mean())
         # this adds a row that is of the cutoff amout so unless there is another value greater it will be unknown
         batchsize = len(percentages)
         unknownColumn = torch.zeros(batchsize, device=percentages.device)
-        self.Save_score.append(unknownColumn)
-        self.rocData[1] = unknownColumn
+        # self.Save_score.append(unknownColumn)
+        # self.rocData[1] = unknownColumn
         return torch.cat((percentages, unknownColumn.unsqueeze(1)), dim=1)
 
     def normalThesholdUnknown(self, percentages: torch.Tensor):
         """
         This is a verson of softmax with threshold. It was turned down because "we cannot make changes to Softmax"
         """
-        self.rocData[1] = percentages.max(dim=1)[0]
-        self.Save_score.append(self.rocData[1].mean())
+        # self.rocData[1] = percentages.max(dim=1)[0]
+        # self.Save_score.append(self.rocData[1].mean())
         # this adds a row that is of the cutoff amout so unless there is another value greater it will be unknown
         batchsize = len(percentages)
         unknownColumn = self.cutoff * torch.ones(batchsize, device=percentages.device)
@@ -179,8 +180,8 @@ class EndLayers(nn.Module):
         # This was to print the scores it was going to save
         # print(scores.sum()/len(scores))
         # Just store this for later
-        self.rocData[1] = -scores
-        self.Save_score.append(scores.mean())
+        # self.rocData[1] = -scores
+        # self.Save_score.append(scores.mean())
         # once the dimentions are how we want them we test if it is above the cutoff
         scores = scores.less_equal(self.cutoff).to(torch.int)
         # Then we run precentages through a softmax to get a nice score
@@ -199,9 +200,9 @@ class EndLayers(nn.Module):
                 return
             else:
                 self.docMu = DOC.muStandardsFromDataloader(Config.parameters["Knowns_clss"][0], self.weibulInfo["loader"], self.weibulInfo["net"])
-                self.Save_score = [torch.tensor(self.docMu)[:, 1]]
+                # self.Save_score = [torch.tensor(self.docMu)[:, 1]]
 
-        self.rocData[1] = []
+        # self.rocData[1] = []
         newPredictions = DOC.runDOC(percentages.detach().cpu().numpy(), self.docMu, Config.parameters["Knowns_clss"][0], self.rocData[1])
         newPredictions = torch.tensor(newPredictions)
         for x in range(len(newPredictions)):
@@ -225,7 +226,7 @@ class EndLayers(nn.Module):
         unknowns = torch.stack(unknowns)
         percentages = iiMod.iimod(percentages, self.iiLoss_means).softmax(dim=1)
 
-        self.rocData[1] = unknowns  # I do not know if this is correct
+        # self.rocData[1] = unknowns  # I do not know if this is correct
         unknowns = 2 * unknowns.less_equal(self.cutoff)
 
         return torch.cat([percentages, unknowns.unsqueeze(dim=-1)], dim=-1)
@@ -305,7 +306,10 @@ class EndLayers(nn.Module):
         """
         A way of creating a dictionary with a default value. There might be a simpler way of doing this.
         """
-        return self.typesOfLabelMod.get(self.end_type, self.noChange)(self, labelList)
+        if self.end_type in self.typesOfLabelMod.keys():
+            return self.typesOfLabelMod.get(self.end_type)(self, labelList)
+        else:
+            return self.noChange(labelList)
 
     # ---------------------------------------------------------------------------------------------
     # Some have specific training methods
@@ -324,7 +328,10 @@ class EndLayers(nn.Module):
         """
         A way of creating a dictionary with a default value. There might be a simpler way of doing this.
         """
-        return self.typesOfTrainMod.get(self.end_type)(self, batch, model)
+        if self.end_type in self.typesOfTrainMod.keys():
+            return self.typesOfTrainMod.get(self.end_type)(self, batch, model)
+        else:
+            return
 
     # ---------------------------------------------------------------------------------------------
     # This is the section for resetting each epoch

@@ -8,14 +8,15 @@ import time
 #  # #  user defined functions
 import Config
 from EndLayer import EndLayers
-import FileHandling
 import helperFunctions
+import outputDataObject
+import Dataload
 import Distance_Types
 
 import numpy as np
-from sklearn.metrics import (precision_score, recall_score, f1_score)
+# from sklearn.metrics import (precision_score, recall_score, f1_score)
 
-device = torch.get_device()
+device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 
 
 class ModdedParallel(nn.DataParallel):
@@ -73,18 +74,6 @@ class AttackTrainingClassification(nn.Module):
         self.fc1 = nn.Linear(self.fullyConnectedStart, Config.parameters["Nodes"][0], device=device)
         self.fc2 = nn.Linear(Config.parameters["Nodes"][0], numClasses, device=device)
 
-        class RecordBatchVals_afterFC1(nn.Module):
-            def __init__(self, activation):
-                super().__init__()
-                self.activation = activation
-
-            def forward(me, x):
-                self.batch_saves_fucnt("Difference after Fully_Connected_1", x.max().item() - x.min().item())
-                x = self.activation(x)
-                self.batch_saves_fucnt("Average of layer Fully_Connected_1 Node 0", x.permute(1, 0).mean(dim=1)[0].item())
-                self.batch_saves_fucnt("Average of layer Fully_Connected_1 Total", x.mean().item())
-                return x
-
         self.addedLayers = torch.nn.Sequential()
         # If the config says to add more layers, that is done here.
         for x in range(Config.parameters["Number of Layers"][0]):
@@ -103,7 +92,6 @@ class AttackTrainingClassification(nn.Module):
 
         self.los = False
         self.end.end_type = mode
-        self.keep_batch_saves = False
         self.batch_fdHook = None
 
         self.sequencePackage = nn.Sequential()
@@ -112,10 +100,7 @@ class AttackTrainingClassification(nn.Module):
 
         self.sequencePackage.append(self.flatten)
         self.sequencePackage.append(self.fc1)
-        if self.keep_batch_saves:
-            self.sequencePackage.append(RecordBatchVals_afterFC1(self.activation))
-        else:
-            self.sequencePackage.append(self.activation)
+        self.sequencePackage.append(self.activation)
         self.sequencePackage.append(self.addedLayers)
         self.sequencePackage.append(self.dropout)
         if self.end.end_type != "COOL":
@@ -167,9 +152,7 @@ class AttackTrainingClassification(nn.Module):
                 epoch - the epoch that this data was taken
                 train_loss - the average training loss per batch of this epoch
         """
-        if measurement is None:
-            measurement = FileHandling.Score_saver()
-        if Config.parameters["attemptLoad"][0] == 1:
+        if Config.parameters["attemptLoadModel"][0] == 1:
             startingEpoch = self.loadPoint("Saves/models")
             # If it cannot find a model to load because of some error, the epoch number starts at -1 to avoid overwriting a possilby working model
         else:
@@ -187,15 +170,18 @@ class AttackTrainingClassification(nn.Module):
                 for epoch in tqdmEpoch:
                     self.end.resetvals()
                     self.storeReset()
+                    if self.batch_fdHook is not None:
+                        self.batch_fdHook.rm.remove()
+                    self.batch_fdHook = Distance_Types.forwardHook()
+                    self.batch_fdHook.rm = self.flatten.register_forward_hook(self.batch_fdHook)
+
                     #  Training Phase
                     self.train()
                     train_losses = []
                     num = 0
                     for batch in train_loader:
-                        if self.keep_batch_saves:
-                            self.batch_saves_start()
-                            self.batch_saves_fucnt("Kind", "Training")
                         self.train()
+                        self.batch_fdHook.class_vals = batch[1][:, 0]
                         # print("Batch")
                         #  batch = to_device(batch, device)
                         #  batch = DeviceDataLoader(batch, device)
@@ -208,6 +194,8 @@ class AttackTrainingClassification(nn.Module):
                         optimizer.step()
                         optimizer.zero_grad()
                         num += 1
+
+                    self.batch_fdHook.rm.remove()
 
                     if sch is not None:
                         sch.step()
@@ -231,7 +219,7 @@ class AttackTrainingClassification(nn.Module):
                     # print("result", result)
 
                     history.append(result)
-                    self.los.collect(measurement)
+                    # self.los.collect(measurement)
                     self.epoch = epoch + startingEpoch
         else:
             #  Validation phase
@@ -285,18 +273,14 @@ class AttackTrainingClassification(nn.Module):
         """
         self.eval()
         t = time.time()
+        t
         # self.savePoint("test", phase=Config.helper_variables["phase"])
         data, labels_extended = batch
         self.batchnum += 1
         labels = labels_extended[:, 0]
 
-        if self.keep_batch_saves:
-            self.batch_saves_start()
-            self.batch_saves_fucnt("Kind", "Testing")
-            #  removeHandle = self.sequencePackage.module.register_module_forward_hook(self.batch_fdHook())
-
         out = self(data)  # Generate predictions
-        zeross = torch.zeros(len(out), 1), device
+        zeross = torch.zeros(len(out), 1, device=device)
         loss = F.cross_entropy(torch.cat((out, zeross), dim=1), labels)  # Calculate loss
         out = self.end(out, labels).to(labels.device)  # <----Here is where it is using Softmax TODO: make this be able to run all of the versions and save the outputs.
         # loss = F.cross_entropy(torch.cat((out, zeross), dim=1), labels)  #  Calculate loss
@@ -319,63 +303,45 @@ class AttackTrainingClassification(nn.Module):
         acc = self.accuracy(out, labels_extended)  # Calculate accuracy
         # print("validation accuracy: ", acc)
 
-        if self.keep_batch_saves:
-            self.batch_saves_fucnt("Identfier", self.batch_saves_identifier)
-            if isinstance(self.end.rocData[1], torch.Tensor):
-                self.batch_saves_fucnt("Average unknown threshold possibilities", self.end.rocData[1].mean().item())
-            else:
-                self.batch_saves_fucnt("Average unknown threshold possibilities", np.array(self.end.rocData[1]).mean().item())
-            self.batch_saves_fucnt("Overall Accuracy", acc.item())
-            if out.ndim == 2:
-                out2 = torch.argmax(out, dim=1).cpu()
-            else:
-                # DOC already applies an argmax equivalent so we do not apply one here.
-                out2 = out.cpu()
-            prec = precision_score(labels_extended[:, 0].cpu(), out2, labels=[Config.parameters["CLASSES"][0]], average="weighted", zero_division=0)
-            rec = recall_score(labels_extended[:, 0].cpu(), out2, labels=[Config.parameters["CLASSES"][0]], average="weighted", zero_division=0)
-            self.batch_saves_fucnt("Knowns/Unknowns_Precision", prec)
-            self.batch_saves_fucnt("Knowns/Unknowns_False Positive Rate", 1 - prec)
-            self.batch_saves_fucnt("Knowns/Unknowns_Recall", rec)
-            self.batch_saves_fucnt("Knowns/Unknowns_False Negative Rate", 1 - rec)
-            self.batch_saves_fucnt("Knowns/Unknowns_F1_Score", f1_score(labels_extended[:, 0].cpu(), out2, labels=[Config.parameters["CLASSES"][0]], average="weighted", zero_division=0))
-            self.batch_saves_fucnt("Total F1_Score", f1_score(labels_extended[:, 0].cpu(), out2, average="weighted", zero_division=0))
-            self.batch_saves_fucnt("Time", time.time() - t)
-
-            #  torch.Tensor.bincount(minlength=Config.parameters["CLASSES"][0])
-            sampleCounts = labels.bincount(minlength=Config.parameters["CLASSES"][0] + 1)
-            guessCounts = out.argmax(dim=-1).bincount(minlength=Config.parameters["CLASSES"][0] + 1)
-            #  for i in range(Config.parameters["CLASSES"][0]):
-            #      self.batch_saves_fucnt(f"Samples of class {i}", sampleCounts[i].item())
-            #      self.batch_saves_fucnt(f"Guesses of class {i}", guessCounts[i].item())
-            #      if guessCounts[i].item()!=0:
-            #          self.batch_saves_fucnt(f"Samples/Guesses of class {i}", sampleCounts[i].item()/guessCounts[i].item())
-            mask = torch.concat([helperFunctions.mask, torch.tensor([False])])
-            self.batch_saves_fucnt("Samples of known classes", sampleCounts[mask].sum().item())
-            self.batch_saves_fucnt("Guesses of known classes", guessCounts[mask].sum().item())
-            if guessCounts[mask].sum().item() != 0:
-                self.batch_saves_fucnt("Samples/Guesses of known classes", sampleCounts[mask].sum().item() / guessCounts[mask].sum().item())
-            mask = mask == False
-            self.batch_saves_fucnt("Samples of unknown classes", sampleCounts[mask].sum().item())
-            self.batch_saves_fucnt("Guesses of unknown classes", guessCounts[mask].sum().item())
-            if guessCounts[mask].sum().item() != 0:
-                self.batch_saves_fucnt("Samples/Guesses of unknown classes", sampleCounts[mask].sum().item() / guessCounts[mask].sum().item())
-            if self.end.end_type not in ["COOL", "DOC"]:
-                self.batch_saves_fucnt("intra_spread_Endlayer", Distance_Types.distance_measures(out.cpu(), self.batch_fdHook.means["End"], torch.argmax(out, dim=1).cpu(), Distance_Types.dist_types_dict["intra_spread"]).item())
-                self.batch_saves_fucnt("Cosine_dist_Endlayer", Distance_Types.distance_measures(out.cpu(), self.batch_fdHook.means["End"], torch.argmax(out, dim=1).cpu(), Distance_Types.dist_types_dict["Cosine_dist"]).item())
-                self.batch_saves_fucnt("Euclidean Distance", Distance_Types.distance_measures(out.cpu(), self.batch_fdHook.means["End"], torch.argmax(out, dim=1).cpu(), Distance_Types.dist_types_dict["Cosine_dist"]).item())
-
-            # Calculating cluster distances
-            self.batch_fdHook.class_vals = out2
-            removeHandle = torch.nn.modules.module.register_module_forward_hook(self.batch_fdHook)
-            for distancetype in ["Cosine_dist", "intra_spread", "Euclidean Distance"]:
-                self.batch_fdHook.distFunct = distancetype
-                self(data)
-                for name in self.batch_fdHook.distances.keys():
-                    self.batch_saves_fucnt(f"{self.batch_fdHook.distFunct} distance of {name}", self.batch_fdHook.distances[name].item())
-                self.batch_fdHook.distances = {}
-            removeHandle.remove()
-
         return {'val_loss': loss.detach(), 'val_acc': acc}
+
+    def generateDataObject(self, batch: torch.Tensor, generateStability=True) -> outputDataObject.outputDataUpdateObject:
+        """
+        This is the main way of generating output data from the model, it outputs a outputDataObject for updating the frontend console.
+
+        Parameters:
+            batch - Torch tensor containing the data to pass through the model.
+                This data should be in the form of: (IxF) where I is the number of instances of the data and F is the number of features.
+            generateStability - Booliean value stating if datashiftFactor should be calculated.
+        """
+        new_data = outputDataObject.outputDataUpdateObject()
+        self.eval()
+        out_logits = self(batch)  # Run the model without the endlayer
+        out = self.end(out_logits).cpu()  # Run the endlayer
+        # Find Argmax:
+        if out.ndim == 2:
+            predictions = torch.argmax(out, dim=1)
+        else:
+            # DOC already applies an argmax equivalent so we do not apply one here.
+            predictions = out
+
+        # This bit of code generates the stability metrics (Incomplete)
+        if generateStability:
+            self.batch_fdHook.class_vals = predictions
+            self.batch_fdHook.rm = self.flatten.register_forward_hook(self.batch_fdHook)
+            self(batch)
+            self.batch_fdHook.rm
+            new_data.datashiftFactor = np.array([self.batch_fdHook.distances[x].detach() for x in self.batch_fdHook.distances.keys()]).sum()
+
+        assert isinstance(predictions, torch.Tensor), "Model Output Not torch Tensor, should not be possible"
+        bincounts = predictions.bincount(minlength=Config.parameters["CLASSES"][0] + 1)
+        new_data.attacks = {Dataload.CLASSLIST[y + 1]: x.item() for y, x in enumerate(bincounts[1:Config.parameters["CLASSES"][0]])}
+        new_data.num_packets = bincounts.sum().item()
+        # This is temparary:
+        for y in torch.softmax(out_logits[predictions == Config.parameters["CLASSES"][0]], dim=1):
+            new_data.unknowns.append([Dataload.CLASSLIST[x.item()] for x in y if x > 0.2])
+
+        return new_data
 
     @torch.no_grad()
     def evaluate(self, testset):
@@ -544,35 +510,6 @@ class AttackTrainingClassification(nn.Module):
         """
         self.store = torch.tensor([], device=device), torch.tensor([], device=device), torch.tensor([], device=device)
 
-    def batchSaveMode(self, function=None, start_function=None):
-        """
-        This wraps the saving scores so that the values recorded are piped to a specific file.
-        """
-        if function is None:
-            function = FileHandling.Score_saver()
-        if start_function is None:
-            start_function = function.create_params_All
-
-        def funct2():
-            start_function(name="BatchSaves.csv")
-            function("Current threshold", self.end.cutoff, fileName="BatchSaves.csv")
-        self.batch_saves_start = funct2
-        self.keep_batch_saves = True
-
-        def funct(name, val):
-            function(name, val, fileName="BatchSaves.csv")
-        self.batch_saves_fucnt = funct
-        self.eval()
-
-        # get class means for intra spread
-        if self.batch_fdHook is None:
-            self.batch_fdHook = Distance_Types.forwardHook()
-        if self.end.end_type != "COOL":
-            if len(self.batch_fdHook.means) == 0:
-                #  print("Recalculating means Starting", flush=True)
-                self.batch_fdHook.means["End"] = Distance_Types.class_means_from_loader(self.end.weibulInfo)
-                #  print("Recalculating means Saved", flush=True)
-
 
 class expand_bitPackets(nn.Module):
     def __init__(self, lenExpand=1500):
@@ -612,7 +549,7 @@ class Conv1DClassifier(AttackTrainingClassification):
     def __init__(self, mode="Soft", numberOfFeatures=1504):
         super().__init__(mode, numberOfFeatures)
         self.layer1 = nn.Sequential(
-            expand_bitPackets(),
+            # expand_bitPackets(),
             nn.Conv1d(1, self.convolutional_channels[0], 3, device=device),
             self.activation,
             nn.MaxPool1d(self.maxpooling[0]),
