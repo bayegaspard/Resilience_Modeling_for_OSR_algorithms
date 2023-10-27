@@ -339,7 +339,7 @@ class AttackTrainingClassification(nn.Module):
         new_data.num_packets = bincounts.sum().item()
         # This is temparary:
         for y in torch.softmax(out_logits[predictions == Config.parameters["CLASSES"][0]], dim=1):
-            new_data.unknowns.append([Dataload.CLASSLIST[x.item()] for x in y if x > 0.2])
+            new_data.unknowns.append([Dataload.CLASSLIST[z] for z, x in enumerate(y) if x > 0.2])
 
         return new_data
 
