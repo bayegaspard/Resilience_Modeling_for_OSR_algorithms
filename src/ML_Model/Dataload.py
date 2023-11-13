@@ -21,7 +21,7 @@ elif Config.parameters["Dataset"][0] == "Payload_data_UNSW":
 else:
     print("ERROR, Dataset not implemented")
 # PROTOCOLS = {"udp": 0, "tcp": 1}
-PROTOCOLS = {"udp": 0, "tcp": 1, "others": 2, "ospf": 3, "sctp": 4, "gre": 5, "swipe": 6, "mobile": 7, "sun-nd": 8, "sep": 9, "unas": 10, "pim": 11, "secure-vmtp": 12, "pipe": 13, "etherip": 14, "ib": 15, "ax.25": 16, "ipip": 17, "sps": 18, "iplt": 19, "hmp": 20, "ggp": 21, "ipv6": 22, "rdp": 23, "rsvp": 24, "sccopmce": 25, "egp": 26, "vmtp": 27, "snp": 28, "crtp": 29, "emcon": 30, "nvp": 31, "fire": 32, "crudp": 33, "gmtp": 34, "dgp": 35, "micp": 36, "leaf-2": 37, "arp": 38, "fc": 39, "icmp": 40, "other": 41}
+PROTOCOLS = {"udp": 0, "tcp": 1, "others": 2, "ospf": 3, "sctp": 4, "gre": 5, "swipe": 6, "mobile": 7, "sun-nd": 8, "sep": 9, "unas": 10, "pim": 11, "secure-vmtp": 12, "pipe": 13, "etherip": 14, "ib": 15, "ax.25": 16, "ipip": 17, "sps": 18, "iplt": 19, "hmp": 20, "ggp": 21, "ipv6": 22, "rdp": 23, "rsvp": 24, "sccopmce": 25, "egp": 26, "vmtp": 27, "snp": 28, "crtp": 29, "emcon": 30, "nvp": 31, "fire": 32, "crudp": 33, "gmtp": 34, "dgp": 35, "micp": 36, "leaf-2": 37, "arp": 38, "fc": 39, "icmp": 40, "other": 2}
 LISTCLASS = {CLASSLIST[x]: x for x in CLASSLIST.keys()}
 CHUNKSIZE = 10000
 attemptload_message = True
