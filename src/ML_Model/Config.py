@@ -46,6 +46,11 @@ def loopOverUnknowns(unknownlist=False):
     return knownVals
 
 
+def recountclasses(CLASSLIST: dict):
+    parameters["CLASSES"][0] = len(CLASSLIST)
+    loopOverUnknowns()
+
+
 # This is the diffrent optimization functions
 opt_func = {"Adam": torch.optim.Adam, "SGD": torch.optim.SGD, "RMSprop": torch.optim.RMSprop}
 

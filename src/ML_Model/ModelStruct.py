@@ -443,11 +443,11 @@ class AttackTrainingClassification(nn.Module):
         to_save["parameter_keys"].remove("Unknowns")
         torch.save(to_save, path + f"/Epoch{epoch:03d}{Config.parameters['OOD Type'][0]}")
 
-        oldPath = AttackTrainingClassification.findloadPath(epoch - 5, path)
+        oldPath, epoch = AttackTrainingClassification.findloadPath(path, epoch=epoch - 5)
         if os.path.exists(oldPath):
             os.remove(oldPath)
 
-    def loadPoint(net, path: str, deleteOld=True):
+    def loadPoint(net, path=None, deleteOld=False):
         """
         Loads the most trained model from the path. Note: will break if trying to load a model with different configs.
 
@@ -457,14 +457,11 @@ class AttackTrainingClassification(nn.Module):
         returns:
             epochFound - the number of epochs the model that was found has run for.
         """
-        if not os.path.exists(path):
-            os.mkdir(path)
-        epochFound = AttackTrainingClassification.findloadEpoch(path)
-        if epochFound == -1:
-            print("No model to load found.")
-            return -1
-
-        pathFound = AttackTrainingClassification.findloadPath(epochFound, path)
+        
+        if path is None:
+            pathFound, epochFound = AttackTrainingClassification.findloadPath(path)
+        else:
+            pathFound, epochFound = (path, 0)
         loaded = torch.load(pathFound, map_location=device)
 
         print(f"Loaded  model from {pathFound}")
@@ -493,6 +490,8 @@ class AttackTrainingClassification(nn.Module):
         Finds the highest existing epoch save for this model type.
         returns -1 if none exists
         """
+        if not os.path.exists(path):
+            os.mkdir(path)
         i = 999
         # epochFound = -1
         for i in range(1000, -1, -1):
@@ -501,8 +500,17 @@ class AttackTrainingClassification(nn.Module):
         return -1
 
     @staticmethod
-    def findloadPath(epoch: int, path="Saves/models"):
-        return path + f"/Epoch{epoch:03d}{Config.parameters['OOD Type'][0]}"
+    def findloadPath(path="Saves/models", epoch=None):
+        if not os.path.exists(path):
+            os.mkdir(path)
+        if (epoch is not None):
+            epochFound = epoch
+        else:
+            epochFound = AttackTrainingClassification.findloadEpoch(path)
+        if epochFound == -1:
+            print("No model to load found.")
+            return -1
+        return path + f"/Epoch{epochFound:03d}{Config.parameters['OOD Type'][0]}", epochFound
 
     def storeReset(self):
         """

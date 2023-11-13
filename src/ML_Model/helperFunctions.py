@@ -4,6 +4,7 @@ import os
 import pandas as pd
 import torch
 import numpy as np
+import glob
 from sklearn.metrics import (precision_score, recall_score, accuracy_score)
 from sklearn.metrics import confusion_matrix
 
@@ -304,6 +305,11 @@ def getFoundUnknown(dat):
         return 0, 0
     else:
         return recall[-1], accuracy[-1]
+
+
+def get_saved_models():
+    fileNames = glob.glob("*", root_dir="Saves/models")
+    return fileNames
 
 
 def shuffleCSVs():

@@ -11,6 +11,7 @@ from itertools import filterfalse
 from tqdm import tqdm
 import copy
 import random
+import glob
 
 # List of conversions:
 if Config.parameters["Dataset"][0] == "Payload_data_CICIDS2017":
@@ -21,7 +22,7 @@ else:
     print("ERROR, Dataset not implemented")
 # PROTOCOLS = {"udp": 0, "tcp": 1}
 PROTOCOLS = {"udp": 0, "tcp": 1, "others": 2, "ospf": 3, "sctp": 4, "gre": 5, "swipe": 6, "mobile": 7, "sun-nd": 8, "sep": 9, "unas": 10, "pim": 11, "secure-vmtp": 12, "pipe": 13, "etherip": 14, "ib": 15, "ax.25": 16, "ipip": 17, "sps": 18, "iplt": 19, "hmp": 20, "ggp": 21, "ipv6": 22, "rdp": 23, "rsvp": 24, "sccopmce": 25, "egp": 26, "vmtp": 27, "snp": 28, "crtp": 29, "emcon": 30, "nvp": 31, "fire": 32, "crudp": 33, "gmtp": 34, "dgp": 35, "micp": 36, "leaf-2": 37, "arp": 38, "fc": 39, "icmp": 40, "other": 41}
-LISTCLASS = {CLASSLIST[x]: x for x in range(Config.parameters["CLASSES"][0])}
+LISTCLASS = {CLASSLIST[x]: x for x in CLASSLIST.keys()}
 CHUNKSIZE = 10000
 attemptload_message = True
 
@@ -89,6 +90,15 @@ def recreateDL(dl: torch.utils.data.DataLoader, shuffle=True):
     else:
         persistant_workers = False
     return DataLoader(combinedList, Config.parameters["batch_size"][0], shuffle=shuffle, num_workers=Config.parameters["num_workers"][0], pin_memory=False, persistent_workers=persistant_workers)
+
+
+def add_new_class(clss):
+    """
+    Adds new class to the class dictionary. Note, you need to call 'Config.recountclasses(CLASSLIST=CLASSLIST)' to change the number of classes
+    """
+    if clss not in LISTCLASS.keys():
+        LISTCLASS[clss] = len(LISTCLASS)
+        CLASSLIST[LISTCLASS[clss]] = clss
 
 
 device = get_default_device()
@@ -188,9 +198,9 @@ class ClassDivDataset(Dataset):
             self.listOfCountsOffset = self.listOfCountsOffset.loc[self.use]
             self.listOfCountsOffset = self.listOfCountsOffset - self.listOfCounts
             if Config.datasetRandomOffset:
-                self.listOfCountsOffset = self.listOfCountsOffset.applymap(lambda x: 0 if x <= 0 else random.randrange(x))
+                self.listOfCountsOffset = self.listOfCountsOffset.map(lambda x: 0 if x <= 0 else random.randrange(x))
             else:
-                self.listOfCountsOffset = self.listOfCountsOffset.applymap(lambda x: 0)
+                self.listOfCountsOffset = self.listOfCountsOffset.map(lambda x: 0)
 
         if self.length is None:
             self.length = self.listOfCounts.sum().item()
@@ -397,9 +407,9 @@ class ClusterDivDataset(ClassDivDataset):
             self.listOfCountsOffset = self.listOfCountsOffset.loc[self.use]
             self.listOfCountsOffset = self.listOfCountsOffset - self.listOfCounts
             if Config.datasetRandomOffset:
-                self.listOfCountsOffset = self.listOfCountsOffset.applymap(lambda x: 0 if x <= 0 else random.randrange(x))
+                self.listOfCountsOffset = self.listOfCountsOffset.map(lambda x: 0 if x <= 0 else random.randrange(x))
             else:
-                self.listOfCountsOffset = self.listOfCountsOffset.applymap(lambda x: 0)
+                self.listOfCountsOffset = self.listOfCountsOffset.map(lambda x: 0)
         if self.length is None:
             self.length = self.listOfCounts.sum().sum().item()
 
@@ -1098,6 +1108,58 @@ class ClassDivDataset_flows(Dataset):
             if deleteOld:
                 os.remove(f"datasets/{Config.parameters['Dataset'][0]}_with_flows/file{file+1}")
             print(f"File {file} consolidation finished.")
+
+
+class savedPacketDataset(Dataset):
+    def __init__(self):
+        """
+        Reads all csv files in Saves/renamedPackets and uses them to train the model.
+        It will change the number of classes if there are new classes during initialization.
+
+        """
+        self.files = glob.glob("*.csv", root_dir="Saves/renamedPackets/")
+        self.filelengths = [-1 for x in self.files]
+
+        for num, file in enumerate(self.files):
+            df = pd.read_csv(f"Saves/renamedPackets/{file}")
+            if ("label" not in df.columns) or (len(df.columns) != 1505):
+                print(f"file '{file}' not in right format, removing from list")
+                self.filelengths.pop(num)
+                self.files.remove(file)
+            else:
+                for clss in df["label"].unique():
+                    add_new_class(clss)
+                self.filelengths[num] = len(df)
+
+        Config.recountclasses(CLASSLIST=CLASSLIST)
+
+    def __len__(self):
+        return sum(self.filelengths)
+
+    def __getitem__(self, index) -> (torch.Tensor, torch.Tensor):
+
+        starting_index = index
+        starting_index
+
+        file_index = 0
+        while index > self.filelengths[file_index]:
+            index -= self.filelengths[file_index]
+
+        df = pd.read_csv(f"Saves/renamedPackets/{self.files[file_index]}")
+
+        item = df[index: index + 1]
+        label = item.pop("label")
+
+        data = item.iloc[0]
+        data = torch.tensor(data.to_numpy())
+
+        label = torch.tensor(int(LISTCLASS[label.iloc[0]]), dtype=torch.long)
+        label.unsqueeze_(0)
+        label2 = groupDoS(label.clone())
+
+        label = torch.cat([label2, label], dim=0)
+
+        return (data, label)
 
 
 def downloadDataset():
