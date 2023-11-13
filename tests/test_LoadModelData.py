@@ -6,6 +6,8 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))) + "
 import Dataload
 import torch
 import Config
+Config.parameters["Dataset"][0] = "UnitTesting"
+Config.parameters["Dataloader_Variation"][0] = "Standard"
 
 
 def test_checkAttempLoad():

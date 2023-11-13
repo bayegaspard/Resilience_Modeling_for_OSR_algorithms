@@ -24,6 +24,7 @@ else:
 PROTOCOLS = {"udp": 0, "tcp": 1, "others": 2, "ospf": 3, "sctp": 4, "gre": 5, "swipe": 6, "mobile": 7, "sun-nd": 8, "sep": 9, "unas": 10, "pim": 11, "secure-vmtp": 12, "pipe": 13, "etherip": 14, "ib": 15, "ax.25": 16, "ipip": 17, "sps": 18, "iplt": 19, "hmp": 20, "ggp": 21, "ipv6": 22, "rdp": 23, "rsvp": 24, "sccopmce": 25, "egp": 26, "vmtp": 27, "snp": 28, "crtp": 29, "emcon": 30, "nvp": 31, "fire": 32, "crudp": 33, "gmtp": 34, "dgp": 35, "micp": 36, "leaf-2": 37, "arp": 38, "fc": 39, "icmp": 40, "other": 2}
 LISTCLASS = {CLASSLIST[x]: x for x in CLASSLIST.keys()}
 CHUNKSIZE = 10000
+COLUMNS = [f"payload_byte_{x+1}" for x in range(1500)] + ["ttl", "total_len", "protocol", "t_delta"]
 attemptload_message = True
 
 
@@ -1167,6 +1168,7 @@ def downloadDataset():
     if not os.path.exists("datasets"):
         os.mkdir("datasets")
     if not os.path.exists("datasets/" + name + ".csv"):
+        # import onedrivedownloader
         print(f"I am sorry, the dataset {name} cannot currently be downloaded remotely. \n Please visit 'https://github.com/Yasir-ali-farrukh/Payload-Byte/tree/main/Data' and put the datasets in the 'datasets' directory")
 
 
@@ -1236,6 +1238,13 @@ def checkAttempLoad(root_path=""):
     if Config.parameters["testlength"][0] == 1 and Config.parameters["num_epochs"][0] == 0:
         train = test
     return train, test, val
+
+
+def pandas_to_tensor(df: pd.DataFrame):
+    assert all(df.columns.to_list() == COLUMNS)
+    if "protocol" in df.columns:
+        df["protocol"] = df["protocol"].map(PROTOCOLS)
+    return torch.tensor(df.to_numpy())
 
 
 # modified from the torch multiprocessing demo:

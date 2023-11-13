@@ -10,7 +10,8 @@ import ModelStruct
 import Config
 import helperFunctions
 import torch
-
+Config.parameters["Dataset"][0] = "UnitTesting"
+Config.parameters["Dataloader_Variation"][0] = "Standard"
 
 train, test, val = Dataload.checkAttempLoad()
 training = Dataload.DataLoader(train, 100, shuffle=True, num_workers=0, pin_memory=False)

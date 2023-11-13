@@ -314,6 +314,9 @@ class AttackTrainingClassification(nn.Module):
                 This data should be in the form of: (IxF) where I is the number of instances of the data and F is the number of features.
             generateStability - Booliean value stating if datashiftFactor should be calculated.
         """
+        if not isinstance(batch, torch.Tensor):
+            batch = Dataload.pandas_to_tensor(batch)
+
         new_data = outputDataObject.outputDataUpdateObject()
         self.eval()
         out_logits = self(batch)  # Run the model without the endlayer
@@ -457,7 +460,7 @@ class AttackTrainingClassification(nn.Module):
         returns:
             epochFound - the number of epochs the model that was found has run for.
         """
-        
+
         if path is None:
             pathFound, epochFound = AttackTrainingClassification.findloadPath(path)
         else:
