@@ -328,6 +328,9 @@ class AttackTrainingClassification(nn.Module):
             # DOC already applies an argmax equivalent so we do not apply one here.
             predictions = out
 
+        new_data.predictions = predictions.numpy()
+        new_data.prediction_confidence = out_logits.max(dim=1)[0]
+
         # This bit of code generates the stability metrics (Incomplete)
         if generateStability:
             self.batch_fdHook.class_vals = predictions

@@ -53,9 +53,11 @@ def test_modelDataObject():
     assert len(data_object.attacks) == Config.parameters["CLASSES"][0] - 1
     assert data_object.num_packets == len(batch[0])
     assert isinstance(data_object.unknowns, list)
+    assert len(batch[0]) == len(data_object.predictions)
+    assert len(batch[0]) == len(data_object.prediction_confidence)
 
 
-def test_loadModel():
+def test_loadModelOld():
     listOfModels = helperFunctions.get_saved_models()
     if len(listOfModels) < 2:
         pytest.skip(f"Too few model savepoints to test loading. Need at least two, found {len(listOfModels)}.")
@@ -68,4 +70,21 @@ def test_loadModel():
     output2 = model(batch[0])
     for x in range(len(output1)):
         assert torch.all(output1[x] == output2[x])
-        assert not torch.all(output0[x] == output1[x])
+        assert not torch.all(output0 == output1)
+
+
+def test_loadModel():
+    listOfModels = helperFunctions.get_saved_models()
+    if len(listOfModels) < 2:
+        pytest.skip(f"Too few model savepoints to test loading. Need at least two, found {len(listOfModels)}.")
+
+    model1 = ModelStruct.Conv1DClassifier(mode="SoftThresh", numberOfFeatures=Dataload.getDatagroup()[0].data_length)
+    model1.loadPoint("Saves/models/" + listOfModels[0])
+    model2 = ModelStruct.Conv1DClassifier(mode="SoftThresh", numberOfFeatures=Dataload.getDatagroup()[0].data_length)
+    model2.fit(3, 1, training, validation, opt_func=torch.optim.Adam)
+
+    # Comparison from: https://discuss.pytorch.org/t/check-if-models-have-same-weights/4351/2
+    for p1, p2 in zip(model1.parameters(), model2.parameters()):
+        if p1.data.ne(p2.data).sum() > 0:
+            return
+    assert False, "Model is the same both before and after it loads"
