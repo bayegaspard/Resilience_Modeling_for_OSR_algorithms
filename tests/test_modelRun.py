@@ -10,11 +10,13 @@ import ModelStruct
 import Config
 import helperFunctions
 import torch
+torch.manual_seed(0)
 Config.parameters["Dataset"][0] = "UnitTesting"
 Config.parameters["Dataloader_Variation"][0] = "Standard"
 Config.parameters["MaxPerClass"][0] = 10
 
 train, test, val = Dataload.checkAttempLoad()
+torch.manual_seed(0)
 training = Dataload.DataLoader(train, 100, shuffle=True, num_workers=0, pin_memory=False)
 testing = Dataload.DataLoader(test, 100, shuffle=True, num_workers=0, pin_memory=False)
 validation = Dataload.DataLoader(val, 100, shuffle=True, num_workers=0, pin_memory=False)
@@ -69,7 +71,7 @@ def test_loadModelOld():
         for x in range(5):
             model.fit(1, 2, training, validation, opt_func=torch.optim.Adam)
             Config.unit_test_mode = False
-            model.savePoint("Saves/models", (x + 1))
+            model.savePoint("Saves/models", x + 1)
             Config.unit_test_mode = True
         listOfModels = helperFunctions.get_saved_models()
         # pytest.skip(f"Too few model savepoints to test loading. Need at least two, found {len(listOfModels)}.")
@@ -100,7 +102,7 @@ def test_loadModel():
         for x in range(5):
             model.fit(1, 2, training, validation, opt_func=torch.optim.Adam)
             Config.unit_test_mode = False
-            model.savePoint("Saves/models", (x + 1))
+            model.savePoint("Saves/models", x + 1)
             Config.unit_test_mode = True
         listOfModels = helperFunctions.get_saved_models()
         # pytest.skip(f"Too few model savepoints to test loading. Need at least two, found {len(listOfModels)}.")

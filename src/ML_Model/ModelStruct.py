@@ -449,9 +449,10 @@ class AttackTrainingClassification(nn.Module):
         to_save["parameter_keys"].remove("Unknowns")
         torch.save(to_save, path + f"/Epoch{epoch:03d}{Config.parameters['OOD Type'][0]}")
 
-        oldPath, epoch = AttackTrainingClassification.findloadPath(path, epoch=epoch - 5)
-        if os.path.exists(oldPath):
-            os.remove(oldPath)
+        if epoch >= 5:
+            oldPath, epoch = AttackTrainingClassification.findloadPath(path, epoch=epoch - 5)
+            if os.path.exists(oldPath):
+                os.remove(oldPath)
 
     def loadPoint(net, path=None, deleteOld=False):
         """
@@ -515,7 +516,7 @@ class AttackTrainingClassification(nn.Module):
             epochFound = AttackTrainingClassification.findloadEpoch(path)
         if epochFound == -1:
             print("No model to load found.")
-            return -1
+            return "", -1
         return path + f"/Epoch{epochFound:03d}{Config.parameters['OOD Type'][0]}", epochFound
 
     def storeReset(self):
