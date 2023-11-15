@@ -1,0 +1,137 @@
+-- MariaDB dump 10.19  Distrib 10.11.4-MariaDB, for debian-linux-gnu (x86_64)
+--
+-- Host: localhost    Database: SENIOR
+-- ------------------------------------------------------
+-- Server version	10.11.4-MariaDB-1~deb12u1
+
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!40101 SET NAMES utf8mb4 */;
+/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
+/*!40103 SET TIME_ZONE='+00:00' */;
+/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
+/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
+/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
+/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
+
+--
+-- Table structure for table `CLASS`
+--
+
+DROP TABLE IF EXISTS `CLASS`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `CLASS` (
+  `CLASS_NAME` varchar(64) NOT NULL,
+  `MODEL_ID` int(11) NOT NULL,
+  PRIMARY KEY (`CLASS_NAME`,`MODEL_ID`),
+  KEY `MODEL_ID` (`MODEL_ID`),
+  CONSTRAINT `CLASS_ibfk_1` FOREIGN KEY (`MODEL_ID`) REFERENCES `MODEL` (`MODEL_ID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `CLASS`
+--
+
+LOCK TABLES `CLASS` WRITE;
+/*!40000 ALTER TABLE `CLASS` DISABLE KEYS */;
+/*!40000 ALTER TABLE `CLASS` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `MODEL`
+--
+
+DROP TABLE IF EXISTS `MODEL`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `MODEL` (
+  `MODEL_ID` int(11) NOT NULL AUTO_INCREMENT,
+  `MODEL_NAME` char(64) DEFAULT NULL,
+  `MODEL_NUM_CLASSES` int(11) DEFAULT NULL,
+  `MODEL_LAST_RETRAIN` date DEFAULT NULL,
+  `MODEL_SIZE` int(11) DEFAULT NULL,
+  PRIMARY KEY (`MODEL_ID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `MODEL`
+--
+
+LOCK TABLES `MODEL` WRITE;
+/*!40000 ALTER TABLE `MODEL` DISABLE KEYS */;
+/*!40000 ALTER TABLE `MODEL` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `PACKET`
+--
+
+DROP TABLE IF EXISTS `PACKET`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `PACKET` (
+  `PACK_ID` int(11) NOT NULL AUTO_INCREMENT,
+  `PACK_ORIGIN_IP` char(64) DEFAULT NULL,
+  `PACK_DEST_IP` char(64) DEFAULT NULL,
+  `PACK_PAYLOAD` text DEFAULT NULL,
+  PRIMARY KEY (`PACK_ID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `PACKET`
+--
+
+LOCK TABLES `PACKET` WRITE;
+/*!40000 ALTER TABLE `PACKET` DISABLE KEYS */;
+/*!40000 ALTER TABLE `PACKET` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `PACK_LABEL`
+--
+
+DROP TABLE IF EXISTS `PACK_LABEL`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `PACK_LABEL` (
+  `PACK_ID` int(11) NOT NULL,
+  `MODEL_ID` int(11) NOT NULL,
+  `PACK_CLASS` varchar(64) NOT NULL,
+  `PACK_CONFIDENCE` float NOT NULL,
+  PRIMARY KEY (`PACK_ID`,`MODEL_ID`),
+  KEY `MODEL_ID` (`MODEL_ID`),
+  KEY `PACK_CLASS` (`PACK_CLASS`),
+  CONSTRAINT `PACK_LABEL_ibfk_1` FOREIGN KEY (`PACK_ID`) REFERENCES `PACKET` (`PACK_ID`),
+  CONSTRAINT `PACK_LABEL_ibfk_2` FOREIGN KEY (`MODEL_ID`) REFERENCES `MODEL` (`MODEL_ID`),
+  CONSTRAINT `PACK_LABEL_ibfk_3` FOREIGN KEY (`PACK_CLASS`) REFERENCES `CLASS` (`CLASS_NAME`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `PACK_LABEL`
+--
+
+LOCK TABLES `PACK_LABEL` WRITE;
+/*!40000 ALTER TABLE `PACK_LABEL` DISABLE KEYS */;
+/*!40000 ALTER TABLE `PACK_LABEL` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Dumping routines for database 'SENIOR'
+--
+/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
+
+/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
+/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
+/*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
+
+-- Dump completed on 2023-11-15 18:57:05
