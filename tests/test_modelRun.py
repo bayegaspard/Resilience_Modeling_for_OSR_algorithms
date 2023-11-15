@@ -69,10 +69,10 @@ def test_loadModelOld():
         # pytest.skip(f"Too few model savepoints to test loading. Need at least two, found {len(listOfModels)}.")
     batch = iter(training)._next_data()
     i = 1
-    model.loadPoint("Saves/models/" + listOfModels[i])
-    output0 = model(batch[0])
     model.loadPoint("Saves/models/" + listOfModels[0])
     output1 = model(batch[0])
+    model.loadPoint("Saves/models/" + listOfModels[i])
+    output0 = model(batch[0])
     model.loadPoint("Saves/models/" + listOfModels[0])
     output2 = model(batch[0])
     for x in range(len(output1)):
