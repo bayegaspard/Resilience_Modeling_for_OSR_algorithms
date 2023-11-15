@@ -60,7 +60,7 @@ def test_modelDataObject():
 def test_loadModelOld():
     listOfModels = helperFunctions.get_saved_models()
     if len(listOfModels) < 2:
-        for x in range(3):
+        for x in range(5):
             model.fit(3, 1, training, validation, opt_func=torch.optim.Adam)
             Config.unit_test_mode = False
             model.savePoint("Saves/models", (x + 1) * 3)
