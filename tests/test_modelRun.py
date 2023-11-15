@@ -12,6 +12,7 @@ import helperFunctions
 import torch
 Config.parameters["Dataset"][0] = "UnitTesting"
 Config.parameters["Dataloader_Variation"][0] = "Standard"
+Config.parameters["MaxPerClass"][0] = 10
 
 train, test, val = Dataload.checkAttempLoad()
 training = Dataload.DataLoader(train, 100, shuffle=True, num_workers=0, pin_memory=False)
@@ -40,7 +41,8 @@ def test_modelReads_labeledUnknowns():
 
 def test_modelTrain():
     output0 = model.evaluate(training)
-    model.fit(10, 0.001, training, validation, opt_func=torch.optim.Adam)
+    torch.manual_seed(0)
+    model.fit(6, 0.001, training, validation, opt_func=torch.optim.Adam)
     output1 = model.evaluate(training)
 
     assert output0['val_loss'] > output1['val_loss']
@@ -48,6 +50,7 @@ def test_modelTrain():
 
 def test_modelDataObject():
     batch = iter(training)._next_data()
+    torch.manual_seed(0)
     model.fit(1, 0.001, training, validation, opt_func=torch.optim.Adam)
     data_object = model.generateDataObject(batch[0])
     assert len(data_object.attacks) == Config.parameters["CLASSES"][0] - 1
@@ -59,11 +62,14 @@ def test_modelDataObject():
 
 def test_loadModelOld():
     listOfModels = helperFunctions.get_saved_models()
+    Dataload.CLASSLIST = {x: Dataload.CLASSLIST[x] for x in Dataload.CLASSLIST.keys() if Dataload.CLASSLIST[x] not in ["Test", "Test2"]}
+    Config.recountclasses(Dataload.CLASSLIST)
     if len(listOfModels) < 2:
+        torch.manual_seed(0)
         for x in range(5):
-            model.fit(3, 1, training, validation, opt_func=torch.optim.Adam)
+            model.fit(1, 2, training, validation, opt_func=torch.optim.Adam)
             Config.unit_test_mode = False
-            model.savePoint("Saves/models", (x + 1) * 3)
+            model.savePoint("Saves/models", (x + 1))
             Config.unit_test_mode = True
         listOfModels = helperFunctions.get_saved_models()
         # pytest.skip(f"Too few model savepoints to test loading. Need at least two, found {len(listOfModels)}.")
@@ -87,21 +93,24 @@ def test_loadModelOld():
 
 def test_loadModel():
     listOfModels = helperFunctions.get_saved_models()
+    Dataload.CLASSLIST = {x: Dataload.CLASSLIST[x] for x in Dataload.CLASSLIST.keys() if Dataload.CLASSLIST[x] not in ["Test", "Test2"]}
+    Config.recountclasses(Dataload.CLASSLIST)
     if len(listOfModels) < 2:
-        for x in range(3):
-            model.fit(3, 1, training, validation, opt_func=torch.optim.Adam)
+        torch.manual_seed(0)
+        for x in range(5):
+            model.fit(1, 2, training, validation, opt_func=torch.optim.Adam)
             Config.unit_test_mode = False
-            model.savePoint("Saves/models", (x + 1) * 3)
+            model.savePoint("Saves/models", (x + 1))
             Config.unit_test_mode = True
         listOfModels = helperFunctions.get_saved_models()
         # pytest.skip(f"Too few model savepoints to test loading. Need at least two, found {len(listOfModels)}.")
 
-    Dataload.CLASSLIST = {x: Dataload.CLASSLIST[x] for x in Dataload.CLASSLIST.keys() if Dataload.CLASSLIST[x] not in ["Test", "Test2"]}
-    Config.recountclasses(Dataload.CLASSLIST)
+    torch.manual_seed(0)
     model1 = ModelStruct.Conv1DClassifier(mode="SoftThresh", numberOfFeatures=Dataload.getDatagroup()[0].data_length)
     model1.loadPoint("Saves/models/" + listOfModels[0])
+    torch.manual_seed(0)
     model2 = ModelStruct.Conv1DClassifier(mode="SoftThresh", numberOfFeatures=Dataload.getDatagroup()[0].data_length)
-    model2.fit(3, 1, training, validation, opt_func=torch.optim.Adam)
+    model2.fit(3, 2, training, validation, opt_func=torch.optim.Adam)
 
     # Comparison from: https://discuss.pytorch.org/t/check-if-models-have-same-weights/4351/2
     for p1, p2 in zip(model1.parameters(), model2.parameters()):

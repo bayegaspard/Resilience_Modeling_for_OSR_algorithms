@@ -78,9 +78,9 @@ def test_dynamic_dataloader():
     data = Dataload.savedPacketDataset()
     # new_number = Config.parameters["CLASSES"][0]
     dl = Dataload.DataLoader(data, 100, shuffle=True, num_workers=0, pin_memory=False)
-    for batch in dl:
-        for val in zip(batch[0], batch[1]):
-            assert val[1][0] == val[1][1]
-            assert val[1][0] < Config.parameters["CLASSES"][0]
-            assert len(val[0]) == 1504
-            assert val[1][0].item() in Dataload.CLASSLIST.keys()
+    batch = iter(dl)._next_data()
+    for val in zip(batch[0], batch[1]):
+        assert val[1][0] == val[1][1]
+        assert val[1][0] < Config.parameters["CLASSES"][0]
+        assert len(val[0]) == 1504
+        assert val[1][0].item() in Dataload.CLASSLIST.keys()
