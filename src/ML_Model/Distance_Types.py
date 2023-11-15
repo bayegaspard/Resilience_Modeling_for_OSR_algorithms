@@ -83,6 +83,7 @@ class forwardHook():
         self.class_vals = None  # these are the final classifications for each row in the batch
         self.means = {}
         self.distFunct = "intra_spread"
+        self.rm = None
 
     def __call__(self, module: torch.nn.Module, input: torch.Tensor, output: torch.Tensor):
         # print("Forward hook called")

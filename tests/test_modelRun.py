@@ -1,6 +1,6 @@
 import os
 import sys
-import pytest
+# import pytest
 sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 test = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 sys.path.append(os.path.join(os.path.dirname(os.path.dirname(os.path.realpath(__file__))), "src"))
@@ -60,9 +60,16 @@ def test_modelDataObject():
 def test_loadModelOld():
     listOfModels = helperFunctions.get_saved_models()
     if len(listOfModels) < 2:
-        pytest.skip(f"Too few model savepoints to test loading. Need at least two, found {len(listOfModels)}.")
+        for x in range(3):
+            model.fit(3, 1, training, validation, opt_func=torch.optim.Adam)
+            Config.unit_test_mode = False
+            model.savePoint("Saves/models", (x + 1) * 3)
+            Config.unit_test_mode = True
+        listOfModels = helperFunctions.get_saved_models()
+        # pytest.skip(f"Too few model savepoints to test loading. Need at least two, found {len(listOfModels)}.")
     batch = iter(training)._next_data()
-    model.loadPoint("Saves/models/" + listOfModels[2])
+    i = 1
+    model.loadPoint("Saves/models/" + listOfModels[i])
     output0 = model(batch[0])
     model.loadPoint("Saves/models/" + listOfModels[0])
     output1 = model(batch[0])
@@ -70,14 +77,27 @@ def test_loadModelOld():
     output2 = model(batch[0])
     for x in range(len(output1)):
         assert torch.all(output1[x] == output2[x])
-        assert not torch.all(output0 == output1)
+    while torch.all(output0 == output1) and i + 1 < len(listOfModels):
+        # Just need to show that the results are different for one version of the model.
+        i += 1
+        model.loadPoint("Saves/models/" + listOfModels[i])
+        output0 = model(batch[0])
+    assert not torch.all(output0 == output1)
 
 
 def test_loadModel():
     listOfModels = helperFunctions.get_saved_models()
     if len(listOfModels) < 2:
-        pytest.skip(f"Too few model savepoints to test loading. Need at least two, found {len(listOfModels)}.")
+        for x in range(3):
+            model.fit(3, 1, training, validation, opt_func=torch.optim.Adam)
+            Config.unit_test_mode = False
+            model.savePoint("Saves/models", (x + 1) * 3)
+            Config.unit_test_mode = True
+        listOfModels = helperFunctions.get_saved_models()
+        # pytest.skip(f"Too few model savepoints to test loading. Need at least two, found {len(listOfModels)}.")
 
+    Dataload.CLASSLIST = {x: Dataload.CLASSLIST[x] for x in Dataload.CLASSLIST.keys() if Dataload.CLASSLIST[x] not in ["Test", "Test2"]}
+    Config.recountclasses(Dataload.CLASSLIST)
     model1 = ModelStruct.Conv1DClassifier(mode="SoftThresh", numberOfFeatures=Dataload.getDatagroup()[0].data_length)
     model1.loadPoint("Saves/models/" + listOfModels[0])
     model2 = ModelStruct.Conv1DClassifier(mode="SoftThresh", numberOfFeatures=Dataload.getDatagroup()[0].data_length)

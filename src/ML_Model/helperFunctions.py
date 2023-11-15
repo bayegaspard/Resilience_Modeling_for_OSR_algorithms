@@ -309,6 +309,7 @@ def getFoundUnknown(dat):
 
 def get_saved_models():
     fileNames = glob.glob("*", root_dir="Saves/models")
+    fileNames.sort()
     return fileNames
 
 

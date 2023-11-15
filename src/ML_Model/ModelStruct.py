@@ -170,7 +170,7 @@ class AttackTrainingClassification(nn.Module):
                 for epoch in tqdmEpoch:
                     self.end.resetvals()
                     self.storeReset()
-                    if self.batch_fdHook is not None:
+                    if self.batch_fdHook is not None and self.batch_fdHook.rm is not None:
                         self.batch_fdHook.rm.remove()
                     self.batch_fdHook = Distance_Types.forwardHook()
                     self.batch_fdHook.rm = self.flatten.register_forward_hook(self.batch_fdHook)
@@ -336,7 +336,7 @@ class AttackTrainingClassification(nn.Module):
             self.batch_fdHook.class_vals = predictions
             self.batch_fdHook.rm = self.flatten.register_forward_hook(self.batch_fdHook)
             self(batch)
-            self.batch_fdHook.rm
+            self.batch_fdHook.rm.remove()
             new_data.datashiftFactor = np.array([self.batch_fdHook.distances[x].detach() for x in self.batch_fdHook.distances.keys()]).sum()
 
         assert isinstance(predictions, torch.Tensor), "Model Output Not torch Tensor, should not be possible"
