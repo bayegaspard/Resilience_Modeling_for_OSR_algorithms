@@ -1,3 +1,13 @@
-
+.cachedVenv
+.venv
+venv
+__pycache__
+.pytest_cache
 *.json
 *.pyc
+.DS_Store
+*.csv
+*.pt
+!datasets/UnitTesting/*
+!datasets/UnitTestingcounts.csv
+!Saves/renamedPackets/chunkWeb Attack – XSS0.csv
