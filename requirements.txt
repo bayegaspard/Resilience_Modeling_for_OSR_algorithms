@@ -7,3 +7,5 @@ pytest
 tqdm
 # onedrivedownloader
 pyshark
+dash
+Pyro5
