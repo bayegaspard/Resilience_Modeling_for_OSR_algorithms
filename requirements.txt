@@ -6,3 +6,4 @@ scikit-learn>=0.24
 pytest
 tqdm
 # onedrivedownloader
+pyshark

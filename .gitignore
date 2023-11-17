@@ -1,4 +1,8 @@
-
+.cachedVenv
+.venv
+venv
+__pycache__
+.pytest_cache
 *.json
 *.pyc
 .DS_Store
