@@ -330,7 +330,10 @@ class AttackTrainingClassification(nn.Module):
             # DOC already applies an argmax equivalent so we do not apply one here.
             predictions = out
 
-        new_data.predictions = predictions.numpy()
+        new_data.predictions_numerical = predictions.numpy()
+        index_to_class = Dataload.CLASSLIST.copy()
+        index_to_class[len(index_to_class)] = "Unknown"
+        new_data.predictions_string = [index_to_class for x in new_data.predictions_numerical]
         new_data.prediction_confidence = out_logits.max(dim=1)[0]
 
         # This bit of code generates the stability metrics (Incomplete)
@@ -443,7 +446,9 @@ class AttackTrainingClassification(nn.Module):
         to_save = {
             "model_state": net.state_dict(),
             "parameter_keys": list(Config.parameters.keys()),
-            "parameters": Config.parameters
+            "parameters": Config.parameters,
+            "CLASSLIST": Dataload.CLASSLIST,
+            "LISTCLASS": Dataload.LISTCLASS
         }
         if net.batch_fdHook is not None:
             to_save["batchSaveClassMeans"] = net.batch_fdHook.means
@@ -474,6 +479,17 @@ class AttackTrainingClassification(nn.Module):
         loaded = torch.load(pathFound, map_location=device)
 
         print(f"Loaded  model from {pathFound}")
+
+        # # Count the classes
+        if all([x in Dataload.CLASSLIST.keys() for x in loaded["CLASSLIST"].keys()]) and all([loaded["CLASSLIST"][x] == Dataload.CLASSLIST[x] for x in loaded["CLASSLIST"].keys()]):
+            print("Model has identical classes")
+        else:
+            Dataload.CLASSLIST = loaded["CLASSLIST"]
+            Dataload.LISTCLASS = loaded["LISTCLASS"]
+            Config.recountclasses(Dataload.CLASSLIST)
+            print(f"CLASSES have changed, there are now {Config.parameters['CLASSES'][0]} classes")
+            net = net.__class__()
+
         for x in loaded["parameter_keys"]:
 
             #  assert x in Config.parameters.keys() # Make sure that the model loaded actually has all of the needed values
