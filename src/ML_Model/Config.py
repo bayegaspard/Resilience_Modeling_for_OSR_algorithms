@@ -90,14 +90,15 @@ parameters = {
                 "4: Loop through predefined hyperparameters found in datasets/hyperparamList.csv"],
     "Dataset": ["Payload_data_CICIDS2017", "This is what dataset we are using, ", ["Payload_data_CICIDS2017", "Payload_data_UNSW"]],
     "SchedulerStepSize": [10, "This is how often the scheduler takes a step, 3 means every third epoch"],
-    "SchedulerStep": [0.9, "This is how big a step the scheduler takes, leave 0 for no step"]
+    "SchedulerStep": [0.9, "This is how big a step the scheduler takes, leave 0 for no step"],
+    "Var_filtering_threshold": [20, "If not -1, the model will first apply a varmax layer to the endlayer to know if the 'OOD Type' algorithm should be applied. This will use the number given as the threshold."]
 }
 
 
 # Argparse tutorial: https: //docs.python.org/3/howto/argparse.html
 parser = argparse.ArgumentParser()
 for x in parameters.keys():
-    if x in ["batch_size", "num_workers", "MaxPerClass", "num_epochs", "Degree of Overcompleteness", "Number of Layers", "Nodes", "SchedulerStepSize"]:
+    if x in ["batch_size", "num_workers", "MaxPerClass", "num_epochs", "Degree of Overcompleteness", "Number of Layers", "Nodes", "SchedulerStepSize", "Var_filtering_threshold"]:
         parser.add_argument(f"--{x}", type=int, default=parameters[x][0], help=parameters[x][1], required=False)
     if x in ["testlength", "learningRate", "threshold", "Dropout", "Temperature", "SchedulerStep"]:
         parser.add_argument(f"--{x}", type=float, default=parameters[x][0], help=parameters[x][1], required=False)

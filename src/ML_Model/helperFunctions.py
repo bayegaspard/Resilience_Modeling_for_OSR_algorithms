@@ -45,20 +45,6 @@ def setrelabel():
 setrelabel()
 
 
-def makeConsecutive(logits: torch.Tensor, labels: torch.Tensor):
-    """
-    OUTDATED: USE renameClasses() AND renameClassesLabeled()
-    This function renames all of the classes so that all of the known classes are consecutive. This makes them easier to work with
-    I wish I had just made the model have x outputs where x is the number of knowns instead of c outputs where c is the number of classes
-    """
-    global mask
-    loge = logits[mask]
-    newlabels = labels.clone()
-    for x in Config.parameters["Knowns_clss"][0]:
-        newlabels[labels == x] = relabel[x]
-    return loge, newlabels
-
-
 def deleteSaves():
     """
     This deletes all model saves to prevent curruption

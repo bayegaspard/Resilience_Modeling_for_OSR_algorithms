@@ -34,6 +34,7 @@ class EndLayers(nn.Module):
         self.end_type = type
         self.DOO = Config.parameters["Degree of Overcompleteness"][0]    # Degree of Overcompleteness for COOL
         self.weibulInfo = None
+        self.var_cutoff = Config.parameters["Var_filtering_threshold"][0]
         self.resetvals()
 
     def forward(self, output_true: torch.Tensor, y=None, type=None) -> torch.Tensor:
@@ -64,6 +65,12 @@ class EndLayers(nn.Module):
 
         # This is supposted to add an extra column for unknowns
         output_complete = self.typesOfUnknown[type](self, output_modified)
+
+        if self.var_cutoff > 0 and type not in ["COOL"]:
+            output_m_soft = self.typesOfMod.get("Soft", self.typesOfMod["none"])(self, output_true)
+            output_c_soft = self.typesOfUnknown["Soft"](self, output_m_soft)
+            var_mask = ~self.varmax_mask(output_true)
+            output_complete[var_mask] = output_c_soft[var_mask]
 
         return output_complete
 
@@ -97,29 +104,6 @@ class EndLayers(nn.Module):
                 self.m_in = m_in
                 self.m_out = m_out
                 self.T = temp
-
-            def selectKnowns(self, modelOut, labels: torch.Tensor):
-                """
-                I think this is another version of helerFunctions.renameClassesLabeled(). That is what? The third version?
-                TODO: clean this up. We don't need three different versions of a function that does this.
-                """
-                labels = labels.clone()
-                lastval = -1
-                label = list(range(Config.parameters["CLASSES"][0]))
-                newout = []
-                for val in Config.parameters["Unknowns_clss"][0]:
-                    label.remove(val)
-                    if val > lastval + 1:
-                        newout.append(modelOut[:, lastval + 1: val])
-                    lastval = val
-
-                newout = torch.cat(newout, dim=1)
-
-                i = 0
-                for l_label in label:
-                    labels[labels == l_label] = i
-                    i += 1
-                return newout, labels
         args = argsc()
 
         self.args = args
@@ -231,8 +215,20 @@ class EndLayers(nn.Module):
 
         return torch.cat([percentages, unknowns.unsqueeze(dim=-1)], dim=-1)
 
+    def varmax_final(self, logits: torch.Tensor):
+        self.rocData[1] = torch.var(torch.abs(logits), dim=1)
+        var_mask = self.varmax_mask(logits)
+        shape = logits.shape
+        unknown = torch.zeros([shape[0], 1], device=logits.device)
+        unknown[var_mask] = 2
+        output = torch.concat([torch.softmax(logits, dim=-1), unknown], dim=-1)
+        return output
+
+    def varmax_mask(self, logits):
+        return torch.var(torch.abs(logits), dim=1) < self.var_cutoff
+
     # all functions here return a mask with 1 in all valid locations and 0 in all invalid locations
-    typesOfUnknown = {"Soft": softMaxUnknown, "Energy": energyUnknown, "COOL": normalThesholdUnknown, "SoftThresh": normalThesholdUnknown, "DOC": DOCUnknown, "iiMod": iiUnknown}
+    typesOfUnknown = {"Soft": softMaxUnknown, "Energy": energyUnknown, "COOL": normalThesholdUnknown, "SoftThresh": normalThesholdUnknown, "DOC": DOCUnknown, "iiMod": iiUnknown, "Var": varmax_final}
 
     # ---------------------------------------------------------------------------------------------
     # This is the section for modifying the outputs for the final layer
@@ -283,7 +279,7 @@ class EndLayers(nn.Module):
         return percentages
 
     # all functions here return a tensor, sometimes it has an extra column for unknowns
-    typesOfMod = {"Soft": softMaxMod, "Odin": odinMod, "COOL": FittedLearningEval, "SoftThresh": softMaxMod, "DOC": DOCmod, "iiMod": iiLoss_Means, "none": noChange}
+    typesOfMod = {"Soft": softMaxMod, "Odin": odinMod, "COOL": FittedLearningEval, "SoftThresh": softMaxMod, "DOC": DOCmod, "iiMod": iiLoss_Means, "none": noChange, "Var": noChange}
 
     # ---------------------------------------------------------------------------------------------
     # This is the section for training label modification
@@ -352,4 +348,6 @@ class EndLayers(nn.Module):
         Finds the distances using iiMod's intra_spread function.
         """
         from CodeFromImplementations.iiMod import intra_spread
-        return intra_spread(outputs[:, Config.parameters["Knowns_clss"][0]][labels != Config.parameters["CLASSES"][0]], means, labels[labels != Config.parameters["CLASSES"][0]])
+        outputs_for_known_columns = outputs[:, Config.parameters["Knowns_clss"][0]]
+        anti_unknown_value_mask = labels != Config.parameters["CLASSES"][0]
+        return intra_spread(outputs_for_known_columns[anti_unknown_value_mask], means, labels[anti_unknown_value_mask])

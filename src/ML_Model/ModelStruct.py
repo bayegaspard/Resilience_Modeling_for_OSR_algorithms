@@ -223,7 +223,9 @@ class AttackTrainingClassification(nn.Module):
                     self.epoch = epoch + startingEpoch
         else:
             #  Validation phase
-            epoch = self.loadPoint("Saves/models")
+            if Config.parameters["attemptLoadModel"][0] == 0:
+                # don't double load
+                epoch = self.loadPoint("Saves/models")
             result = self.evaluate(val_loader)
             result['train_loss'] = -1
             self.epoch_end(epoch, result)
