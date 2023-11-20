@@ -27,9 +27,9 @@ def pcap2df(in_file):
 	for packet, raw_packet in zip(pcap, raw_pcap):
 		raw = raw_packet.get_raw_packet()
 		length = len(raw)
-		protocol = None
-		t_delta = None
-		ttl = None
+		protocol = 0
+		t_delta = 0
+		ttl = 0
 		if "IP" in packet:
 			ttl = packet.ip.ttl
 			if "UDP" in packet:
@@ -38,13 +38,13 @@ def pcap2df(in_file):
 			elif "TCP" in packet:
 				protocol = "tcp"
 				t_delta = packet.tcp.time_delta
-		if protocol == None:
+		if protocol == 0:
 			for prot in other_protocols:
 				if prot in packet:
 					protocol = prot.lower()
-			if protocol == None:
+			if protocol == 0:
 				protocol = "other"
-		data_array.append(raw + [ttl, length, protocol, t_delta])
+		data_array.append([byte for byte in raw] + [0 for _ in range(1500 - len(raw))] + [ttl, length, protocol, t_delta])
 	df = make_df(data_array)
 	model = ModelStruct.Conv1DClassifier()
 	ModelStruct.train_model(model)
