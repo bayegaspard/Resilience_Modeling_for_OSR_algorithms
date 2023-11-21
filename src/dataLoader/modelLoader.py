@@ -16,7 +16,7 @@ def load_model(dataframe):
 
 
 if __name__ == "__main__":
-	df = pcap2df("../../samplePackets.pcapng")
+	df = pcap2df("./samplePackets.pcapng")
 	model_output = load_model(df)
 	assert len(model_output.unknowns) > 0
 	assert len(model_output.attacks) == Config.parameters["CLASSES"][0] - 1
