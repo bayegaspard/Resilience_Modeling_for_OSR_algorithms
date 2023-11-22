@@ -119,3 +119,18 @@ def test_loadModel():
         if p1.data.ne(p2.data).sum() > 0:
             return
     assert False, "Model is the same both before and after it loads"
+
+
+def test_model_quicktrain():
+    torch.manual_seed(0)
+    mod1 = ModelStruct.Conv1DClassifier()
+    torch.manual_seed(0)
+    mod2 = ModelStruct.Conv1DClassifier()
+    torch.manual_seed(0)
+    ModelStruct.train_model(mod1)
+
+    # Comparison from: https://discuss.pytorch.org/t/check-if-models-have-same-weights/4351/2
+    for p1, p2 in zip(mod1.parameters(), mod2.parameters()):
+        if p1.data.ne(p2.data).sum() > 0:
+            return
+    assert False, "Model is the same both before and after it loads"

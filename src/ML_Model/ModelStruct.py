@@ -223,7 +223,9 @@ class AttackTrainingClassification(nn.Module):
                     self.epoch = epoch + startingEpoch
         else:
             #  Validation phase
-            epoch = self.loadPoint("Saves/models")
+            if Config.parameters["attemptLoadModel"][0] == 0:
+                # don't double load
+                epoch = self.loadPoint("Saves/models")
             result = self.evaluate(val_loader)
             result['train_loss'] = -1
             self.epoch_end(epoch, result)
@@ -612,3 +614,19 @@ class FullyConnected(AttackTrainingClassification):
             else:
                 sequencePackage.append(self.sequencePackage)
                 self.sequencePackage = sequencePackage
+
+
+def train_model(model: AttackTrainingClassification):
+    train, test, val = Dataload.checkAttempLoad()
+    new_data = Dataload.savedPacketDataset()
+    torch.utils.data.ConcatDataset([train, new_data])
+
+    training = Dataload.DataLoader(train, 100, shuffle=True, num_workers=0, pin_memory=False)
+    testing = Dataload.DataLoader(test, 100, shuffle=True, num_workers=0, pin_memory=False)
+    validation = Dataload.DataLoader(val, 100, shuffle=True, num_workers=0, pin_memory=False)
+
+    testing
+    validation
+
+    model.end.prepWeibull(training, torch.device('cpu'), model)
+    model.fit(25, 0.001, training, validation, opt_func=torch.optim.Adam)
