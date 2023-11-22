@@ -9,3 +9,4 @@ tqdm
 pyshark
 dash
 Pyro5
+psycopg
