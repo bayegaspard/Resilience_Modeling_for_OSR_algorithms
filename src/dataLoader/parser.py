@@ -2,6 +2,7 @@ import pyshark
 import os, sys
 import pandas as pd
 sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
+import ML_Model
 
 other_protocols = ["OSPF", "SCTP", "GRE", "SWIPE", "MOBILE", "SUN-ND", "SEP", "UNAS", "PIM", "SECURE-VMTP", "PIPE", "ETHERIP", "IB", "AX.25", "IPIP", "SPS", "IPLT", "HMP", "GGP", "IPV6", "RDP", "RSVP", "SCCOPMCE", "EGP", "VMTP", "SNP", "CRTP", "EMCON", "NVP", "FIRE", "CRUDP", "GMTP", "DGP", "MICP", "LEAF-2", "ARP", "FC", "ICMP"]
 
@@ -39,3 +40,8 @@ def pcap2df(in_file):
 				protocol = "other"
 		data_array.append([byte for byte in raw] + [0 for _ in range(1500 - len(raw))] + [ttl, length, protocol, t_delta])
 	df = make_df(data_array)
+	ML_Model.ModelStruct.Config.parameters["Dataset"][0] = "UnitTesting"
+	model = ML_Model.ModelStruct.Conv1DClassifier()
+	ML_Model.ModelStruct.train_model(model)
+	return model.generateDataObject(df)
+

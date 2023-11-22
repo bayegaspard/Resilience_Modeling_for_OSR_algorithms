@@ -60,14 +60,14 @@ parameters = {
     # These parameters are orginized like this:
     # "ParamName": [Value, "Description", [possible values]]
     # for a parameter called "ParamName" with a value of Value
-    "batch_size": [100000, "Number of items per batch"],
-    "num_workers": [14, "Number of threads working on building batches"],
+    "batch_size": [100, "Number of items per batch"],
+    "num_workers": [0, "Number of threads working on building batches"],
     "attemptLoadModel": [0, "0: do not use saves for the model\n1:use saves for the model"],
     "attemptLoadData": [0, "0: do not use saves for the dataset\n1:use saves for the dataset"],
     "testlength": [1 / 4, "[0, 1) percentage of training to test with"],
     "Mix unknowns and validation": [1, "0 or 1, 0 means that the test set is purely unknowns and 1 means that the testset is the validation set plus unknowns (for testing)"],
     "MaxPerClass": [10, "Maximum number of samples per class\n if Dataloader_Variation is Cluster and this value is a float it interprets it as the maximum percentage of the class instead."],
-    "num_epochs": [150, "Number of times it trains on the whole trainset"],
+    "num_epochs": [15, "Number of times it trains on the whole trainset"],
     "learningRate": [0.001, "a modifier for training"],
     "threshold": [0.5, "When to declare something to be unknown"],
     "model": ["Convolutional", "Model type", ["Fully_Connected", "Convolutional"]],
@@ -252,4 +252,4 @@ if parameters["LOOP"][0] == 3:
 
 save_as_tensorboard = False
 datasetRandomOffset = True
-dataparallel = True
+dataparallel = False

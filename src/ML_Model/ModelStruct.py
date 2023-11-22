@@ -637,12 +637,12 @@ def train_model(model: AttackTrainingClassification):
     new_data = Dataload.savedPacketDataset()
     torch.utils.data.ConcatDataset([train, new_data])
 
-    training = Dataload.DataLoader(train, 100, shuffle=True, num_workers=0, pin_memory=False)
-    testing = Dataload.DataLoader(test, 100, shuffle=True, num_workers=0, pin_memory=False)
-    validation = Dataload.DataLoader(val, 100, shuffle=True, num_workers=0, pin_memory=False)
+    training = Dataload.DataLoader(train, Config.parameters["batch_size"][0], shuffle=True, num_workers=0, pin_memory=False)
+    testing = Dataload.DataLoader(test, Config.parameters["batch_size"][0], shuffle=True, num_workers=0, pin_memory=False)
+    validation = Dataload.DataLoader(val, Config.parameters["batch_size"][0], shuffle=True, num_workers=0, pin_memory=False)
 
     testing
     validation
 
     model.end.prepWeibull(training, torch.device('cpu'), model)
-    model.fit(25, 0.001, training, validation, opt_func=torch.optim.Adam)
+    model.fit(Config.parameters["num_epochs"][0], Config.parameters["learningRate"][0], training, validation, opt_func=torch.optim.Adam)

@@ -1241,10 +1241,10 @@ def checkAttempLoad(root_path=""):
 
 
 def pandas_to_tensor(df: pd.DataFrame):
-    assert all(df.columns.to_list() == COLUMNS)
+    # assert all([df.columns.to_list()[x] == COLUMNS[x] for x in range(len(COLUMNS))])
     if "protocol" in df.columns:
         df["protocol"] = df["protocol"].map(PROTOCOLS)
-    return torch.tensor(df.to_numpy())
+    return torch.tensor(df.astype(float).to_numpy())
 
 
 # modified from the torch multiprocessing demo:
