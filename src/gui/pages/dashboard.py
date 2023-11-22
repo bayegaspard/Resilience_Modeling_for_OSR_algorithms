@@ -2,6 +2,7 @@ import dash
 from dash import html, dcc, callback, Input, Output
 import dash_ag_grid as dag
 import plotly.express as px
+import pandas as pd
 import sys
 sys.path.append("..")
 import client
@@ -37,15 +38,21 @@ layout = html.Div([
                         "Packet header: ",
                         html.Span(id="packet-header")
                     ]),
-                    html.P("Packet type: Heartbleed"),
-                    html.P("Confidence: 71%"),
+                    html.P([
+                        "Packet type: ",
+                        html.Span(id="packet-class")
+                    ]),
+                    html.P([
+                        "Confidence: ",
+                        html.Span(id="packet-conf")
+                    ]),
                     html.Button("Manully Reclassify"),
                     html.Button("Similar Packets"),
                 ], className="card"),
                 # packet raw data
                 html.Div([
                     html.H3("Packet Data", className="card-header"),
-                    html.P("0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 ", className="packet-hex")
+                    html.P("0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 ", className="packet-hex", id="packet-hex")
                 ], className="card hex-container")
             ], className="row")
         ], className="col left"),
@@ -56,43 +63,45 @@ layout = html.Div([
                 html.Div([
                     dag.AgGrid(
                         id="packets",
-                        columnDefs=[{"field": "Time"}, {"field": "Source"}, {"field": "Destination"}, {"field": "Protocol"}, {"field": "Length"}, {"field": "Info"}],
+                        columnDefs=[{"field": "PACK_ID", "hide": True}, {"field": "PACK_ORIGIN_IP"}, {"field": "PACK_DEST_IP"},
+                                    {"field": "PACK_PAYLOAD", "hide": True}, {"field": "PACK_CLASS"}, {"field": "PACK_CONFIDENCE"}],
                         defaultColDef={"resizable": True, "sortable": True, "filter": True},
-                        columnSize="autoSize",
+                        columnSize="sizeToFit",
                         style={"height": "100%"},
                         dashGridOptions={"rowSelection": "single", "rowMultiSelectWithClick": False},
-                        getRowId="params.data.No"
+                        # getRowId="params.data.1"
                     )
                 ], className="tabcont"),
             ], className="card"),
         ], className="col right"),
-    ], className="row grow")
+    ], className="row grow outermost")
 ], className="pagecontainer")
 
 
 def packetTrendHist(packets):
-    return px.histogram(data_frame=packets, x='Time', color='Protocol').update_layout(margin=dict(l=20, r=20, t=20, b=20))
+    return px.histogram(data_frame=packets, x='PACK_ORIGIN_IP', color='PACK_CLASS').update_layout(margin=dict(l=20, r=20, t=20, b=20))
 
 
 def packetTrendPie(packets):
-    protocolCounts = packets['Protocol'].value_counts()
-    return px.pie(data_frame=protocolCounts, names=protocolCounts.keys(), values=protocolCounts.values, color='Protocol').update_layout(margin=dict(l=20, r=20, t=20, b=20))
+    packetsdf = pd.DataFrame.from_records(packets)
+    protocolCounts = packetsdf['PACK_CLASS'].value_counts()
+    return px.pie(data_frame=protocolCounts, names=protocolCounts.keys(), values=protocolCounts.values, color='PACK_CLASS').update_layout(margin=dict(l=20, r=20, t=20, b=20))
 
 
 @callback(
     Output("packets", "rowData"),
     Output("trends-graph", "figure"),  # patch?
-    Output("packets", "selectedRows"),
-    Output("packets", "dashGridOptions"),
+    # Output("packets", "selectedRows"),
+    # Output("packets", "dashGridOptions"),
     Input("timeline", "value"),
     Input("trend-tab", "value"),
     Input("category", "value")
 )
 def updateData(timerange, charttype, category):
-    c = client.Client()
+    c = client.ClientDataLoader()
     packets = c.getPackets(timerange=timerange, category=category)
 
-    packetTable = packets.to_dict("records")
+    packetTable = packets  # packets.to_dict("records")
 
     figure = None
     if charttype == 'hist':
@@ -101,14 +110,17 @@ def updateData(timerange, charttype, category):
         figure = packetTrendPie(packets)
 
     # best to hide record ids at some point
-    return packetTable, figure, {"ids": ["5"]}, {"rowSelection": "single", "rowMultiSelectWithClick": False}
+    return packetTable, figure  # , {"ids": []}, {"rowSelection": "single", "rowMultiSelectWithClick": False}
 
 
 @callback(
     Output("packet-header", "children"),
+    Output("packet-hex", "children"),
+    Output("packet-class", "children"),
+    Output("packet-conf", "children"),
     Input("packets", "selectedRows")
 )
 def inspectPacket(packets):
     if packets:
-        return str(packets[0])
-    return 'No selection'
+        return str(packets[0]), str(packets[0]["PACK_PAYLOAD"]).encode().hex(sep=" "), packets[0]["PACK_CLASS"], packets[0]["PACK_CONFIDENCE"]
+    return 'No selection', None, None, None
