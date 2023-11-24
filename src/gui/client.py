@@ -1,27 +1,25 @@
-import os
+import gui
+from clientDataLoader import ClientDataLoader
 import sys
-import Pyro5.api
-from uuid import getnode as get_mac
+import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
+sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))) + "/dataLoader")
+import parser as pcap
 
 
-uriPyro = "PYRO:dataloader@localhost:58116"
-
-
-class ClientDataLoader:
+class Client(object):
     def __init__(self):
-        print("Init client")
-        self.data_loader = Pyro5.api.Proxy(uriPyro)
-        self.data_loader.setMac(get_mac())
-        self.data_loader.connectModel(":shrug:")
-        # print(self.data_loader.getMac())
-        # self.outputDataUpdates = []
+        df = pcap.pcap2df("../samplePackets.pcapng")
+        print(df)
+        self.startGUI()
 
-    def getPackets(self, timerange, category):
-        # self.data_loader.testPrint()
-        print("getting packets")
-        results = self.data_loader.getPackets(timerange, category)
-        # )
-        # self.data_loader.getPackets(timerange, category))
-        print(results)
-        return results  # pd.read_csv("../sample.csv")
+    def feedSamplePackets(self):
+        client = ClientDataLoader()
+
+    def startGUI(self):
+        self.gui = gui.GUI()
+        self.gui.run()
+
+
+if __name__ == "__main__":
+    client = Client()
