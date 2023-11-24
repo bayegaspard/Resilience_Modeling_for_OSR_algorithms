@@ -40,8 +40,5 @@ def pcap2df(in_file):
 				protocol = "other"
 		data_array.append([byte for byte in raw] + [0 for _ in range(1500 - len(raw))] + [ttl, length, protocol, t_delta])
 	df = make_df(data_array)
-	ML_Model.ModelStruct.Config.parameters["Dataset"][0] = "UnitTesting"
-	model = ML_Model.ModelStruct.Conv1DClassifier()
-	ML_Model.ModelStruct.train_model(model)
-	return model.generateDataObject(df)
+	return df
 

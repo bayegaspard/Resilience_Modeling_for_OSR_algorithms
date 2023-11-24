@@ -10,3 +10,4 @@ pyshark
 dash
 Pyro5
 psycopg
+dash_ag_grid

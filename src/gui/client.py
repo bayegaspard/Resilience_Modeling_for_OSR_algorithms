@@ -5,7 +5,7 @@ from uuid import getnode as get_mac
 sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 
 
-uriPyro = "PYRO:dataloader@localhost:58116"
+uriPyro = "PYRO:dataloader@localhost:58118"
 
 
 class ClientDataLoader:

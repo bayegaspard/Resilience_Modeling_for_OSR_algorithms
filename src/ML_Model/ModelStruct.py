@@ -254,6 +254,9 @@ class AttackTrainingClassification(nn.Module):
         if self.end == "DOC":
             out = nn.Sigmoid()(out)
 
+        if labels.device != out.device:
+            labels = labels.to(out.device)
+
         #  out = DeviceDataLoader(out, device)
         loss = F.cross_entropy(out, labels)  # Calculate loss
         # torch.cuda.empty_cache()
