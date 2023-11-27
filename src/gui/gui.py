@@ -2,7 +2,7 @@ import dash
 from dash import Dash, html
 import os
 import sys
-from client import ClientDataLoader
+from clientDataLoader import ClientDataLoader
 sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 
 
@@ -13,8 +13,6 @@ class GUI:
         self.app.layout = html.Div([
             dash.page_container,
         ])
-        if __name__ == '__main__':
-            self.app.run(debug=True)
 
-
-gui = GUI()
+    def run(self):
+        self.app.run(debug=True)

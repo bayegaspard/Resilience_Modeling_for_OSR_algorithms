@@ -5,7 +5,7 @@ import plotly.express as px
 import pandas as pd
 import sys
 sys.path.append("..")
-import client
+import clientDataLoader
 
 dash.register_page(__name__, path="/")
 
@@ -63,8 +63,9 @@ layout = html.Div([
                 html.Div([
                     dag.AgGrid(
                         id="packets",
-                        columnDefs=[{"field": "PACK_ID", "hide": True}, {"field": "PACK_ORIGIN_IP"}, {"field": "PACK_DEST_IP"},
-                                    {"field": "PACK_PAYLOAD", "hide": True}, {"field": "PACK_CLASS"}, {"field": "PACK_CONFIDENCE"}],
+                        columnDefs=[{"field": "pack_id", "hide": True}, {"field": "pack_origin_ip", "headerName": "Origin"}, {"field": "pack_dest_ip", "headerName": "Destination"},
+                                    {"field": "pack_payload", "hide": True}, {"field": "pack_class", "headerName": "Class"}, {"field": "pack_confidence", "headerName": "Confidence"},
+                                    {"field": "protocol"}, {"field": "length"}, {"field": "t_delta"}, {"field": "ttl", "headerName": "TTL"}],
                         defaultColDef={"resizable": True, "sortable": True, "filter": True},
                         columnSize="sizeToFit",
                         style={"height": "100%"},
@@ -79,13 +80,14 @@ layout = html.Div([
 
 
 def packetTrendHist(packets):
-    return px.histogram(data_frame=packets, x='PACK_ORIGIN_IP', color='PACK_CLASS').update_layout(margin=dict(l=20, r=20, t=20, b=20))
+    return px.histogram(data_frame=packets, x='pack_origin_ip', color='pack_class').update_layout(margin=dict(l=20, r=20, t=20, b=20))
 
 
 def packetTrendPie(packets):
     packetsdf = pd.DataFrame.from_records(packets)
-    protocolCounts = packetsdf['PACK_CLASS'].value_counts()
-    return px.pie(data_frame=protocolCounts, names=protocolCounts.keys(), values=protocolCounts.values, color='PACK_CLASS').update_layout(margin=dict(l=20, r=20, t=20, b=20))
+    protocolCounts = packetsdf['pack_class'].value_counts()
+    print(protocolCounts)
+    return px.pie(data_frame=protocolCounts, names=protocolCounts.keys(), values=protocolCounts.values, color='count').update_layout(margin=dict(l=20, r=20, t=20, b=20))
 
 
 @callback(
@@ -98,11 +100,17 @@ def packetTrendPie(packets):
     Input("category", "value")
 )
 def updateData(timerange, charttype, category):
-    c = client.ClientDataLoader()
+    c = clientDataLoader.ClientDataLoader()
+
+    # switch packet table to infinite (100x speedup)
     packets = c.getPackets(timerange=timerange, category=category)
+    if len(packets) == 0:
+        return [], None
 
     packetTable = packets  # packets.to_dict("records")
 
+    # switch to:
+    # SELECT pack_class, COUNT(*) AS `ct` FROM pack_label GROUP BY pack_class
     figure = None
     if charttype == 'hist':
         figure = packetTrendHist(packets)
@@ -122,5 +130,8 @@ def updateData(timerange, charttype, category):
 )
 def inspectPacket(packets):
     if packets:
-        return str(packets[0]), str(packets[0]["PACK_PAYLOAD"]).encode().hex(sep=" "), packets[0]["PACK_CLASS"], packets[0]["PACK_CONFIDENCE"]
+        byteInts = map(int, str(packets[0]["pack_payload"]).split(","))
+        byteHex = [hex(byte).lstrip("0x") for byte in byteInts]
+
+        return str(packets[0]), " ".join(byteHex), packets[0]["pack_class"], packets[0]["pack_confidence"]
     return 'No selection', None, None, None
