@@ -63,9 +63,9 @@ layout = html.Div([
                 html.Div([
                     dag.AgGrid(
                         id="packets",
-                        columnDefs=[{"field": "pack_id", "hide": True}, {"field": "pack_origin_ip"}, {"field": "pack_dest_ip"},
-                                    {"field": "pack_payload", "hide": True}, {"field": "pack_class"}, {"field": "pack_confidence"},
-                                    {"field": "protocol"}, {"field": "length"}, {"field": "t_delta"}, {"field": "ttl"}],
+                        columnDefs=[{"field": "pack_id", "hide": True}, {"field": "pack_origin_ip", "headerName": "Origin"}, {"field": "pack_dest_ip", "headerName": "Destination"},
+                                    {"field": "pack_payload", "hide": True}, {"field": "pack_class", "headerName": "Class"}, {"field": "pack_confidence", "headerName": "Confidence"},
+                                    {"field": "protocol"}, {"field": "length"}, {"field": "t_delta"}, {"field": "ttl", "headerName": "TTL"}],
                         defaultColDef={"resizable": True, "sortable": True, "filter": True},
                         columnSize="sizeToFit",
                         style={"height": "100%"},
@@ -87,7 +87,7 @@ def packetTrendPie(packets):
     packetsdf = pd.DataFrame.from_records(packets)
     protocolCounts = packetsdf['pack_class'].value_counts()
     print(protocolCounts)
-    return px.pie(data_frame=protocolCounts, names=protocolCounts.keys(), values=protocolCounts.values, color='pack_class').update_layout(margin=dict(l=20, r=20, t=20, b=20))
+    return px.pie(data_frame=protocolCounts, names=protocolCounts.keys(), values=protocolCounts.values, color='count').update_layout(margin=dict(l=20, r=20, t=20, b=20))
 
 
 @callback(
@@ -101,12 +101,16 @@ def packetTrendPie(packets):
 )
 def updateData(timerange, charttype, category):
     c = clientDataLoader.ClientDataLoader()
+
+    # switch packet table to infinite (100x speedup)
     packets = c.getPackets(timerange=timerange, category=category)
     if len(packets) == 0:
         return [], None
 
     packetTable = packets  # packets.to_dict("records")
 
+    # switch to:
+    # SELECT pack_class, COUNT(*) AS `ct` FROM pack_label GROUP BY pack_class
     figure = None
     if charttype == 'hist':
         figure = packetTrendHist(packets)
@@ -126,5 +130,8 @@ def updateData(timerange, charttype, category):
 )
 def inspectPacket(packets):
     if packets:
-        return str(packets[0]), str(packets[0]["pack_payload"]).encode().hex(sep=" "), packets[0]["pack_class"], packets[0]["pack_confidence"]
+        byteInts = map(int, str(packets[0]["pack_payload"]).split(","))
+        byteHex = [hex(byte).lstrip("0x") for byte in byteInts]
+
+        return str(packets[0]), " ".join(byteHex), packets[0]["pack_class"], packets[0]["pack_confidence"]
     return 'No selection', None, None, None

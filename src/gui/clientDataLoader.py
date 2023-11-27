@@ -12,6 +12,7 @@ class ClientDataLoader:
     def __init__(self):
         print("ClientDataLoader has been initialized")
         try:
+            # Pyro5.config.SERIALIZER = "marshal"
             self.data_loader = Pyro5.api.Proxy(uriPyro)
             self.data_loader.setMac(get_mac())
             self.data_loader.connectModel()

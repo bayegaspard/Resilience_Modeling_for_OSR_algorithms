@@ -8,7 +8,7 @@ other_protocols = ["OSPF", "SCTP", "GRE", "SWIPE", "MOBILE", "SUN-ND", "SEP", "U
 
 def make_df(data):
 	col_names = ["ttl", "total_len", "protocol", "t_delta"]
-	cols = [f"PayloadByte{x+1}" for x in range(1500)] + col_names
+	cols = [f"payload_byte_{x+1}" for x in range(1500)] + col_names
 	df = pd.DataFrame(data, columns=cols)
 	return df
 
@@ -38,4 +38,4 @@ def pcap2df(in_file):
 			if protocol == 0:
 				protocol = "other"
 		data_array.append([byte for byte in raw] + [0 for _ in range(1500 - len(raw))] + [ttl, length, protocol, t_delta])
-	df = make_df(data_array)
+	return make_df(data_array)
