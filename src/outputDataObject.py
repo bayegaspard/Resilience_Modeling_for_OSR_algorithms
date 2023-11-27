@@ -11,7 +11,8 @@ class outputDataUpdateObject():
         # Datashift amount. Should be a percentage that is related to how similar the training data
         self.datashiftFactor = 1
 
-        self.predictions = []
+        self.predictions_numerical = []
+        self.predictions_string = []
         self.prediction_confidence = []
 
     @staticmethod

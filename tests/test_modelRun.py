@@ -58,8 +58,9 @@ def test_modelDataObject():
     assert len(data_object.attacks) == Config.parameters["CLASSES"][0] - 1
     assert data_object.num_packets == len(batch[0])
     assert isinstance(data_object.unknowns, list)
-    assert len(batch[0]) == len(data_object.predictions)
+    assert len(batch[0]) == len(data_object.predictions_numerical)
     assert len(batch[0]) == len(data_object.prediction_confidence)
+    assert len(batch[0]) == len(data_object.predictions_string)
 
 
 def test_loadModelOld():
@@ -77,19 +78,21 @@ def test_loadModelOld():
         # pytest.skip(f"Too few model savepoints to test loading. Need at least two, found {len(listOfModels)}.")
     batch = iter(training)._next_data()
     i = 1
-    model.loadPoint("Saves/models/" + listOfModels[0])
+    Failures_to_load = 0
+    Failures_to_load += model.loadPoint("Saves/models/" + listOfModels[0]) == -1
     output1 = model(batch[0])
-    model.loadPoint("Saves/models/" + listOfModels[i])
+    Failures_to_load += model.loadPoint("Saves/models/" + listOfModels[i]) == -1
     output0 = model(batch[0])
-    model.loadPoint("Saves/models/" + listOfModels[0])
+    Failures_to_load += model.loadPoint("Saves/models/" + listOfModels[0]) == -1
     output2 = model(batch[0])
     for x in range(len(output1)):
         assert torch.all(output1[x] == output2[x])
     while torch.all(output0 == output1) and i + 1 < len(listOfModels):
         # Just need to show that the results are different for one version of the model.
         i += 1
-        model.loadPoint("Saves/models/" + listOfModels[i])
+        Failures_to_load += model.loadPoint("Saves/models/" + listOfModels[i]) == -1
         output0 = model(batch[0])
+    assert Failures_to_load <= len(listOfModels) - 1, "Lots of models failed for some reason"
     assert not torch.all(output0 == output1)
 
 
