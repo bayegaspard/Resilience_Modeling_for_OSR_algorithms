@@ -336,7 +336,7 @@ class AttackTrainingClassification(nn.Module):
         new_data.predictions_numerical = predictions.numpy()
         index_to_class = Dataload.CLASSLIST.copy()
         index_to_class[len(index_to_class)] = "Unknown"
-        new_data.predictions_string = [index_to_class for x in new_data.predictions_numerical]
+        new_data.predictions_string = [index_to_class[x] for x in new_data.predictions_numerical]
         new_data.prediction_confidence = torch.softmax(out_logits, dim=1).max(dim=1)[0]
 
         # This bit of code generates the stability metrics (Incomplete)

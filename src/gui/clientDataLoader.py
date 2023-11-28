@@ -18,14 +18,63 @@ class ClientDataLoader:
             self.data_loader.connectModel()
         except Pyro5.errors.ConnectionClosedError:
             print("The connection to the server could not be established")
+        except Pyro5.errors.CommunicationError:
+            print("Communcations were not successful with the server")
 
-    def getPackets(self, timerange, category):
+    def getClassBins(self, timerange, binct):
+        if self.data_loader is None:
+            print("An attempt was made to retrieve the bins, but there is no connection to the server")
+            return None
+        try:
+            results = self.data_loader.getClassBins(timerange, binct)
+            return results
+        except Exception as e:
+            print(f"getPackets exception: {e}")
+            print("".join(Pyro5.errors.get_pyro_traceback()))
+            return None
+
+    def getClassCounts(self, timerange):
+        if self.data_loader is None:
+            print("An attempt was made to retrieve a packet, but there is no connection to the server")
+            return None
+        try:
+            results = self.data_loader.getClassCounts(timerange)
+            return results
+        except Exception as e:
+            print(f"getPackets exception: {e}")
+            print("".join(Pyro5.errors.get_pyro_traceback()))
+            return None
+
+    def getPacket(self, id):
+        if self.data_loader is None:
+            print("An attempt was made to retrieve a packet, but there is no connection to the server")
+            return None
+        try:
+            result = self.data_loader.getPacket(id)
+            return result
+        except Exception as e:
+            print(f"getPackets exception: {e}")
+            print("".join(Pyro5.errors.get_pyro_traceback()))
+            return None
+
+    def getPackets(self, timerange, category, requestData):
         if self.data_loader is None:
             print("An attempt was made to retrieve packets, but there is no connection to the server")
             return None
-        results = self.data_loader.getPackets(timerange, category)
-        print(f"Retrieved {len(results)} packet(s)")
-        return results
+        try:
+            results = {'rowData': self.data_loader.getPackets(timerange, category, requestData)}
+            if len(results['rowData']) > 0:
+                results['rowCount'] = results["rowData"][0]["full_count"]
+            else:
+                results['rowCount'] = 0
+            print(results["rowCount"])
+            # print(results)
+            # print(f"Retrieved {len(results['rowData'])} packet(s)")
+            return results
+        except Exception as e:
+            print(f"getPackets exception: {e}")
+            print("".join(Pyro5.errors.get_pyro_traceback()))
+            return None
 
     def sendPackets(self, payload):
         if self.data_loader is None:
