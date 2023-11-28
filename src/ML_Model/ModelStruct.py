@@ -128,7 +128,8 @@ class AttackTrainingClassification(nn.Module):
         #  x = to_device(x, device)
         x_before_model = x_before_model.float()
         x = x_before_model.unsqueeze(1)
-
+        if Config.parameters["Experimental_bitConvolution"][0] == 1:
+            x_before_model = self.bitpack(x_before_model)
         x = self.sequencePackage(x)
         return x
 
@@ -336,7 +337,7 @@ class AttackTrainingClassification(nn.Module):
         new_data.predictions_numerical = predictions.numpy()
         index_to_class = Dataload.CLASSLIST.copy()
         index_to_class[len(index_to_class)] = "Unknown"
-        new_data.predictions_string = [index_to_class for x in new_data.predictions_numerical]
+        new_data.predictions_string = [index_to_class[x] for x in new_data.predictions_numerical]
         new_data.prediction_confidence = torch.softmax(out_logits, dim=1).max(dim=1)[0]
 
         # This bit of code generates the stability metrics (Incomplete)
@@ -457,7 +458,7 @@ class AttackTrainingClassification(nn.Module):
             to_save["batchSaveClassMeans"] = net.batch_fdHook.means
         to_save["parameter_keys"].remove("optimizer")
         to_save["parameter_keys"].remove("Unknowns")
-        torch.save(to_save, path + f"/Epoch{epoch:03d}{Config.parameters['OOD Type'][0]}")
+        torch.save(to_save, path + f"/Epoch{epoch:03d}{Config.parameters['OOD Type'][0]}.pth")
 
         if epoch >= 5:
             oldPath, epoch = AttackTrainingClassification.findloadPath(path, epoch=epoch - 5)
@@ -523,7 +524,7 @@ class AttackTrainingClassification(nn.Module):
         i = 999
         # epochFound = -1
         for i in range(1000, -1, -1):
-            if os.path.exists(path + f"/Epoch{i:03d}{Config.parameters['OOD Type'][0]}"):
+            if os.path.exists(path + f"/Epoch{i:03d}{Config.parameters['OOD Type'][0]}.pth"):
                 return i
         return -1
 
@@ -538,7 +539,7 @@ class AttackTrainingClassification(nn.Module):
         if epochFound == -1:
             print("No model to load found.")
             return "", -1
-        return path + f"/Epoch{epochFound:03d}{Config.parameters['OOD Type'][0]}", epochFound
+        return path + f"/Epoch{epochFound:03d}{Config.parameters['OOD Type'][0]}.pth", epochFound
 
     def storeReset(self):
         """
@@ -548,38 +549,46 @@ class AttackTrainingClassification(nn.Module):
 
 
 class expand_bitPackets(nn.Module):
-    def __init__(self, lenExpand=1500):
+    def __init__(self, lenExpand=1500, device=torch.cpu):
+        """
+        Expands the bit packets and then performs a convolution on them before returning them to the same dimentions.
+        The theory behind this is that a convolution will extract better information than just treating each byte as its own integer.
+        It has not worked so far.
+
+        """
         super().__init__()
         self.length_to_expand = lenExpand
-        self.cnn = nn.Conv2d(1, 1, 50)
+
+        kernel = (50, 4)
+        self.cnn = nn.Conv2d(1, 20, kernel, device="cpu")
+
+        # equations from: https://pytorch.org/docs/stable/generated/torch.nn.Conv2d.html
+        # Simplified for our purposes
+        Hout = (lenExpand - (kernel[0] - 1)) // 1
+        Wout = (8 - (kernel[1] - 1)) // 1
+
+        self.fc = nn.Linear(Hout * Wout * 20, lenExpand, device=device)
 
     def forward(self, input: torch.Tensor):
-        toMod = input[:self.length_to_expand].int()
-        # shape = toMod.shape
-        toMod = torch.concat([binary(toMod // (32**x), bits=32) for x in range(4)], dim=-1)
-        assert isinstance(toMod, torch.Tensor)
-        toMod = self.cnn(toMod.float())
-        toMod.squeeze()
-        input[:self.length_to_expand] = toMod
+        # Gets  the bits out from the packet header information
+        toMod = input[:, :, :self.length_to_expand]
+
+        # the apply function does not work with gradients so we need to do everything inside of a nograd block
+        with torch.no_grad():
+            toMod = toMod.clone().cpu()
+            # Integer to binary from here: https://www.geeksforgeeks.org/python-decimal-to-binary-list-conversion/
+            # int(i) for i in bin(test_num)[2:]
+
+            toMod.unsqueeze_(-1)
+            toMod = toMod.expand(-1, 1, self.length_to_expand, 8)
+            for x in range(8):
+                # Format command from: https://stackoverflow.com/a/16926357
+                toMod[:, :, x].apply_(lambda y: int(format(int(y), '#010b')[x + 2]))
+
+        afterMod = torch.flatten(self.cnn(toMod), start_dim=1).to(input.device)
+
+        input[:, :, :self.length_to_expand] = self.fc(afterMod).unsqueeze(1)
         return input
-
-
-#  Binary from: https://stackoverflow.com/a/63546308 <- I like how clean this code is
-def binary(x, bits):
-    mask = 2**torch.arange(bits).to(x.device, x.dtype)
-    return x.unsqueeze(-1).bitwise_and(mask).ne(0).byte()
-
-
-class shift_instance(nn.Module):
-    def __init__(self, amount=0):
-        super().__init__()
-        self.amount = amount
-
-    def forward(self, input: torch.Tensor):
-        input[:-self.amount] = input[self.amount:]
-        input[-self.amount:] = torch.zeros_like(input[-self.amount:])
-        return input
-
 
 class Conv1DClassifier(AttackTrainingClassification):
     def __init__(self, mode="Soft", numberOfFeatures=1504):

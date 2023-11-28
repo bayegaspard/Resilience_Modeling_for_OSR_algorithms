@@ -71,7 +71,7 @@ parameters = {
     "learningRate": [0.001, "a modifier for training"],
     "threshold": [0.5, "When to declare something to be unknown"],
     "model": ["Convolutional", "Model type", ["Fully_Connected", "Convolutional"]],
-    "OOD Type": ["Soft", "type of out of distribution detection", ["Soft", "Open", "Energy", "COOL", "DOC", "iiMod"]],
+    "OOD Type": ["SoftThresh", "type of out of distribution detection", ["Soft", "Open", "Energy", "COOL", "DOC", "iiMod"]],
     "Dropout": [0.1, "percent of nodes that are skipped per run, larger numbers for more complex models [0, 1)"],
     "Dataloader_Variation": ["Standard", "Defines the style of Dataloader used. This affects sampling from the dataset", ["Standard", "Cluster", "Flows"]],
     "optimizer": opt_func["Adam"],
@@ -91,7 +91,8 @@ parameters = {
     "Dataset": ["Payload_data_CICIDS2017", "This is what dataset we are using, ", ["Payload_data_CICIDS2017", "Payload_data_UNSW"]],
     "SchedulerStepSize": [10, "This is how often the scheduler takes a step, 3 means every third epoch"],
     "SchedulerStep": [0.9, "This is how big a step the scheduler takes, leave 0 for no step"],
-    "Var_filtering_threshold": [20, "If not -1, the model will first apply a varmax layer to the endlayer to know if the 'OOD Type' algorithm should be applied. This will use the number given as the threshold."]
+    "Var_filtering_threshold": [20, "If not -1, the model will first apply a varmax layer to the endlayer to know if the 'OOD Type' algorithm should be applied. This will use the number given as the threshold."],
+    "Experimental_bitConvolution": [0, "Convolutional network contains an experimental 2 bit convolution over the bits"]
 }
 
 
