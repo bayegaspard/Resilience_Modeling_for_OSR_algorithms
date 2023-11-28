@@ -20,8 +20,8 @@ layout = html.Div([
             html.Div([
                 html.H3("Packet trends", className="card-header"),
                 html.Div([
-                    dcc.Dropdown(['All', 'Benign', 'Malicious', 'Unknown'], 'All', id='category'),
-                    dcc.Tabs(id='trend-tab', value='hist', children=[
+                    # dcc.Dropdown(['All', 'Benign', 'Malicious', 'Unknown'], 'All', id='category'),
+                    dcc.Tabs(id='trend-tab', value='pie', children=[
                         dcc.Tab(label='Pie', value='pie'),
                         dcc.Tab(label='Hist', value='hist'),
                     ]),
@@ -46,8 +46,8 @@ layout = html.Div([
                         "Confidence: ",
                         html.Span(id="packet-conf")
                     ]),
-                    html.Button("Manully Reclassify"),
-                    html.Button("Similar Packets"),
+                    # html.Button("Manully Reclassify"),
+                    # html.Button("Similar Packets"),
                 ], className="card"),
                 # packet raw data
                 html.Div([
@@ -64,61 +64,84 @@ layout = html.Div([
                     dag.AgGrid(
                         id="packets",
                         columnDefs=[{"field": "pack_id", "hide": True}, {"field": "pack_origin_ip", "headerName": "Origin"}, {"field": "pack_dest_ip", "headerName": "Destination"},
-                                    {"field": "pack_payload", "hide": True}, {"field": "pack_class", "headerName": "Class"}, {"field": "pack_confidence", "headerName": "Confidence"},
-                                    {"field": "protocol"}, {"field": "length"}, {"field": "t_delta"}, {"field": "ttl", "headerName": "TTL"}],
+                                    {"field": "pack_payload", "hide": True}, {"field": "pack_class", "headerName": "Class"}, {"field": "pack_confidence", "headerName": "Confidence", "filter": "agNumberColumnFilter"},
+                                    {"field": "protocol"}, {"field": "length", "filter": "agNumberColumnFilter"}, {"field": "t_delta", "filter": "agNumberColumnFilter"}, {"field": "ttl", "headerName": "TTL", "filter": "agNumberColumnFilter"}],
                         defaultColDef={"resizable": True, "sortable": True, "filter": True},
                         columnSize="sizeToFit",
                         style={"height": "100%"},
-                        dashGridOptions={"rowSelection": "single", "rowMultiSelectWithClick": False},
-                        # getRowId="params.data.1"
+                        dashGridOptions={"rowSelection": "single", "rowMultiSelectWithClick": False, "maxBlocksInCache": 3},
+                        getRowId="params.data.pack_id",
+                        rowModelType="infinite"
                     )
                 ], className="tabcont"),
             ], className="card"),
         ], className="col right"),
-    ], className="row grow outermost")
+    ], className="row grow outermost"),
+    # dcc.Interval(
+    #    id='interval',
+    #    interval=500,  # in milliseconds
+    #    n_intervals=0
+    # )
 ], className="pagecontainer")
 
 
-def packetTrendHist(packets):
-    return px.histogram(data_frame=packets, x='pack_origin_ip', color='pack_class').update_layout(margin=dict(l=20, r=20, t=20, b=20))
+def packetTrendHist(bins):
+    binsdf = pd.DataFrame.from_records(bins)
+    return px.histogram(data_frame=binsdf, x='bucket', y='ct', color='pack_class').update_layout(margin=dict(l=20, r=20, t=20, b=20))
 
 
 def packetTrendPie(packets):
+    print(packets)
     packetsdf = pd.DataFrame.from_records(packets)
-    protocolCounts = packetsdf['pack_class'].value_counts()
+    protocolCounts = packetsdf['ct']  # packetsdf['pack_class'].value_counts()
     print(protocolCounts)
-    return px.pie(data_frame=protocolCounts, names=protocolCounts.keys(), values=protocolCounts.values, color='count').update_layout(margin=dict(l=20, r=20, t=20, b=20))
+    return px.pie(data_frame=packetsdf, names=packetsdf['pack_class'], values=packetsdf['ct'], color='ct').update_layout(margin=dict(l=20, r=20, t=20, b=20))
 
 
 @callback(
-    Output("packets", "rowData"),
-    Output("trends-graph", "figure"),  # patch?
+    Output("trends-graph", "figure"),
+    Input("timeline", "value"),
+    Input("trend-tab", "value"),
+    # Input("category", "value"),
+)
+def updateChart(timerange, charttype):  # , category):
+    c = clientDataLoader.ClientDataLoader()
+    figure = None
+    if charttype == 'pie':
+        counts = c.getClassCounts(timerange=timerange)
+        print(counts)
+        figure = packetTrendPie(counts)
+    elif charttype == 'hist':
+        bins = c.getClassBins(timerange=timerange, binct=10)
+        figure = packetTrendHist(bins)
+    return figure
+
+
+@callback(
+    Output("packets", "getRowsResponse"),  # Output("packets", "rowData"),
     # Output("packets", "selectedRows"),
     # Output("packets", "dashGridOptions"),
     Input("timeline", "value"),
     Input("trend-tab", "value"),
-    Input("category", "value")
+    # Input("category", "value"),
+    Input("packets", "getRowsRequest"),
+    # Input("interval", "n_intervals")
 )
-def updateData(timerange, charttype, category):
+def updateData(timerange, charttype, rowsRequest):  # category
     c = clientDataLoader.ClientDataLoader()
+    print(rowsRequest)
+    if rowsRequest is None:
+        rowsRequest = {'startRow': 0, 'endRow': 100, 'sortModel': [], 'filterModel': {}}
 
     # switch packet table to infinite (100x speedup)
-    packets = c.getPackets(timerange=timerange, category=category)
+    packets = c.getPackets(timerange=timerange, category=None, requestData=rowsRequest)
     if len(packets) == 0:
         return [], None
 
     packetTable = packets  # packets.to_dict("records")
 
-    # switch to:
-    # SELECT pack_class, COUNT(*) AS `ct` FROM pack_label GROUP BY pack_class
-    figure = None
-    if charttype == 'hist':
-        figure = packetTrendHist(packets)
-    elif charttype == 'pie':
-        figure = packetTrendPie(packets)
-
     # best to hide record ids at some point
-    return packetTable, figure  # , {"ids": []}, {"rowSelection": "single", "rowMultiSelectWithClick": False}
+    return packetTable  # , figure  # , {"ids": []}, {"rowSelection": "single", "rowMultiSelectWithClick": False}
 
 
 @callback(
@@ -130,8 +153,24 @@ def updateData(timerange, charttype, category):
 )
 def inspectPacket(packets):
     if packets:
-        byteInts = map(int, str(packets[0]["pack_payload"]).split(","))
-        byteHex = [hex(byte).lstrip("0x") for byte in byteInts]
+        c = clientDataLoader.ClientDataLoader()
+        packet = c.getPacket(id=packets[0]["pack_id"])
+        byteInts = map(int, str(packet["pack_payload"]).split(","))
+        length = packet["length"]
+        byteHex = ["{:02x}".format(next(byteInts)) for i in range(0, length)]
 
-        return str(packets[0]), " ".join(byteHex), packets[0]["pack_class"], packets[0]["pack_confidence"]
+        headerData = html.Div([f"Source: {packet['pack_origin_ip']}",
+                              html.Br(),
+                              f"Destination: {packet['pack_dest_ip']}",
+                               html.Br(),
+                               f"Protcol: {packet['protocol']}",
+                               html.Br(),
+                               f"Length: {packet['length']}",
+                               html.Br(),
+                               f"T_delta: {packet['t_delta']}",
+                               html.Br(),
+                               f"TTL: {packet['ttl']}"
+                               ], style={"margin-left": "64px"})
+
+        return headerData, " ".join(byteHex), packet["pack_class"], packet["pack_confidence"]
     return 'No selection', None, None, None

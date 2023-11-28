@@ -16,6 +16,10 @@ import ModelStruct
 
 
 class ServerDataLoader(object):
+    PACKET_COLS = {"pack_id", "pack_origin_ip", "pack_dest_ip", "protocol", "length", "t_delta", "ttl"}
+    PACK_CLASS_COLS = {"pack_class", "pack_confidence"}
+    SQL_OPERATORS = {"equals": "=", "notEqual": "!=", "notContains": "NOT LIKE", "contains": "LIKE", "greaterThan": ">", "greaterThanOrEqual": ">=", "lessThan": "<", "lessThanOrEqual": "<="}
+
     def __init__(self):
         self.modelInstances = {}
         self.dbConn = None
@@ -38,19 +42,140 @@ class ServerDataLoader(object):
         self.modelInstances[mac] = ModelInstance()
         return self.modelInstances[mac]
 
-    def getPackets(self, timerange, category, model):
+    def filter2Where(column, filter, isNumber):
+        # temporary
+        if isNumber:
+            return f"({column} {ServerDataLoader.SQL_OPERATORS[filter['type']]} {filter['filter']}) "
+        if filter['type'] == 'contains' or filter['type'] == 'notContains':
+            filter['filter'] = f"%%{filter['filter']}%%"
+        return f"({column} {ServerDataLoader.SQL_OPERATORS[filter['type']]} '{filter['filter']}') "
+
+    def SqlWhereFromFilters(filters):
+        # temporary
+        whereString = ""
+        for index, column in enumerate(filters):
+            schemaCol = None
+            if column in ServerDataLoader.PACKET_COLS:
+                schemaCol = f"packet.{column}"
+            elif column in ServerDataLoader.PACK_CLASS_COLS:
+                schemaCol = f"pack_label.{column}"
+            else:
+                print(f"Schema discrepancy: {column}")
+                return ""
+
+            if index == 0:
+                whereString += "WHERE "
+            else:
+                whereString += " AND "
+
+            isNumber = filters[column]['type'] == 'number'
+
+            if 'operator' in filters[column]:
+                op = filters[column]['operator'] + " "
+                whereString += op.join([ServerDataLoader.filter2Where(column=schemaCol, filter=condition, isNumber=isNumber) for condition in filters[column]['conditions']])
+            else:
+                whereString += ServerDataLoader.filter2Where(column=schemaCol, filter=filters[column], isNumber=isNumber)
+
+            print(whereString)
+
+        return whereString
+
+    def getClassBins(self, timerange, binct):
         results = None
         with self.dbConn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cursor:
-            try:
-                cursor.execute(
-                    """SELECT packet.PACK_ID, packet.PACK_ORIGIN_IP, packet.PACK_DEST_IP, packet.PACK_PAYLOAD,
-                                pack_label.PACK_CLASS, pack_label.PACK_CONFIDENCE, packet.PROTOCOL, packet.LENGTH, packet.T_DELTA, packet.TTL
-                        FROM packet
-                        LEFT JOIN pack_label ON pack_label.PACK_ID = packet.PACK_ID;"""
-                )
+            try:  # probably need join for time range. consider merging with getPackets query?
+                # TODO: use range for timestamp and amount of time
+                cursor.execute("""SELECT date_bin('1 hours', TIMESTAMP '2023-11-27 20:20:20', packet.time) as bucket,
+                                    pack_label.pack_class, count(*) as ct
+                               FROM PACK_LABEL
+                               LEFT JOIN packet ON packet.PACK_ID = pack_label.PACK_ID
+                               GROUP BY pack_label.pack_class, bucket
+                               ORDER BY bucket, pack_label.pack_class""")
                 results = cursor.fetchall()
             except psycopg2.errors.SyntaxError as e:
                 print("Syntax error: {0}".format(e))
+            except Exception as e:
+                print(f"General exception: {e}")
+        print(results)
+        return [dict(row) for row in results]
+
+    def getClassCounts(self, timerange):
+        results = None
+        with self.dbConn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cursor:
+            try:  # probably need join for time range. consider merging with getPackets query?
+                cursor.execute("""SELECT pack_class, count(*) as ct FROM PACK_LABEL
+                               GROUP BY pack_class""")
+                results = cursor.fetchall()
+            except psycopg2.errors.SyntaxError as e:
+                print("Syntax error: {0}".format(e))
+            except Exception as e:
+                print(f"General exception: {e}")
+        print(results)
+        return [dict(row) for row in results]
+
+    def getPacket(self, id, model):
+        result = None
+        with self.dbConn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cursor:
+            try:
+                cursor.execute("""SELECT * FROM PACKET
+                               LEFT JOIN pack_label ON pack_label.PACK_ID = packet.PACK_ID
+                               WHERE packet.PACK_ID = %s""", (id,))
+                result = cursor.fetchone()
+            except psycopg2.errors.SyntaxError as e:
+                print("Syntax error: {0}".format(e))
+            except Exception as e:
+                print(f"General exception: {e}")
+        return dict(result)
+
+    def getPackets(self, timerange, category, requestData, model):
+        if requestData is None:
+            return []
+
+        # TODO: replace all these unescaped SQL hacks with an actual SQL generator
+        sqlParams = {
+            'offset': requestData['startRow'],
+            'limit': requestData['endRow'] - requestData['startRow']
+        }
+        if 'sortModel' not in requestData or len(requestData['sortModel']) == 0:
+            sqlParams['sortCol'] = 'PACK_ID'
+            sqlParams['sortDir'] = 'DESC'
+        else:
+            if requestData['sortModel'][0]['colId'] in ServerDataLoader.PACKET_COLS:
+                sqlParams['sortCol'] = f"packet.{requestData['sortModel'][0]['colId'].upper()}"
+            else:
+                sqlParams['sortCol'] = f"pack_label.{requestData['sortModel'][0]['colId'].upper()}"
+
+            sqlParams['sortDir'] = requestData['sortModel'][0]['sort'].upper()
+
+        print(requestData)
+        if len(requestData['filterModel']) == 0:
+            sqlParams['where'] = ''
+        else:
+            sqlParams['where'] = ServerDataLoader.SqlWhereFromFilters(requestData['filterModel'])
+
+        queryString = f"""SELECT packet.PACK_ID, packet.PACK_ORIGIN_IP, packet.PACK_DEST_IP,
+                                pack_label.PACK_CLASS, pack_label.PACK_CONFIDENCE, packet.PROTOCOL, packet.LENGTH, packet.T_DELTA, packet.TTL, count(*) OVER() AS full_count
+                        FROM packet
+                        LEFT JOIN pack_label ON pack_label.PACK_ID = packet.PACK_ID
+                        {sqlParams['where']}
+                        ORDER BY {sqlParams['sortCol']} {sqlParams['sortDir']}
+                        OFFSET %(offset)s
+                        LIMIT %(limit)s;"""
+
+        results = None
+        with self.dbConn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cursor:
+            try:
+                cursor.execute(queryString, sqlParams)
+                results = cursor.fetchall()
+            except psycopg2.errors.SyntaxError as e:
+                print("Syntax error: {0}".format(e))
+            except Exception as e:
+                print(f"General exception: {e}")
+
+        if isinstance(results, dict):
+            return dict(results)
+        if results is None:
+            return []
         return [dict(row) for row in results]  # conv to dicts bc psycopg2 returns in a format pyro5 won't serialize
 
     def insertPackets(self, payload):
@@ -68,22 +193,23 @@ class ServerDataLoader(object):
             payloadColumns = [f"payload_byte_{x+1}" for x in range(1500)]
             for i in range(1, len(payload['ttl'])):
                 ttl = payload['ttl'][i]
-                if isinstance(ttl, dict):
-                    ttl = payload['ttl'][i]['fields'][0]['show']
                 total_len = payload['total_len'][i]
                 protocol = payload['protocol'][i]
                 t_delta = payload['t_delta'][i]
-                if isinstance(t_delta, dict):
-                    t_delta = payload['t_delta'][i]['fields'][0]['show']
+                src = payload['src'][i]
+                dest = payload['dest'][i]
+                time = payload['time'][i]
+                print(src)
+
                 if i > 1:
                     values += ","
 
                 payloadData = ",".join([str(payload[byteColumn][i]) for byteColumn in payloadColumns])
 
-                values += f"(DEFAULT, {str(ttl)}, {str(total_len)}, '{str(protocol)}', {str(t_delta)}, '{str(payloadData)}')"
+                values += f"(DEFAULT, {str(ttl)}, {str(total_len)}, '{str(protocol)}', {str(t_delta)}, '{str(payloadData)}', '{str(src)}', '{str(dest)}', to_timestamp({str(time)}))"
 
             try:
-                results = cursor.execute(f"INSERT INTO packet (pack_id, ttl, length, protocol, t_delta, pack_payload) VALUES {values} RETURNING pack_id;")
+                results = cursor.execute(f"INSERT INTO packet (pack_id, ttl, length, protocol, t_delta, pack_payload, pack_origin_ip, pack_dest_ip, time) VALUES {values} RETURNING pack_id;")
                 self.dbConn.commit()
                 results = cursor.fetchall()  # retrieve IDs from insert
                 cursor.close()
@@ -96,10 +222,11 @@ class ServerDataLoader(object):
 
     def insertLabels(self, ids, data, model_id):
         print("Inserting packet labels to database")
-        id_pred_conf = zip(ids, data.predictions, data.prediction_confidence)
+        id_pred_conf = zip(ids, data.predictions_string, data.prediction_confidence)
 
         with self.dbConn.cursor() as cursor:
-            values = b','.join([cursor.mogrify("(%s, %s, %s, %s)", (str(model_id), str(x[0]), str(x[1].item()), str(x[2].item()))) for x in id_pred_conf])
+            values = b','.join([cursor.mogrify("(%s, %s, %s, %s)", (str(model_id), str(x[0]), str(x[1]), str(x[2].item()))) for x in id_pred_conf])
+            print(values)
             try:
                 cursor.execute(f"INSERT INTO pack_label (MODEL_ID, PACK_ID, PACK_CLASS, PACK_CONFIDENCE) VALUES {values.decode()};")
                 self.dbConn.commit()
@@ -110,6 +237,8 @@ class ServerDataLoader(object):
 
     def newPackets(self, payload):  # client shouldn't wait for this
         ids = self.insertPackets(payload=payload)
+        payload = payload.drop(columns=['src', 'dest', 'time'])
+        # strip columns that can't be passed into the model
         for key, model in self.modelInstances.items():
             dataObj = model.feed(payload)
             self.insertLabels(ids=ids, data=dataObj, model_id=1)
@@ -124,6 +253,7 @@ class ModelInstance(object):
 
     def loadModel(self):
         ModelStruct.Config.parameters["Dataset"][0] = "UnitTesting"
+        ModelStruct.Config.parameters["num_epochs"][0] = 1
         self.model = ModelStruct.Conv1DClassifier()
         ModelStruct.train_model(self.model)
 
@@ -153,13 +283,23 @@ class DataLoaderInterface(object):
     def getMac(self):
         return self.mac
 
-    def getPackets(self, timerange, category):
-        return loader.getPackets(timerange=timerange, category=category, model=self.model)
+    def getClassBins(self, timerange, binct):
+        return loader.getClassBins(timerange=timerange, binct=binct)
+
+    def getClassCounts(self, timerange):
+        return loader.getClassCounts(timerange=timerange)
+
+    def getPacket(self, id):
+        return loader.getPacket(id=id, model=None)
+
+    def getPackets(self, timerange, category, requestData):
+        return loader.getPackets(timerange=timerange, category=category, requestData=requestData, model=self.model)
 
     def uploadPackets(self, payload):
         print("Received payload for database")
+        # print(payload)
         payloaddf = pd.DataFrame.from_dict(payload)
-        print(payloaddf)
+        # print(payloaddf)
         loader.newPackets(payloaddf)
 
 

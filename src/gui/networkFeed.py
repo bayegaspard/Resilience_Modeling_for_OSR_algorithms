@@ -22,38 +22,38 @@ def feedSamplePackets():
     client.sendPackets(serializabledf)
 
 
-def parsePacket(packet, raw_packet):
-    raw = raw_packet.get_raw_packet()
-    length = len(raw)
-    if length > 1500:
-        # print(packet)
-        return None
-    protocol = 0
-    t_delta = 0
-    ttl = 0
-    if "IP" in packet:
-        if packet.ip.src == "":
-            print("No source IP address")
-        if packet.ip.dst == "":
-            print("No destination IP address")
-        ttl = float(packet.ip.ttl)
-        if "UDP" in packet:
-            # if packet.udp.port == PYRO_PORT:
-            #   return None  # skip pyro packets
-            protocol = "udp"
-            t_delta = float(packet.udp.time_delta)
-        elif "TCP" in packet:
-            protocol = "tcp"
-            t_delta = float(packet.tcp.time_delta)
-    else:
-        print("No IP layer")
-    if protocol == 0:
-        for prot in other_protocols:
-            if prot in packet:
-                protocol = prot.lower()
-        if protocol == 0:
-            protocol = "other"
-    return [byte for byte in raw] + [0 for _ in range(1500 - len(raw))] + [ttl, length, protocol, t_delta]
+# def parsePacket(packet, raw_packet):
+#     raw = raw_packet.get_raw_packet()
+#     length = len(raw)
+#     if length > 1500:
+#         # print(packet)
+#         return None
+#     protocol = 0
+#     t_delta = 0
+#     ttl = 0
+#     if "IP" in packet:
+#         if packet.ip.src == "":
+#             print("No source IP address")
+#         if packet.ip.dst == "":
+#             print("No destination IP address")
+#         ttl = float(packet.ip.ttl)
+#         if "UDP" in packet:
+#             # if packet.udp.port == PYRO_PORT:
+#             #   return None  # skip pyro packets
+#             protocol = "udp"
+#             t_delta = float(packet.udp.time_delta)
+#         elif "TCP" in packet:
+#             protocol = "tcp"
+#             t_delta = float(packet.tcp.time_delta)
+#     else:
+#         print("No IP layer")
+#     if protocol == 0:
+#         for prot in other_protocols:
+#             if prot in packet:
+#                 protocol = prot.lower()
+#         if protocol == 0:
+#             protocol = "other"
+#     return [byte for byte in raw] + [0 for _ in range(1500 - len(raw))] + [ttl, length, protocol, t_delta]
 
 
 def feedNetwork(interface):
@@ -63,21 +63,21 @@ def feedNetwork(interface):
     if str(interface).startswith("w") or interface is None:
         print("Please stop using WiFi; packets will be discarded. Use Ethernet. Thanks")
 
-    feed1 = pyshark.LiveCapture()
-    feed2 = pyshark.LiveCapture(use_json=True, include_raw=True)
+    feed = pyshark.LiveCapture(interface="\\Device\\NPF_{5A8EEC35-5F07-425C-A9D5-F087D02A8E6D}", use_json=True, include_raw=True)
 
     batch = []
-    for packet, raw_packet in zip(feed1.sniff_continuously(), feed2.sniff_continuously()):
-        parsedPacket = parsePacket(packet=packet, raw_packet=raw_packet)
+    for packet in feed.sniff_continuously():
+        parsedPacket = pcap.parsePacket(raw_packet=packet)
         if parsedPacket is not None:
             batch.append(parsedPacket)
 
         if len(batch) > 99:
             try:
-                df = pd.DataFrame(batch, columns=cols)
+                df = pcap.make_df(batch)  # pd.DataFrame(batch, columns=cols)
+                print(df)
                 client = ClientDataLoader()
                 serializabledf = df.to_dict()
-                print(serializabledf)
+                # print(serializabledf)
                 print("Serialized the batch")
                 client.sendPackets(serializabledf)
             except Exception:
