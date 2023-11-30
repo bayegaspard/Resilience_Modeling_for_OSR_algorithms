@@ -18,9 +18,9 @@ layout = html.Div([
         html.Div([
             # chart
             html.Div([
-                html.H3("Packet trends", className="card-header"),
+                html.H3("Packet Classifications", className="card-header"),
                 html.Div([
-                    # dcc.Dropdown(['All', 'Benign', 'Malicious', 'Unknown'], 'All', id='category'),
+                    dcc.Dropdown(['All', 'Benign', 'Malicious', 'Unknown'], 'All', id='category'),
                     dcc.Tabs(id='trend-tab', value='pie', children=[
                         dcc.Tab(label='Pie', value='pie'),
                         dcc.Tab(label='Hist', value='hist'),
@@ -43,7 +43,7 @@ layout = html.Div([
                         html.Span(id="packet-class")
                     ]),
                     html.P([
-                        "Confidence: ",
+                        "Probability: ",
                         html.Span(id="packet-conf")
                     ]),
                     # html.Button("Manully Reclassify"),
@@ -51,7 +51,7 @@ layout = html.Div([
                 ], className="card"),
                 # packet raw data
                 html.Div([
-                    html.H3("Packet Data", className="card-header"),
+                    html.H3("Payload Data", className="card-header"),
                     html.P("0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 ", className="packet-hex", id="packet-hex")
                 ], className="card hex-container")
             ], className="row")
@@ -63,8 +63,8 @@ layout = html.Div([
                 html.Div([
                     dag.AgGrid(
                         id="packets",
-                        columnDefs=[{"field": "pack_id", "hide": True}, {"field": "pack_origin_ip", "headerName": "Origin"}, {"field": "pack_dest_ip", "headerName": "Destination"},
-                                    {"field": "pack_payload", "hide": True}, {"field": "pack_class", "headerName": "Class"}, {"field": "pack_confidence", "headerName": "Confidence", "filter": "agNumberColumnFilter"},
+                        columnDefs=[{"field": "pack_id", "hide": True}, {"field": "pack_origin_ip", "headerName": "Source"}, {"field": "srcport", "headerName": "Port (Source)", "filter": "agNumberColumnFilter"}, {"field": "pack_dest_ip", "headerName": "Destination"},
+                                    {"field": "destport", "headerName": "Port (Destination)", "filter": "agNumberColumnFilter"}, {"field": "pack_payload", "hide": True}, {"field": "pack_class", "headerName": "Class"}, {"field": "pack_confidence", "headerName": "Probability", "filter": "agNumberColumnFilter"},
                                     {"field": "protocol"}, {"field": "length", "filter": "agNumberColumnFilter"}, {"field": "t_delta", "filter": "agNumberColumnFilter"}, {"field": "ttl", "headerName": "TTL", "filter": "agNumberColumnFilter"}],
                         defaultColDef={"resizable": True, "sortable": True, "filter": True},
                         columnSize="sizeToFit",
@@ -157,11 +157,15 @@ def inspectPacket(packets):
         packet = c.getPacket(id=packets[0]["pack_id"])
         byteInts = map(int, str(packet["pack_payload"]).split(","))
         length = packet["length"]
-        byteHex = ["{:02x}".format(next(byteInts)) for i in range(0, length)]
+        byteString = ""
+        if False: # hex
+            byteString = ["{:02x}".format(next(byteInts)) for i in range(0, length)]
+        else:
+            byteString = "".join([chr(byte) if (byte >= 32 and byte <= 126) else '.' for byte in byteInts])
 
-        headerData = html.Div([f"Source: {packet['pack_origin_ip']}",
+        headerData = html.Div([f"Source: {packet['pack_origin_ip'].strip()}:{packet['srcport']}",
                               html.Br(),
-                              f"Destination: {packet['pack_dest_ip']}",
+                              f"Destination: {packet['pack_dest_ip'].strip()}:{packet['destport']}",
                                html.Br(),
                                f"Protcol: {packet['protocol']}",
                                html.Br(),
@@ -172,5 +176,5 @@ def inspectPacket(packets):
                                f"TTL: {packet['ttl']}"
                                ], style={"margin-left": "64px"})
 
-        return headerData, " ".join(byteHex), packet["pack_class"], packet["pack_confidence"]
+        return headerData, byteString, packet["pack_class"], packet["pack_confidence"]
     return 'No selection', None, None, None
