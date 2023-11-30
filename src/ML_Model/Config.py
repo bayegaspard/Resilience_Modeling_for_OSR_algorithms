@@ -66,17 +66,17 @@ parameters = {
     "attemptLoadData": [0, "0: do not use saves for the dataset\n1:use saves for the dataset"],
     "testlength": [1 / 4, "[0, 1) percentage of training to test with"],
     "Mix unknowns and validation": [1, "0 or 1, 0 means that the test set is purely unknowns and 1 means that the testset is the validation set plus unknowns (for testing)"],
-    "MaxPerClass": [10, "Maximum number of samples per class\n if Dataloader_Variation is Cluster and this value is a float it interprets it as the maximum percentage of the class instead."],
-    "num_epochs": [15, "Number of times it trains on the whole trainset"],
-    "learningRate": [0.001, "a modifier for training"],
+    "MaxPerClass": [100, "Maximum number of samples per class\n if Dataloader_Variation is Cluster and this value is a float it interprets it as the maximum percentage of the class instead."],
+    "num_epochs": [50, "Number of times it trains on the whole trainset"],
+    "learningRate": [0.01, "a modifier for training"],
     "threshold": [0.5, "When to declare something to be unknown"],
     "model": ["Convolutional", "Model type", ["Fully_Connected", "Convolutional"]],
-    "OOD Type": ["Soft", "type of out of distribution detection", ["Soft", "Open", "Energy", "COOL", "DOC", "iiMod"]],
+    "OOD Type": ["SoftThresh", "type of out of distribution detection", ["Soft", "Open", "Energy", "COOL", "DOC", "iiMod"]],
     "Dropout": [0.1, "percent of nodes that are skipped per run, larger numbers for more complex models [0, 1)"],
     "Dataloader_Variation": ["Standard", "Defines the style of Dataloader used. This affects sampling from the dataset", ["Standard", "Cluster", "Flows"]],
     "optimizer": opt_func["Adam"],
     "Unknowns": ["UNUSED"],
-    "Unknowns_clss": [[7, 8, 9], "Class indexes used as unknowns."],
+    "Unknowns_clss": [[], "Class indexes used as unknowns."],
     "CLASSES": [15, "Number of classes, do not change"],
     "Temperature": [1, "Energy OOD scaling parameter"],
     "Degree of Overcompleteness": [3, "Parameter for Fitted Learning"],
@@ -91,7 +91,10 @@ parameters = {
     "Dataset": ["Payload_data_CICIDS2017", "This is what dataset we are using, ", ["Payload_data_CICIDS2017", "Payload_data_UNSW"]],
     "SchedulerStepSize": [10, "This is how often the scheduler takes a step, 3 means every third epoch"],
     "SchedulerStep": [0.9, "This is how big a step the scheduler takes, leave 0 for no step"],
-    "Var_filtering_threshold": [20, "If not -1, the model will first apply a varmax layer to the endlayer to know if the 'OOD Type' algorithm should be applied. This will use the number given as the threshold."]
+    "Var_filtering_threshold": [-20, "If not -1, the model will first apply a varmax layer to the endlayer to know if the 'OOD Type' algorithm should be applied. This will use the number given as the threshold."],
+    "Experimental_bitConvolution": [0, "Convolutional network contains an experimental 2 bit convolution over the bits"],
+    "Saveloc": ["defaultSave.pth", "Save location for running from __init__"],
+    "use_renamed_packets": [0, "When creating the model, use the renamed packets for clases"]
 }
 
 
@@ -110,6 +113,8 @@ for x in parameters.keys():
         parser.add_argument(f"--{x}", choices=parameters[x].pop(), default=parameters[x][0], help=parameters[x][1], required=False)
     if x in ["Unknowns_clss"]:
         parser.add_argument(f"--{x}", default=f"{parameters[x][0]}", help=parameters[x][1], required=False)
+    if x in ["Saveloc"]:
+        parser.add_argument("--Saveloc", type=str, default="defaultSave.pth", help="Save location for running from __init__", required=False)
 if "pytest" not in sys.modules:  # The argument parser appears to have issues with the pytest tests. I have no idea why.
     args = parser.parse_args()
     for x in args._get_kwargs():
@@ -253,3 +258,4 @@ if parameters["LOOP"][0] == 3:
 save_as_tensorboard = False
 datasetRandomOffset = True
 dataparallel = False
+use_saved_packets = True

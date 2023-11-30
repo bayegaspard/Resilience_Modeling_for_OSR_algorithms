@@ -14,6 +14,8 @@ torch.manual_seed(0)
 Config.parameters["Dataset"][0] = "UnitTesting"
 Config.parameters["Dataloader_Variation"][0] = "Standard"
 Config.parameters["MaxPerClass"][0] = 10
+Config.parameters["use_renamed_packets"][0] = 0
+
 
 train, test, val = Dataload.checkAttempLoad()
 torch.manual_seed(0)

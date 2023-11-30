@@ -33,8 +33,15 @@ class ModdedParallel(nn.DataParallel):
 
 class AttackTrainingClassification(nn.Module):
     """This is the Default Model for the project"""
-    def __init__(self, mode="Soft", numberOfFeatures=1504):
+    def __init__(self, mode=None, numberOfFeatures=1504):
         super().__init__()
+        if Config.parameters["use_renamed_packets"][0] == 1:
+            # This just updates CLASSLIST if renamed packets are used so that the model is the correct size.
+            Dataload.savedPacketDataset()
+
+        if mode is None:
+            mode = Config.parameters["OOD Type"][0]
+
         self.maxpooling = [4, 2]
         self.convolutional_channels = [32, 64]
 
@@ -128,7 +135,8 @@ class AttackTrainingClassification(nn.Module):
         #  x = to_device(x, device)
         x_before_model = x_before_model.float()
         x = x_before_model.unsqueeze(1)
-
+        if Config.parameters["Experimental_bitConvolution"][0] == 1:
+            x_before_model = self.bitpack(x_before_model)
         x = self.sequencePackage(x)
         return x
 
@@ -457,14 +465,14 @@ class AttackTrainingClassification(nn.Module):
             to_save["batchSaveClassMeans"] = net.batch_fdHook.means
         to_save["parameter_keys"].remove("optimizer")
         to_save["parameter_keys"].remove("Unknowns")
-        torch.save(to_save, path + f"/Epoch{epoch:03d}{Config.parameters['OOD Type'][0]}")
+        torch.save(to_save, path + f"/Epoch{epoch:03d}{Config.parameters['OOD Type'][0]}.pth")
 
         if epoch >= 5:
             oldPath, epoch = AttackTrainingClassification.findloadPath(path, epoch=epoch - 5)
             if os.path.exists(oldPath):
                 os.remove(oldPath)
 
-    def loadPoint(net, path=None, deleteOld=False):
+    def loadPoint(net, path=None, deleteOld=False, startEpoch=999):
         """
         Loads the most trained model from the path. Note: will break if trying to load a model with different configs.
 
@@ -476,12 +484,12 @@ class AttackTrainingClassification(nn.Module):
         """
 
         if path is None:
-            pathFound, epochFound = AttackTrainingClassification.findloadPath(path)
+            pathFound, epochFound = AttackTrainingClassification.findloadPath(startEpoch)
         else:
             pathFound, epochFound = (path, 0)
         loaded = torch.load(pathFound, map_location=device)
 
-        print(f"Loaded  model from {pathFound}")
+        print(f"Loading  model from {pathFound}")
 
         # # Count the classes
         if all([x in Dataload.CLASSLIST.keys() for x in loaded["CLASSLIST"].keys()]) and all([loaded["CLASSLIST"][x] == Dataload.CLASSLIST[x] for x in loaded["CLASSLIST"].keys()]):
@@ -501,6 +509,9 @@ class AttackTrainingClassification(nn.Module):
                     print(f"Warning: {x} has been changed from when model was created")
                 else:
                     print(f"Critital mismatch for model {x} is different from loaded version. No load can occur")
+                    if epochFound != -1:
+                        print("Trying next model")
+                        net.loadPoint(path=path, startEpoch=epochFound - 1)
                     return -1
         for x in loaded["parameters"]["Unknowns_clss"][0]:
             if x not in Config.parameters["Unknowns_clss"][0]:
@@ -513,32 +524,32 @@ class AttackTrainingClassification(nn.Module):
         return epochFound
 
     @staticmethod
-    def findloadEpoch(path="Saves/models"):
+    def findloadEpoch(path="Saves/models", start_at=999):
         """
         Finds the highest existing epoch save for this model type.
         returns -1 if none exists
         """
         if not os.path.exists(path):
             os.mkdir(path)
-        i = 999
+        i = start_at
         # epochFound = -1
-        for i in range(1000, -1, -1):
-            if os.path.exists(path + f"/Epoch{i:03d}{Config.parameters['OOD Type'][0]}"):
+        for i in range(start_at, -1, -1):
+            if os.path.exists(path + f"/Epoch{i:03d}{Config.parameters['OOD Type'][0]}.pth"):
                 return i
         return -1
 
     @staticmethod
-    def findloadPath(path="Saves/models", epoch=None):
+    def findloadPath(path="Saves/models", epoch=None, start_search_at=999):
         if not os.path.exists(path):
             os.mkdir(path)
         if (epoch is not None):
             epochFound = epoch
         else:
-            epochFound = AttackTrainingClassification.findloadEpoch(path)
+            epochFound = AttackTrainingClassification.findloadEpoch(path, start_search_at)
         if epochFound == -1:
             print("No model to load found.")
             return "", -1
-        return path + f"/Epoch{epochFound:03d}{Config.parameters['OOD Type'][0]}", epochFound
+        return path + f"/Epoch{epochFound:03d}{Config.parameters['OOD Type'][0]}.pth", epochFound
 
     def storeReset(self):
         """
@@ -548,41 +559,50 @@ class AttackTrainingClassification(nn.Module):
 
 
 class expand_bitPackets(nn.Module):
-    def __init__(self, lenExpand=1500):
+    def __init__(self, lenExpand=1500, device=torch.cpu):
+        """
+        Expands the bit packets and then performs a convolution on them before returning them to the same dimentions.
+        The theory behind this is that a convolution will extract better information than just treating each byte as its own integer.
+        It has not worked so far.
+
+        """
         super().__init__()
         self.length_to_expand = lenExpand
-        self.cnn = nn.Conv2d(1, 1, 50)
+
+        kernel = (50, 4)
+        self.cnn = nn.Conv2d(1, 20, kernel, device="cpu")
+
+        # equations from: https://pytorch.org/docs/stable/generated/torch.nn.Conv2d.html
+        # Simplified for our purposes
+        Hout = (lenExpand - (kernel[0] - 1)) // 1
+        Wout = (8 - (kernel[1] - 1)) // 1
+
+        self.fc = nn.Linear(Hout * Wout * 20, lenExpand, device=device)
 
     def forward(self, input: torch.Tensor):
-        toMod = input[:self.length_to_expand].int()
-        # shape = toMod.shape
-        toMod = torch.concat([binary(toMod // (32**x), bits=32) for x in range(4)], dim=-1)
-        assert isinstance(toMod, torch.Tensor)
-        toMod = self.cnn(toMod.float())
-        toMod.squeeze()
-        input[:self.length_to_expand] = toMod
-        return input
+        # Gets  the bits out from the packet header information
+        toMod = input[:, :, :self.length_to_expand]
 
+        # the apply function does not work with gradients so we need to do everything inside of a nograd block
+        with torch.no_grad():
+            toMod = toMod.clone().cpu()
+            # Integer to binary from here: https://www.geeksforgeeks.org/python-decimal-to-binary-list-conversion/
+            # int(i) for i in bin(test_num)[2:]
 
-#  Binary from: https://stackoverflow.com/a/63546308 <- I like how clean this code is
-def binary(x, bits):
-    mask = 2**torch.arange(bits).to(x.device, x.dtype)
-    return x.unsqueeze(-1).bitwise_and(mask).ne(0).byte()
+            toMod.unsqueeze_(-1)
+            toMod = toMod.expand(-1, 1, self.length_to_expand, 8)
+            for x in range(8):
+                # Format command from: https://stackoverflow.com/a/16926357
+                toMod[:, :, x].apply_(lambda y: int(format(int(y), '#010b')[x + 2]))
 
+        afterMod = torch.flatten(self.cnn(toMod), start_dim=1).to(input.device)
 
-class shift_instance(nn.Module):
-    def __init__(self, amount=0):
-        super().__init__()
-        self.amount = amount
-
-    def forward(self, input: torch.Tensor):
-        input[:-self.amount] = input[self.amount:]
-        input[-self.amount:] = torch.zeros_like(input[-self.amount:])
+        input[:, :, :self.length_to_expand] = self.fc(afterMod).unsqueeze(1)
         return input
 
 
 class Conv1DClassifier(AttackTrainingClassification):
-    def __init__(self, mode="Soft", numberOfFeatures=1504):
+    def __init__(self, mode=None, numberOfFeatures=1504):
         super().__init__(mode, numberOfFeatures)
         self.layer1 = nn.Sequential(
             # expand_bitPackets(),
@@ -610,7 +630,7 @@ class Conv1DClassifier(AttackTrainingClassification):
 
 
 class FullyConnected(AttackTrainingClassification):
-    def __init__(self, mode="Soft", numberOfFeatures=1504):
+    def __init__(self, mode=None, numberOfFeatures=1504):
         super().__init__(mode, numberOfFeatures)
         self.layer1 = nn.Sequential(
             # Sorry about the big block of math, trying to calculate how big the convolutional tensor is after the first layer
@@ -640,12 +660,16 @@ def train_model(model: AttackTrainingClassification):
     new_data = Dataload.savedPacketDataset()
     torch.utils.data.ConcatDataset([train, new_data])
 
-    training = Dataload.DataLoader(train, Config.parameters["batch_size"][0], shuffle=True, num_workers=0, pin_memory=False)
-    testing = Dataload.DataLoader(test, Config.parameters["batch_size"][0], shuffle=True, num_workers=0, pin_memory=False)
-    validation = Dataload.DataLoader(val, Config.parameters["batch_size"][0], shuffle=True, num_workers=0, pin_memory=False)
+    training = Dataload.DataLoader(train, Config.parameters["batch_size"][0], shuffle=True, num_workers=Config.parameters["num_workers"][0], pin_memory=False)
+    testing = Dataload.DataLoader(test, Config.parameters["batch_size"][0], shuffle=True, num_workers=Config.parameters["num_workers"][0], pin_memory=False)
+    validation = Dataload.DataLoader(val, Config.parameters["batch_size"][0], shuffle=True, num_workers=Config.parameters["num_workers"][0], pin_memory=False)
 
     testing
     validation
 
     model.end.prepWeibull(training, torch.device('cpu'), model)
+
+    if len(training) < 100000 and Config.parameters["num_epochs"][0] > 0:
+        training = Dataload.recreateDL(training)
+
     model.fit(Config.parameters["num_epochs"][0], Config.parameters["learningRate"][0], training, validation, opt_func=torch.optim.Adam)
