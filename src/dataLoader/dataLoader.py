@@ -3,9 +3,12 @@ import dbManager
 import math
 import parser as packetParse
 import pandas as pd
+import threading
 import psycopg2.extras
 import sys
 import os
+import math
+import networkFeed
 # from ..ML_Model import ModelStruct  # for autocomplete
 sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))) + "/ML_Model")
@@ -13,10 +16,11 @@ import ModelStruct
 
 
 # read permitted mac addresses
+# TODO: replace ALL SQL with SqlAlchemy (easier and safer queries)
 
 
 class ServerDataLoader(object):
-    PACKET_COLS = {"pack_id", "pack_origin_ip", "pack_dest_ip", "protocol", "length", "t_delta", "ttl"}
+    PACKET_COLS = {"pack_id", "pack_origin_ip", "pack_dest_ip", "protocol", "length", "t_delta", "ttl", "srcport", "destport"}
     PACK_CLASS_COLS = {"pack_class", "pack_confidence"}
     SQL_OPERATORS = {"equals": "=", "notEqual": "!=", "notContains": "NOT LIKE", "contains": "LIKE", "greaterThan": ">", "greaterThanOrEqual": ">=", "lessThan": "<", "lessThanOrEqual": "<="}
 
@@ -39,7 +43,9 @@ class ServerDataLoader(object):
 
     def loadModel(self, mac):
         print(f"[{mac}]: Loading model")
-        self.modelInstances[mac] = ModelInstance()
+        if mac not in self.modelInstances:
+            self.modelInstances[mac] = ModelInstance()
+            self.modelInstances[mac].loadModel()
         return self.modelInstances[mac]
 
     def filter2Where(column, filter, isNumber):
@@ -147,13 +153,12 @@ class ServerDataLoader(object):
 
             sqlParams['sortDir'] = requestData['sortModel'][0]['sort'].upper()
 
-        print(requestData)
         if len(requestData['filterModel']) == 0:
             sqlParams['where'] = ''
         else:
             sqlParams['where'] = ServerDataLoader.SqlWhereFromFilters(requestData['filterModel'])
 
-        queryString = f"""SELECT packet.PACK_ID, packet.PACK_ORIGIN_IP, packet.PACK_DEST_IP,
+        queryString = f"""SELECT packet.PACK_ID, packet.PACK_ORIGIN_IP, packet.PACK_DEST_IP, packet.SRCPORT, packet.DESTPORT,
                                 pack_label.PACK_CLASS, pack_label.PACK_CONFIDENCE, packet.PROTOCOL, packet.LENGTH, packet.T_DELTA, packet.TTL, count(*) OVER() AS full_count
                         FROM packet
                         LEFT JOIN pack_label ON pack_label.PACK_ID = packet.PACK_ID
@@ -182,6 +187,7 @@ class ServerDataLoader(object):
         print("Inserting packets to database")
         results = None
         with self.dbConn.cursor() as cursor:
+
             # should be nicer to do something like this:
             # try:
             #     values = ",".join([str(cursor.mogrify("(DEFAULT, %s, %s, %s, %s)", (payload['ttl'][i], payload['total_len'][i], payload['protocol'][i].encode(), payload['t_delta'][i]))) for i in range(1, len(payload['ttl']))])
@@ -199,34 +205,39 @@ class ServerDataLoader(object):
                 src = payload['src'][i]
                 dest = payload['dest'][i]
                 time = payload['time'][i]
-                print(src)
+                srcport = payload['srcport'][i]
+                destport = payload['destport'][i]
+                if srcport == "":
+                    srcport = 'NULL'
+                if destport == "":
+                    destport = 'NULL'
 
                 if i > 1:
                     values += ","
 
                 payloadData = ",".join([str(payload[byteColumn][i]) for byteColumn in payloadColumns])
 
-                values += f"(DEFAULT, {str(ttl)}, {str(total_len)}, '{str(protocol)}', {str(t_delta)}, '{str(payloadData)}', '{str(src)}', '{str(dest)}', to_timestamp({str(time)}))"
+                values += f"(DEFAULT, {str(ttl)}, {str(total_len)}, '{str(protocol)}', {str(t_delta)}, '{str(payloadData)}', '{str(src)}', '{str(dest)}', to_timestamp({str(time)}), {srcport}, {destport})"
 
             try:
-                results = cursor.execute(f"INSERT INTO packet (pack_id, ttl, length, protocol, t_delta, pack_payload, pack_origin_ip, pack_dest_ip, time) VALUES {values} RETURNING pack_id;")
+                results = cursor.execute(f"INSERT INTO packet (pack_id, ttl, length, protocol, t_delta, pack_payload, pack_origin_ip, pack_dest_ip, time, srcport, destport) VALUES {values} RETURNING pack_id;")
                 self.dbConn.commit()
                 results = cursor.fetchall()  # retrieve IDs from insert
                 cursor.close()
             except Exception as e:
                 print("General exception: {0}".format(e))
         if results is None:
-            print("An attempt was made to insert packets into the database, but no row IDs were returned for some unknown reason")
+            print("An attempt was made to insert packets into the database, but no row IDs were returned for some reason. There should be a SQL exception above.")
             return None
         return [x[0] for x in results]
 
     def insertLabels(self, ids, data, model_id):
-        print("Inserting packet labels to database")
+        print(f"[model:{model_id}]: Inserting packet labels to database")
         id_pred_conf = zip(ids, data.predictions_string, data.prediction_confidence)
 
         with self.dbConn.cursor() as cursor:
             values = b','.join([cursor.mogrify("(%s, %s, %s, %s)", (str(model_id), str(x[0]), str(x[1]), str(x[2].item()))) for x in id_pred_conf])
-            print(values)
+
             try:
                 cursor.execute(f"INSERT INTO pack_label (MODEL_ID, PACK_ID, PACK_CLASS, PACK_CONFIDENCE) VALUES {values.decode()};")
                 self.dbConn.commit()
@@ -236,10 +247,16 @@ class ServerDataLoader(object):
                 print("General exception: {0}".format(e))
 
     def newPackets(self, payload):  # client shouldn't wait for this
+        if sum([model.loaded for _, model in self.modelInstances.items()]) == 0:
+            print("No models are loaded, so payloads are being ignored.")
+            return None
+        print(f"Received payload of length {len(payload['ttl'])}")
         ids = self.insertPackets(payload=payload)
-        payload = payload.drop(columns=['src', 'dest', 'time'])
+        payload = payload.drop(columns=['src', 'dest', 'time', 'srcport', 'destport'])
         # strip columns that can't be passed into the model
-        for key, model in self.modelInstances.items():
+        for _, model in self.modelInstances.items():
+            if not model.loaded:
+                continue
             dataObj = model.feed(payload)
             self.insertLabels(ids=ids, data=dataObj, model_id=1)
 
@@ -247,15 +264,22 @@ class ServerDataLoader(object):
 class ModelInstance(object):
     def __init__(self):
         if True:
-            self.loadModel()
+            self.loaded = False
         else:
             print("Model loading was intentionally bypassed")
 
-    def loadModel(self):
-        ModelStruct.Config.parameters["Dataset"][0] = "UnitTesting"
-        ModelStruct.Config.parameters["num_epochs"][0] = 1
-        self.model = ModelStruct.Conv1DClassifier()
-        ModelStruct.train_model(self.model)
+    def loadModel(self, save_name=None):
+        try:
+            if save_name is None:
+                print("A model save was not specified, so the model is being trained again.")
+                self.model = ModelStruct.Conv1DClassifier()
+                if self.model.loadPoint() == -1:
+                    ModelStruct.Config.parameters["Dataset"][0] = "UnitTesting"
+                    ModelStruct.Config.parameters["num_epochs"][0] = 0
+                    ModelStruct.train_model(self.model)
+                self.loaded = True
+        except Exception as e:
+            print(f"Loading error: {e}")
 
     def feed(self, payload):
         return self.model.generateDataObject(payload)
@@ -270,7 +294,8 @@ class DataLoaderInterface(object):
         self.mac = None
 
     def connectModel(self):
-        print(f"[{self.mac}]: Connecting model")
+        # The connection message is excessive
+        # print(f"[{self.mac}]: Connecting model")
         ModelStruct.Config.parameters["Dataset"][0] = "UnitTesting"
         self.model = loader.getModelInstance(mac=self.mac)
         if self.model is None:
@@ -296,10 +321,8 @@ class DataLoaderInterface(object):
         return loader.getPackets(timerange=timerange, category=category, requestData=requestData, model=self.model)
 
     def uploadPackets(self, payload):
-        print("Received payload for database")
-        # print(payload)
+        print(f"[{self.mac}]: Received payload for database")
         payloaddf = pd.DataFrame.from_dict(payload)
-        # print(payloaddf)
         loader.newPackets(payloaddf)
 
 
@@ -310,7 +333,11 @@ uri = daemon.register(DataLoaderInterface, objectId="dataloader")
 
 
 if __name__ == "__main__":
-    # loader.loadModel("idk man")
-    # loader.newPackets(packetParse.pcap2df("../samplePackets.pcapng"))
-    daemon.requestLoop()
-    daemon.close()
+    try:
+        feedThread = threading.Thread(target=networkFeed.feedNetworkThr, args=(any, loader,))
+        feedThread.start()
+        daemon.requestLoop()
+    except KeyboardInterrupt:
+        print("Ending networkFeed and ServerDataLoader")
+        daemon.close()
+        feedThread.join()

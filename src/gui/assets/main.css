@@ -226,18 +226,22 @@ body {
     width: auto;/*42ch;*/
     text-align: left;
     flex-grow:1;
-    display: block;
+    display: inline-block;
+    word-break:break-word;
     max-height: 100%;
     /*padding: 5px;*/
     overflow-y: auto;
+    text-wrap:wrap;
     height: 164px;
 }
 #packet-viewer {
-    display: none;
+    display: inline-block;
 
-    width: auto;
+    width: 20ch;
     max-width: none;
     position: fixed;
+    text-wrap:wrap;
+    word-break:break-word;
 
     left: 50vw; top: 50vh;
     box-shadow: 0px 0px 5px hsl(0, 0%, 35%);
@@ -247,6 +251,7 @@ body {
     width: 42ch !important;
     min-width: 42ch !important;
     flex-grow: 0;
+    text-wrap:wrap;
     flex-shrink: 0;
 }
 /*.card .row {
