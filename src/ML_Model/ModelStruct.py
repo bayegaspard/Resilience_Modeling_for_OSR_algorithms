@@ -35,6 +35,10 @@ class AttackTrainingClassification(nn.Module):
     """This is the Default Model for the project"""
     def __init__(self, mode=None, numberOfFeatures=1504):
         super().__init__()
+        if Config.parameters["use_renamed_packets"][0] == 1:
+            # This just updates CLASSLIST if renamed packets are used so that the model is the correct size.
+            Dataload.savedPacketDataset()
+
         if mode is None:
             mode = Config.parameters["OOD Type"][0]
 
@@ -468,7 +472,7 @@ class AttackTrainingClassification(nn.Module):
             if os.path.exists(oldPath):
                 os.remove(oldPath)
 
-    def loadPoint(net, path=None, deleteOld=False):
+    def loadPoint(net, path=None, deleteOld=False, startEpoch=999):
         """
         Loads the most trained model from the path. Note: will break if trying to load a model with different configs.
 
@@ -480,12 +484,12 @@ class AttackTrainingClassification(nn.Module):
         """
 
         if path is None:
-            pathFound, epochFound = AttackTrainingClassification.findloadPath()
+            pathFound, epochFound = AttackTrainingClassification.findloadPath(startEpoch)
         else:
             pathFound, epochFound = (path, 0)
         loaded = torch.load(pathFound, map_location=device)
 
-        print(f"Loaded  model from {pathFound}")
+        print(f"Loading  model from {pathFound}")
 
         # # Count the classes
         if all([x in Dataload.CLASSLIST.keys() for x in loaded["CLASSLIST"].keys()]) and all([loaded["CLASSLIST"][x] == Dataload.CLASSLIST[x] for x in loaded["CLASSLIST"].keys()]):
@@ -505,6 +509,9 @@ class AttackTrainingClassification(nn.Module):
                     print(f"Warning: {x} has been changed from when model was created")
                 else:
                     print(f"Critital mismatch for model {x} is different from loaded version. No load can occur")
+                    if epochFound != -1:
+                        print("Trying next model")
+                        net.loadPoint(path=path, startEpoch=epochFound - 1)
                     return -1
         for x in loaded["parameters"]["Unknowns_clss"][0]:
             if x not in Config.parameters["Unknowns_clss"][0]:
@@ -517,28 +524,28 @@ class AttackTrainingClassification(nn.Module):
         return epochFound
 
     @staticmethod
-    def findloadEpoch(path="Saves/models"):
+    def findloadEpoch(path="Saves/models", start_at=999):
         """
         Finds the highest existing epoch save for this model type.
         returns -1 if none exists
         """
         if not os.path.exists(path):
             os.mkdir(path)
-        i = 999
+        i = start_at
         # epochFound = -1
-        for i in range(1000, -1, -1):
+        for i in range(start_at, -1, -1):
             if os.path.exists(path + f"/Epoch{i:03d}{Config.parameters['OOD Type'][0]}.pth"):
                 return i
         return -1
 
     @staticmethod
-    def findloadPath(path="Saves/models", epoch=None):
+    def findloadPath(path="Saves/models", epoch=None, start_search_at=999):
         if not os.path.exists(path):
             os.mkdir(path)
         if (epoch is not None):
             epochFound = epoch
         else:
-            epochFound = AttackTrainingClassification.findloadEpoch(path)
+            epochFound = AttackTrainingClassification.findloadEpoch(path, start_search_at)
         if epochFound == -1:
             print("No model to load found.")
             return "", -1

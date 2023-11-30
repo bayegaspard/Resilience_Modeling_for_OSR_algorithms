@@ -93,7 +93,8 @@ parameters = {
     "SchedulerStep": [0.9, "This is how big a step the scheduler takes, leave 0 for no step"],
     "Var_filtering_threshold": [-20, "If not -1, the model will first apply a varmax layer to the endlayer to know if the 'OOD Type' algorithm should be applied. This will use the number given as the threshold."],
     "Experimental_bitConvolution": [0, "Convolutional network contains an experimental 2 bit convolution over the bits"],
-    "Saveloc": ["defaultSave.pth", "Save location for running from __init__"]
+    "Saveloc": ["defaultSave.pth", "Save location for running from __init__"],
+    "use_renamed_packets": [0, "When creating the model, use the renamed packets for clases"]
 }
 
 

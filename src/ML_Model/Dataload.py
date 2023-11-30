@@ -1259,8 +1259,8 @@ def run_demo(demo_fn, world_size, other=None):
 
 DataloaderTypes = {"Standard": ClassDivDataset, "Old_Cluster": ClusterDivDataset, "Cluster": ClusterLimitDataset, "Slow_Flows": DatasetWithFlows, "Flows": ClassDivDataset_flows}
 
-if Config.use_saved_packets:
-    savedPacketDataset()
+# if Config.use_saved_packets:
+#     savedPacketDataset()
 
 if __name__ == "__main__":
     # run_demo(testing, 18)
