@@ -252,10 +252,11 @@ class ModelInstance(object):
             print("Model loading was intentionally bypassed")
 
     def loadModel(self):
-        ModelStruct.Config.parameters["Dataset"][0] = "UnitTesting"
-        ModelStruct.Config.parameters["num_epochs"][0] = 1
         self.model = ModelStruct.Conv1DClassifier()
-        ModelStruct.train_model(self.model)
+        if self.model.loadPoint() == -1:
+            ModelStruct.Config.parameters["Dataset"][0] = "UnitTesting"
+            ModelStruct.Config.parameters["num_epochs"][0] = 1
+            ModelStruct.train_model(self.model)
 
     def feed(self, payload):
         return self.model.generateDataObject(payload)

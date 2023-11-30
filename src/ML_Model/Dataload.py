@@ -138,15 +138,17 @@ class ClassDivDataset(Dataset):
 
         # This is setting what classes are considered to be knowns.
         if use is not None:
-            self.use = [False for i in range(len(CLASSLIST))]
+            # test = pd.read_csv(self.countspath, index_col=0)
+            self.use = [False for i in range(len(pd.read_csv(self.countspath, index_col=0)))]
             self.usedDict = {}
             use.sort()
+            use = [x for x in use if x < len(self.use)]
             for case in use:
                 self.use[case] = True
                 # OK this requires you to have the use list be sorted, but otherwise it works.
                 self.usedDict[len(self.usedDict)] = CLASSLIST[case]
         else:
-            self.use = [True for i in range(len(CLASSLIST))]
+            self.use = [True for i in range(len(pd.read_csv(self.countspath, index_col=0)))]
             self.usedDict = CLASSLIST
 
         # this will check if the file is chunked and chunk it if it is not
@@ -1167,7 +1169,7 @@ def downloadDataset():
     name = Config.parameters["Dataset"][0]
     if not os.path.exists("datasets"):
         os.mkdir("datasets")
-    if not os.path.exists("datasets/" + name + ".csv"):
+    if not os.path.exists("datasets/" + name + ".csv") and name in ["Payload_data_CICIDS2017", "Payload_data_UNSW"]:
         # import onedrivedownloader
         print(f"I am sorry, the dataset {name} cannot currently be downloaded remotely. \n Please visit 'https://github.com/Yasir-ali-farrukh/Payload-Byte/tree/main/Data' and put the datasets in the 'datasets' directory")
 
@@ -1256,6 +1258,9 @@ def run_demo(demo_fn, world_size, other=None):
 
 
 DataloaderTypes = {"Standard": ClassDivDataset, "Old_Cluster": ClusterDivDataset, "Cluster": ClusterLimitDataset, "Slow_Flows": DatasetWithFlows, "Flows": ClassDivDataset_flows}
+
+if Config.use_saved_packets:
+    savedPacketDataset()
 
 if __name__ == "__main__":
     # run_demo(testing, 18)

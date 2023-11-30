@@ -33,8 +33,11 @@ class ModdedParallel(nn.DataParallel):
 
 class AttackTrainingClassification(nn.Module):
     """This is the Default Model for the project"""
-    def __init__(self, mode="Soft", numberOfFeatures=1504):
+    def __init__(self, mode=None, numberOfFeatures=1504):
         super().__init__()
+        if mode is None:
+            mode = Config.parameters["OOD Type"][0]
+
         self.maxpooling = [4, 2]
         self.convolutional_channels = [32, 64]
 
@@ -477,7 +480,7 @@ class AttackTrainingClassification(nn.Module):
         """
 
         if path is None:
-            pathFound, epochFound = AttackTrainingClassification.findloadPath(path)
+            pathFound, epochFound = AttackTrainingClassification.findloadPath()
         else:
             pathFound, epochFound = (path, 0)
         loaded = torch.load(pathFound, map_location=device)
@@ -590,8 +593,9 @@ class expand_bitPackets(nn.Module):
         input[:, :, :self.length_to_expand] = self.fc(afterMod).unsqueeze(1)
         return input
 
+
 class Conv1DClassifier(AttackTrainingClassification):
-    def __init__(self, mode="Soft", numberOfFeatures=1504):
+    def __init__(self, mode=None, numberOfFeatures=1504):
         super().__init__(mode, numberOfFeatures)
         self.layer1 = nn.Sequential(
             # expand_bitPackets(),
@@ -619,7 +623,7 @@ class Conv1DClassifier(AttackTrainingClassification):
 
 
 class FullyConnected(AttackTrainingClassification):
-    def __init__(self, mode="Soft", numberOfFeatures=1504):
+    def __init__(self, mode=None, numberOfFeatures=1504):
         super().__init__(mode, numberOfFeatures)
         self.layer1 = nn.Sequential(
             # Sorry about the big block of math, trying to calculate how big the convolutional tensor is after the first layer
@@ -649,12 +653,16 @@ def train_model(model: AttackTrainingClassification):
     new_data = Dataload.savedPacketDataset()
     torch.utils.data.ConcatDataset([train, new_data])
 
-    training = Dataload.DataLoader(train, Config.parameters["batch_size"][0], shuffle=True, num_workers=0, pin_memory=False)
-    testing = Dataload.DataLoader(test, Config.parameters["batch_size"][0], shuffle=True, num_workers=0, pin_memory=False)
-    validation = Dataload.DataLoader(val, Config.parameters["batch_size"][0], shuffle=True, num_workers=0, pin_memory=False)
+    training = Dataload.DataLoader(train, Config.parameters["batch_size"][0], shuffle=True, num_workers=Config.parameters["num_workers"][0], pin_memory=False)
+    testing = Dataload.DataLoader(test, Config.parameters["batch_size"][0], shuffle=True, num_workers=Config.parameters["num_workers"][0], pin_memory=False)
+    validation = Dataload.DataLoader(val, Config.parameters["batch_size"][0], shuffle=True, num_workers=Config.parameters["num_workers"][0], pin_memory=False)
 
     testing
     validation
 
     model.end.prepWeibull(training, torch.device('cpu'), model)
+
+    if len(training) < 100000 and Config.parameters["num_epochs"][0] > 0:
+        training = Dataload.recreateDL(training)
+
     model.fit(Config.parameters["num_epochs"][0], Config.parameters["learningRate"][0], training, validation, opt_func=torch.optim.Adam)
