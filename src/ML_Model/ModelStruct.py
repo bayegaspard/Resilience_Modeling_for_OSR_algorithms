@@ -682,12 +682,13 @@ def train_model(model: AttackTrainingClassification):
     model.fit(Config.parameters["num_epochs"][0], Config.parameters["learningRate"][0], training, validation, opt_func=torch.optim.Adam)
 
 
-def get_model(path=None):
+def get_model(path=None, debug=False):
     model_list = {"Convolutional": Conv1DClassifier, "Fully_Connected": FullyConnected}
     model = model_list[Config.parameters["model"][0]](mode=Config.parameters["OOD Type"][0])
     assert isinstance(model, AttackTrainingClassification)
     if model.loadPoint(path) == -1:
-        Config.parameters["Dataset"][0] = "UnitTesting"
-        Config.parameters["num_epochs"][0] = 0
+        if debug == True:
+            Config.parameters["Dataset"][0] = "UnitTesting"
+            Config.parameters["num_epochs"][0] = 1
         train_model(model)
     return model

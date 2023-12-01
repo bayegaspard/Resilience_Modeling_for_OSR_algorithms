@@ -272,11 +272,7 @@ class ModelInstance(object):
         try:
             if save_name is None:
                 print("A model save was not specified, so the model is being trained again.")
-                self.model = ModelStruct.Conv1DClassifier()
-                if self.model.loadPoint() == -1:
-                    ModelStruct.Config.parameters["Dataset"][0] = "UnitTesting"
-                    ModelStruct.Config.parameters["num_epochs"][0] = 0
-                    ModelStruct.train_model(self.model)
+                self.model = ModelStruct.get_model()  # Use debug = True to use unitTesting dataset
                 self.loaded = True
         except Exception as e:
             print(f"Loading error: {e}")
