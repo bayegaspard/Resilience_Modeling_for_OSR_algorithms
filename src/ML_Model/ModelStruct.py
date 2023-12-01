@@ -270,7 +270,9 @@ class AttackTrainingClassification(nn.Module):
             labels = labels.to(out.device)
 
         #  out = DeviceDataLoader(out, device)
-        loss = F.cross_entropy(out, labels)  # Calculate loss
+        weights = torch.ones_like(out[0])
+        weights[0] += 1
+        loss = F.cross_entropy(out, labels, weight=weights)  # Calculate loss
         # torch.cuda.empty_cache()
         #  print("loss from training step ... ", loss)
         return loss
@@ -445,7 +447,7 @@ class AttackTrainingClassification(nn.Module):
                                                                                          result['val_loss'],
                                                                                          result['val_acc']))
 
-    def savePoint(net, path: str, epoch=0):
+    def savePoint(net, path: str, epoch=0, exact_name=False):
         """
         Saves the model
 
@@ -469,7 +471,10 @@ class AttackTrainingClassification(nn.Module):
             to_save["batchSaveClassMeans"] = net.batch_fdHook.means
         to_save["parameter_keys"].remove("optimizer")
         to_save["parameter_keys"].remove("Unknowns")
-        torch.save(to_save, path + f"/Epoch{epoch:03d}{Config.parameters['OOD Type'][0]}.pth")
+        if not exact_name:
+            torch.save(to_save, path + f"/Epoch{epoch:03d}{Config.parameters['OOD Type'][0]}.pth")
+        else:
+            torch.save(to_save, path)
 
         if epoch >= 5:
             oldPath, epoch = AttackTrainingClassification.findloadPath(path, epoch=epoch - 5)
@@ -489,6 +494,8 @@ class AttackTrainingClassification(nn.Module):
 
         if path is None:
             pathFound, epochFound = AttackTrainingClassification.findloadPath(start_search_at=startEpoch)
+            if epochFound == -1:
+                return epochFound
         else:
             pathFound, epochFound = (path, 0)
         loaded = torch.load(pathFound, map_location=device)
@@ -686,7 +693,13 @@ def get_model(path=None, debug=False):
     model_list = {"Convolutional": Conv1DClassifier, "Fully_Connected": FullyConnected}
     model = model_list[Config.parameters["model"][0]](mode=Config.parameters["OOD Type"][0])
     assert isinstance(model, AttackTrainingClassification)
-    if model.loadPoint(path) == -1:
+
+    if path is not None:
+        found = model.loadPoint(path)
+    else:
+        found = model.loadPoint()
+
+    if found == -1:
         if debug == True:
             Config.parameters["Dataset"][0] = "UnitTesting"
             Config.parameters["num_epochs"][0] = 1

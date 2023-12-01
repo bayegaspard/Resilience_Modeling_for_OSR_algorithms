@@ -12,3 +12,4 @@ __pycache__
 !datasets/UnitTestingcounts.csv
 !Saves/renamedPackets/chunkWeb Attack – XSS0.csv
 *.pth
+!Saves/models/MVP_model.pth

@@ -71,7 +71,7 @@ parameters = {
     "learningRate": [0.01, "a modifier for training"],
     "threshold": [0.5, "When to declare something to be unknown"],
     "model": ["Convolutional", "Model type", ["Fully_Connected", "Convolutional"]],
-    "OOD Type": ["SoftThresh", "type of out of distribution detection", ["Soft", "Open", "Energy", "COOL", "DOC", "iiMod"]],
+    "OOD Type": ["Energy", "type of out of distribution detection", ["Soft", "Open", "Energy", "COOL", "DOC", "iiMod"]],
     "Dropout": [0.1, "percent of nodes that are skipped per run, larger numbers for more complex models [0, 1)"],
     "Dataloader_Variation": ["Standard", "Defines the style of Dataloader used. This affects sampling from the dataset", ["Standard", "Cluster", "Flows"]],
     "optimizer": opt_func["Adam"],
