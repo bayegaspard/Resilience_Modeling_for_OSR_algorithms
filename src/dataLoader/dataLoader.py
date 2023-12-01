@@ -272,7 +272,7 @@ class ModelInstance(object):
         try:
             if save_name is None:
                 print("A model save was not specified, so the model is being trained again.")
-                self.model = ModelStruct.get_model()  # Use debug = True to use unitTesting dataset
+                self.model = ModelStruct.get_model(path="Saves/models/MVP_model.pth")  # Use debug = True to use unitTesting dataset
                 self.loaded = True
         except Exception as e:
             print(f"Loading error: {e}")

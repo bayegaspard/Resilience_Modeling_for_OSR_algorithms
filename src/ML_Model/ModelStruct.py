@@ -514,6 +514,8 @@ class AttackTrainingClassification(nn.Module):
                         print("Trying next model")
                         net.loadPoint(path=path, startEpoch=epochFound - 1)
                     return -1
+                if x in ["OOD Type"]:
+                    Config.parameters[x][0] = loaded["parameters"][x][0] 
         for x in loaded["parameters"]["Unknowns_clss"][0]:
             if x not in Config.parameters["Unknowns_clss"][0]:
                 print(f"Warning: Model trained with {x} as an unknown.")
@@ -532,6 +534,8 @@ class AttackTrainingClassification(nn.Module):
         if "batchSaveClassMeans" in loaded.keys():
             net.batch_fdHook = Distance_Types.forwardHook()
             net.batch_fdHook.means = loaded["batchSaveClassMeans"]
+
+        net.end.end_type = Config.parameters["OOD Type"][0]
 
         net.model_loaded = True
         return epochFound
