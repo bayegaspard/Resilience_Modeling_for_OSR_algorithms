@@ -81,9 +81,7 @@ class EndLayers(nn.Module):
         This function creates a class Args that stores the values so that they can be called with args.value
         We have done this to preserve some of the original code for implementations.
         """
-        param = pd.read_csv(os.path.join("Saves", "hyperparam", "hyperParam.csv"))
-        unknowns = pd.read_csv(os.path.join("Saves", "unknown", "unknowns.csv"))
-        unknowns = unknowns["Unknowns"].to_list()
+        param = Config.parameters.copy()
         if temp is None:
             temp = float(param["Temperature"][0])
         if classes is None:

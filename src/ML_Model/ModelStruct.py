@@ -38,10 +38,14 @@ class AttackTrainingClassification(nn.Module):
         if Config.parameters["use_renamed_packets"][0] == 1:
             # This just updates CLASSLIST if renamed packets are used so that the model is the correct size.
             Dataload.savedPacketDataset()
+            self.use_relabeled_packets = True
+        else:
+            self.use_relabeled_packets = False
 
         if mode is None:
             mode = Config.parameters["OOD Type"][0]
 
+        self.model_loaded = False
         self.maxpooling = [4, 2]
         self.convolutional_channels = [32, 64]
 
@@ -266,7 +270,9 @@ class AttackTrainingClassification(nn.Module):
             labels = labels.to(out.device)
 
         #  out = DeviceDataLoader(out, device)
-        loss = F.cross_entropy(out, labels)  # Calculate loss
+        weights = torch.ones_like(out[0])
+        weights[0] += 1
+        loss = F.cross_entropy(out, labels, weight=weights)  # Calculate loss
         # torch.cuda.empty_cache()
         #  print("loss from training step ... ", loss)
         return loss
@@ -441,7 +447,7 @@ class AttackTrainingClassification(nn.Module):
                                                                                          result['val_loss'],
                                                                                          result['val_acc']))
 
-    def savePoint(net, path: str, epoch=0):
+    def savePoint(net, path: str, epoch=0, exact_name=False):
         """
         Saves the model
 
@@ -465,7 +471,10 @@ class AttackTrainingClassification(nn.Module):
             to_save["batchSaveClassMeans"] = net.batch_fdHook.means
         to_save["parameter_keys"].remove("optimizer")
         to_save["parameter_keys"].remove("Unknowns")
-        torch.save(to_save, path + f"/Epoch{epoch:03d}{Config.parameters['OOD Type'][0]}.pth")
+        if not exact_name:
+            torch.save(to_save, path + f"/Epoch{epoch:03d}{Config.parameters['OOD Type'][0]}.pth")
+        else:
+            torch.save(to_save, path)
 
         if epoch >= 5:
             oldPath, epoch = AttackTrainingClassification.findloadPath(path, epoch=epoch - 5)
@@ -484,12 +493,32 @@ class AttackTrainingClassification(nn.Module):
         """
 
         if path is None:
-            pathFound, epochFound = AttackTrainingClassification.findloadPath(startEpoch)
+            pathFound, epochFound = AttackTrainingClassification.findloadPath(start_search_at=startEpoch)
+            if epochFound == -1:
+                return epochFound
         else:
             pathFound, epochFound = (path, 0)
         loaded = torch.load(pathFound, map_location=device)
 
         print(f"Loading  model from {pathFound}")
+
+        for x in loaded["parameter_keys"]:
+
+            #  assert x in Config.parameters.keys() # Make sure that the model loaded actually has all of the needed values
+            if x in Config.parameters.keys() and loaded["parameters"][x][0] != Config.parameters[x][0]:
+                if x not in ["model", "Degree of Overcompleteness", "Number of Layers", "Nodes"]:
+                    print(f"Warning: {x} has been changed from when model was created")
+                else:
+                    print(f"Critital mismatch for model {x} is different from loaded version. No load can occur")
+                    if epochFound != -1:
+                        print("Trying next model")
+                        net.loadPoint(path=path, startEpoch=epochFound - 1)
+                    return -1
+                if x in ["OOD Type"]:
+                    Config.parameters[x][0] = loaded["parameters"][x][0] 
+        for x in loaded["parameters"]["Unknowns_clss"][0]:
+            if x not in Config.parameters["Unknowns_clss"][0]:
+                print(f"Warning: Model trained with {x} as an unknown.")
 
         # # Count the classes
         if all([x in Dataload.CLASSLIST.keys() for x in loaded["CLASSLIST"].keys()]) and all([loaded["CLASSLIST"][x] == Dataload.CLASSLIST[x] for x in loaded["CLASSLIST"].keys()]):
@@ -499,28 +528,16 @@ class AttackTrainingClassification(nn.Module):
             Dataload.LISTCLASS = loaded["LISTCLASS"]
             Config.recountclasses(Dataload.CLASSLIST)
             print(f"CLASSES have changed, there are now {Config.parameters['CLASSES'][0]} classes")
-            net = net.__class__()
+            net.use_relabeled_packets = True
 
-        for x in loaded["parameter_keys"]:
-
-            #  assert x in Config.parameters.keys() # Make sure that the model loaded actually has all of the needed values
-            if x in Config.parameters.keys() and loaded["parameters"][x][0] != Config.parameters[x][0]:
-                if x not in ["model", "CLASSES", "Degree of Overcompleteness", "Number of Layers", "Nodes"]:
-                    print(f"Warning: {x} has been changed from when model was created")
-                else:
-                    print(f"Critital mismatch for model {x} is different from loaded version. No load can occur")
-                    if epochFound != -1:
-                        print("Trying next model")
-                        net.loadPoint(path=path, startEpoch=epochFound - 1)
-                    return -1
-        for x in loaded["parameters"]["Unknowns_clss"][0]:
-            if x not in Config.parameters["Unknowns_clss"][0]:
-                print(f"Warning: Model trained with {x} as an unknown.")
         net.load_state_dict(loaded["model_state"])
         if "batchSaveClassMeans" in loaded.keys():
             net.batch_fdHook = Distance_Types.forwardHook()
             net.batch_fdHook.means = loaded["batchSaveClassMeans"]
 
+        net.end.end_type = Config.parameters["OOD Type"][0]
+
+        net.model_loaded = True
         return epochFound
 
     @staticmethod
@@ -545,7 +562,7 @@ class AttackTrainingClassification(nn.Module):
         if (epoch is not None):
             epochFound = epoch
         else:
-            epochFound = AttackTrainingClassification.findloadEpoch(path, start_search_at)
+            epochFound = AttackTrainingClassification.findloadEpoch(path, start_at=start_search_at)
         if epochFound == -1:
             print("No model to load found.")
             return "", -1
@@ -657,8 +674,9 @@ class FullyConnected(AttackTrainingClassification):
 
 def train_model(model: AttackTrainingClassification):
     train, test, val = Dataload.checkAttempLoad()
-    new_data = Dataload.savedPacketDataset()
-    torch.utils.data.ConcatDataset([train, new_data])
+    if model.use_relabeled_packets:
+        new_data = Dataload.savedPacketDataset()
+        train = torch.utils.data.ConcatDataset([train, new_data])
 
     training = Dataload.DataLoader(train, Config.parameters["batch_size"][0], shuffle=True, num_workers=Config.parameters["num_workers"][0], pin_memory=False)
     testing = Dataload.DataLoader(test, Config.parameters["batch_size"][0], shuffle=True, num_workers=Config.parameters["num_workers"][0], pin_memory=False)
@@ -673,3 +691,21 @@ def train_model(model: AttackTrainingClassification):
         training = Dataload.recreateDL(training)
 
     model.fit(Config.parameters["num_epochs"][0], Config.parameters["learningRate"][0], training, validation, opt_func=torch.optim.Adam)
+
+
+def get_model(path=None, debug=False):
+    model_list = {"Convolutional": Conv1DClassifier, "Fully_Connected": FullyConnected}
+    model = model_list[Config.parameters["model"][0]](mode=Config.parameters["OOD Type"][0])
+    assert isinstance(model, AttackTrainingClassification)
+
+    if path is not None:
+        found = model.loadPoint(path)
+    else:
+        found = model.loadPoint()
+
+    if found == -1:
+        if debug == True:
+            Config.parameters["Dataset"][0] = "UnitTesting"
+            Config.parameters["num_epochs"][0] = 1
+        train_model(model)
+    return model
