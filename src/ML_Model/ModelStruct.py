@@ -696,7 +696,50 @@ def train_model(model: AttackTrainingClassification):
     model.fit(Config.parameters["num_epochs"][0], Config.parameters["learningRate"][0], training, validation, opt_func=torch.optim.Adam)
 
 
+def load_config(path=None):
+    """
+    Loads the most trained model from the path. Note: will break if trying to load a model with different configs.
+
+    parameters:
+        path- path to the folder where the models are stored.
+
+    returns:
+        epochFound - the number of epochs the model that was found has run for.
+    """
+    if path is None:
+        pathFound, epochFound = AttackTrainingClassification.findloadPath(start_search_at=999)
+        if epochFound == -1:
+            return epochFound
+        else:
+            pathFound, epochFound = (path, 0)
+
+    loaded = torch.load(pathFound, map_location=device)
+
+    print(f"Loading  Config from {pathFound}")
+
+    for x in loaded["parameter_keys"]:
+
+        #  assert x in Config.parameters.keys() # Make sure that the model loaded actually has all of the needed values
+        if x in Config.parameters.keys() and loaded["parameters"][x][0] != Config.parameters[x][0]:
+            print(f"{x} has been changed from when model was created")
+            Config.parameters[x][0] = loaded["parameters"][x][0]
+
+    # # Count the classes
+    loaded_keys, current_keys = list(loaded["CLASSLIST"].keys()), list(Dataload.CLASSLIST.keys())
+    loaded_keys.sort()
+    current_keys.sort()
+    if all([x == y for x, y in zip(loaded_keys, current_keys)]) and all([loaded["CLASSLIST"][x] == Dataload.CLASSLIST[x] for x in loaded["CLASSLIST"].keys()]):
+        print("Model has identical classes")
+    else:
+        Dataload.CLASSLIST = loaded["CLASSLIST"]
+        Dataload.LISTCLASS = loaded["LISTCLASS"]
+        Config.recountclasses(Dataload.CLASSLIST)
+        print(f"CLASSES have changed, there are now {Config.parameters['CLASSES'][0]} classes")
+    return True
+
+
 def get_model(path=None, debug=False):
+    load_config(path)
     model_list = {"Convolutional": Conv1DClassifier, "Fully_Connected": FullyConnected}
     model = model_list[Config.parameters["model"][0]](mode=Config.parameters["OOD Type"][0])
     assert isinstance(model, AttackTrainingClassification)
