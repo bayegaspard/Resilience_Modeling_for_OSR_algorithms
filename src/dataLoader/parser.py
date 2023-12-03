@@ -20,7 +20,7 @@ def parsePacket(raw_packet):
 	# packet.length always == packet.captured_length. why are both of these a thing?
 	length = packet.length
 	if int(length) > 1500 or len(raw) > 1500:
-		print(f"Packet too large: length of {len(raw)}")
+		# print(f"Packet too large: length of {len(raw)}")
 		return None
 	time = packet.sniff_timestamp
 	t_delta = float(packet.frame_info.time_delta)

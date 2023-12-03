@@ -1,3 +1,6 @@
+import datetime
+import re
+import textwrap
 import dash
 from dash import html, dcc, callback, Input, Output
 import dash_ag_grid as dag
@@ -12,7 +15,7 @@ dash.register_page(__name__, path="/")
 layout = html.Div([
     html.Span([
         html.H1('OWRT Dashboard'),
-        dcc.RangeSlider(0, 6, marks={0: '-24 hr', 1: '-12 hr', 2: '-6 hr', 3: '-2 hr', 4: '-30 min', 5: '-3 min', 6: '-5s'}, value=[0, 6], id="timeline"),
+        dcc.RangeSlider(0, 6, marks={0: '-24 hr', 1: '-12 hr', 2: '-6 hr', 3: '-2 hr', 4: '-30 min', 5: '-3 min', 6: '-5s'}, value=[6, 0], id="timeline"),
     ], className="header-row"),
     html.Div([
         html.Div([
@@ -20,7 +23,7 @@ layout = html.Div([
             html.Div([
                 html.H3("Packet Classifications", className="card-header"),
                 html.Div([
-                    dcc.Dropdown(['All', 'Benign', 'Malicious', 'Unknown'], 'All', id='category'),
+                    # dcc.Dropdown(['All', 'Benign', 'Malicious', 'Unknown'], 'All', id='category'),
                     dcc.Tabs(id='trend-tab', value='pie', children=[
                         dcc.Tab(label='Pie', value='pie'),
                         dcc.Tab(label='Hist', value='hist'),
@@ -59,13 +62,18 @@ layout = html.Div([
         # packet table
         html.Div([
             html.Div([
-                html.H3("Packets", className="card-header"),
+                html.H3([
+                    "Packets",
+                    dcc.Dropdown(['No Model'], 'No Model', id='model', persistence=True)
+                ], className="card-header"),
+
                 html.Div([
+                    html.Div([], id="emptydiv"),
                     dag.AgGrid(
                         id="packets",
                         columnDefs=[{"field": "pack_id", "hide": True}, {"field": "pack_origin_ip", "headerName": "Source"}, {"field": "srcport", "headerName": "Port (Source)", "filter": "agNumberColumnFilter"}, {"field": "pack_dest_ip", "headerName": "Destination"},
                                     {"field": "destport", "headerName": "Port (Destination)", "filter": "agNumberColumnFilter"}, {"field": "pack_payload", "hide": True}, {"field": "pack_class", "headerName": "Class"}, {"field": "pack_confidence", "headerName": "Probability", "filter": "agNumberColumnFilter"},
-                                    {"field": "protocol"}, {"field": "length", "filter": "agNumberColumnFilter"}, {"field": "t_delta", "filter": "agNumberColumnFilter"}, {"field": "ttl", "headerName": "TTL", "filter": "agNumberColumnFilter"}],
+                                    {"field": "protocol"}, {"field": "length", "filter": "agNumberColumnFilter"}, {"field": "t_delta", "filter": "agNumberColumnFilter"}, {"field": "ttl", "headerName": "TTL", "filter": "agNumberColumnFilter"}, {"field": "time", "headerName": "Time", "filter": "agDateColumnFilter"}],
                         defaultColDef={"resizable": True, "sortable": True, "filter": True},
                         columnSize="sizeToFit",
                         style={"height": "100%"},
@@ -77,54 +85,96 @@ layout = html.Div([
             ], className="card"),
         ], className="col right"),
     ], className="row grow outermost"),
-    # dcc.Interval(
-    #    id='interval',
-    #    interval=500,  # in milliseconds
-    #    n_intervals=0
-    # )
+    # html.Div([
+    #    html.H3("Warning", className="card-header"),
+    # ], className="card", id="warning"),
+    dcc.Interval(
+        id='interval',
+        interval=500,  # in milliseconds
+        n_intervals=0
+    ),
+    dcc.Store(
+        id="timerange",
+        storage_type="memory",
+        data=None
+    ),
 ], className="pagecontainer")
 
 
 def packetTrendHist(bins):
     binsdf = pd.DataFrame.from_records(bins)
-    return px.histogram(data_frame=binsdf, x='bucket', y='ct', color='pack_class').update_layout(margin=dict(l=20, r=20, t=20, b=20))
+    if 'bucket' not in binsdf:
+        return {}
+    print(len(binsdf['bucket']))
+    return px.histogram(data_frame=binsdf, x='bucket', y='ct', labels={"bucket": "time", "ct": "packet classifications"}, color='pack_class').update_layout(margin=dict(l=20, r=20, t=20, b=20))
 
 
 def packetTrendPie(packets):
     print(packets)
     packetsdf = pd.DataFrame.from_records(packets)
+    if 'ct' not in packetsdf:
+        return {}
     protocolCounts = packetsdf['ct']  # packetsdf['pack_class'].value_counts()
     print(protocolCounts)
     return px.pie(data_frame=packetsdf, names=packetsdf['pack_class'], values=packetsdf['ct'], color='ct').update_layout(margin=dict(l=20, r=20, t=20, b=20))
 
 
 @callback(
+    Output("model", "options"),
+    Input("interval", "n_intervals")
+)
+def updateModelDropdown(n_intervals):
+    c = clientDataLoader.ClientDataLoader()
+    list = c.listModels()
+    if list is None:
+        return {}
+    return dict(zip(list, list))
+
+@callback(
+    Output("emptydiv", "children"),
+    Input("model", "value")
+)
+def loadNewModel(value):
+    c = clientDataLoader.ClientDataLoader()
+    print(value)
+    c.loadModel(value)
+    return None
+
+
+@callback(
     Output("trends-graph", "figure"),
     Input("timeline", "value"),
     Input("trend-tab", "value"),
+    Input("packets", "filterModel")
     # Input("category", "value"),
 )
-def updateChart(timerange, charttype):  # , category):
+def updateChart(timerange, charttype, filters):  # , category):
     c = clientDataLoader.ClientDataLoader()
     figure = None
     if charttype == 'pie':
-        counts = c.getClassCounts(timerange=timerange)
+        counts = c.getClassCounts(timerange=timerange, filters=filters)
         print(counts)
+        if counts is None:
+            return {}
         figure = packetTrendPie(counts)
     elif charttype == 'hist':
-        bins = c.getClassBins(timerange=timerange, binct=10)
+        bins = c.getClassBins(timerange=timerange, binct=10, filters=filters)
+        if bins is None:
+            return {}
         figure = packetTrendHist(bins)
     return figure
 
 
 @callback(
     Output("packets", "getRowsResponse"),  # Output("packets", "rowData"),
+    Output("timerange", "data"),
     # Output("packets", "selectedRows"),
     # Output("packets", "dashGridOptions"),
     Input("timeline", "value"),
     Input("trend-tab", "value"),
     # Input("category", "value"),
     Input("packets", "getRowsRequest"),
+    # Input("interval", "n_intervals")
     # Input("interval", "n_intervals")
 )
 def updateData(timerange, charttype, rowsRequest):  # category
@@ -140,9 +190,21 @@ def updateData(timerange, charttype, rowsRequest):  # category
 
     packetTable = packets  # packets.to_dict("records")
 
-    # best to hide record ids at some point
-    return packetTable  # , figure  # , {"ids": []}, {"rowSelection": "single", "rowMultiSelectWithClick": False}
+    now = datetime.datetime.now()
 
+    # best to hide record ids at some point
+    return packetTable, timerange  # , figure  # , {"ids": []}, {"rowSelection": "single", "rowMultiSelectWithClick": False}
+
+
+def byte2char(byte):
+    if byte == 32:
+        return " "
+    if byte == 45:
+        return "‑"
+    elif byte >= 32 and byte <= 126:
+        return chr(byte)
+    else:
+        return '.'
 
 @callback(
     Output("packet-header", "children"),
@@ -161,7 +223,13 @@ def inspectPacket(packets):
         if False: # hex
             byteString = ["{:02x}".format(next(byteInts)) for i in range(0, length)]
         else:
-            byteString = "".join([chr(byte) if (byte >= 32 and byte <= 126) else '.' for byte in byteInts])
+            # ln = []
+            # for i in range(0, len(byteInts), 16):
+            # ln.append("".join([chr(byte) byteInts[]])
+            byteString = "".join([byte2char(byte) for byte in byteInts])
+            byteString = textwrap.fill(byteString, 32)
+            # byteString = re.sub("({.32})", "\\1\n<br>", byteString, 0, re.DOTALL)
+            print(byteString)
 
         headerData = html.Div([f"Source: {packet['pack_origin_ip'].strip()}:{packet['srcport']}",
                               html.Br(),
