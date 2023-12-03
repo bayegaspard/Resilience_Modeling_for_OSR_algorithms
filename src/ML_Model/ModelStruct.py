@@ -710,8 +710,8 @@ def load_config(path=None):
         pathFound, epochFound = AttackTrainingClassification.findloadPath(start_search_at=999)
         if epochFound == -1:
             return epochFound
-        else:
-            pathFound, epochFound = (path, 0)
+    else:
+        pathFound, epochFound = (path, 0)
 
     loaded = torch.load(pathFound, map_location=device)
 
