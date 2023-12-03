@@ -61,7 +61,9 @@ def class_means_from_loader(weibulInfo):
             means = class_means(Z, y)
             if means.dim > 0:
                 classmeans = [(x * num * Config.parameters["batch_size"][0] + y) / (num * Config.parameters["batch_size"][0] + len(y)) for x, y in zip(classmeans, means)]
-
+        del (X)
+        del (Y)
+        del (Z)
     return classmeans
 
 
