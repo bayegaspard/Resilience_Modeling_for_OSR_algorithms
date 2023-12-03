@@ -521,7 +521,10 @@ class AttackTrainingClassification(nn.Module):
                 print(f"Warning: Model trained with {x} as an unknown.")
 
         # # Count the classes
-        if all([x in Dataload.CLASSLIST.keys() for x in loaded["CLASSLIST"].keys()]) and all([loaded["CLASSLIST"][x] == Dataload.CLASSLIST[x] for x in loaded["CLASSLIST"].keys()]):
+        loaded_keys, current_keys = loaded["CLASSLIST"].keys(), Dataload.CLASSLIST.keys()
+        loaded_keys.sort()
+        current_keys.sort()
+        if all([x == y for x, y in zip(loaded_keys, current_keys)]) and all([loaded["CLASSLIST"][x] == Dataload.CLASSLIST[x] for x in loaded["CLASSLIST"].keys()]):
             print("Model has identical classes")
         else:
             Dataload.CLASSLIST = loaded["CLASSLIST"]
