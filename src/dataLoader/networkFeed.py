@@ -46,7 +46,7 @@ async def feedNetwork(interface=any, loader=None):
         if parsedPacket is not None:
             batch.append(parsedPacket)
 
-        if len(batch) > 999:
+        if len(batch) > 99:
             try:
                 df = pcap.make_df(batch)
                 print(f"Sending a batch of {len(batch)} packets.")
