@@ -735,11 +735,11 @@ def load_config(path=None):
         Dataload.LISTCLASS = loaded["LISTCLASS"]
         Config.recountclasses(Dataload.CLASSLIST)
         print(f"CLASSES have changed, there are now {Config.parameters['CLASSES'][0]} classes")
-    return True
+    return epochFound
 
 
 def get_model(path=None, debug=False):
-    load_config(path)
+    epoch = load_config(path)
     model_list = {"Convolutional": Conv1DClassifier, "Fully_Connected": FullyConnected}
     model = model_list[Config.parameters["model"][0]](mode=Config.parameters["OOD Type"][0])
     assert isinstance(model, AttackTrainingClassification)
@@ -747,7 +747,10 @@ def get_model(path=None, debug=False):
     if path is not None:
         found = model.loadPoint(path)
     else:
-        found = model.loadPoint()
+        if epoch >= 0:
+            found = model.loadPoint(AttackTrainingClassification.findloadPath(epoch=epoch)[0])
+        else:
+            found = -1
 
     if found == -1:
         if debug == True:
