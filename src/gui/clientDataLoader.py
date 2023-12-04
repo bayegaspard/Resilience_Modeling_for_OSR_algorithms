@@ -21,24 +21,24 @@ class ClientDataLoader:
         except Pyro5.errors.CommunicationError:
             print("Communcations were not successful with the server")
 
-    def getClassBins(self, timerange, binct):
+    def getClassBins(self, timerange, binct, filters):
         if self.data_loader is None:
             print("An attempt was made to retrieve the bins, but there is no connection to the server")
             return None
         try:
-            results = self.data_loader.getClassBins(timerange, binct)
+            results = self.data_loader.getClassBins(timerange, binct, filters)
             return results
         except Exception as e:
             print(f"getPackets exception: {e}")
             print("".join(Pyro5.errors.get_pyro_traceback()))
             return None
 
-    def getClassCounts(self, timerange):
+    def getClassCounts(self, timerange, filters):
         if self.data_loader is None:
             print("An attempt was made to retrieve a packet, but there is no connection to the server")
             return None
         try:
-            results = self.data_loader.getClassCounts(timerange)
+            results = self.data_loader.getClassCounts(timerange, filters)
             return results
         except Exception as e:
             print(f"getPackets exception: {e}")
@@ -81,3 +81,15 @@ class ClientDataLoader:
             print("An attempt was made to send packets, but there is no connection to the server")
             return None
         self.data_loader.uploadPackets(payload)
+
+    def listModels(self):
+        if self.data_loader is None:
+            print("An attempt was made to retrieve a list of packets, but there is no connection to the server")
+            return None
+        return self.data_loader.listModels()
+
+    def loadModel(self, save):
+        if self.data_loader is None:
+            print("An attempt was made to load a model, but there is no connection to the server")
+            return None
+        return self.data_loader.loadModel(save)

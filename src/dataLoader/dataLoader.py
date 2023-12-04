@@ -1,3 +1,4 @@
+from operator import countOf
 import Pyro5.api
 import dbManager
 import math
@@ -13,6 +14,7 @@ import networkFeed
 sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))) + "/ML_Model")
 import ModelStruct
+import helperFunctions
 
 
 # read permitted mac addresses
@@ -20,7 +22,7 @@ import ModelStruct
 
 
 class ServerDataLoader(object):
-    PACKET_COLS = {"pack_id", "pack_origin_ip", "pack_dest_ip", "protocol", "length", "t_delta", "ttl", "srcport", "destport"}
+    PACKET_COLS = {"pack_id", "pack_origin_ip", "pack_dest_ip", "protocol", "length", "t_delta", "ttl", "srcport", "destport", "time"}
     PACK_CLASS_COLS = {"pack_class", "pack_confidence"}
     SQL_OPERATORS = {"equals": "=", "notEqual": "!=", "notContains": "NOT LIKE", "contains": "LIKE", "greaterThan": ">", "greaterThanOrEqual": ">=", "lessThan": "<", "lessThanOrEqual": "<="}
 
@@ -41,11 +43,11 @@ class ServerDataLoader(object):
         else:
             return None  # should maybe initialize a new one? idk
 
-    def loadModel(self, mac):
+    def loadModel(self, mac, save_name):
         print(f"[{mac}]: Loading model")
-        if mac not in self.modelInstances:
-            self.modelInstances[mac] = ModelInstance()
-            self.modelInstances[mac].loadModel()
+        # if mac not in self.modelInstances:
+        self.modelInstances[mac] = ModelInstance()
+        self.modelInstances[mac].loadModel(save_name=save_name)
         return self.modelInstances[mac]
 
     def filter2Where(column, filter, isNumber):
@@ -82,19 +84,24 @@ class ServerDataLoader(object):
             else:
                 whereString += ServerDataLoader.filter2Where(column=schemaCol, filter=filters[column], isNumber=isNumber)
 
-            print(whereString)
+            # print(whereString)
 
         return whereString
 
-    def getClassBins(self, timerange, binct):
+    def getClassBins(self, timerange, binct, filters):
+        where = ''
+        if len(filters) > 0:
+            where = ServerDataLoader.SqlWhereFromFilters(filters=filters)
+
         results = None
         with self.dbConn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cursor:
             try:  # probably need join for time range. consider merging with getPackets query?
                 # TODO: use range for timestamp and amount of time
-                cursor.execute("""SELECT date_bin('1 hours', TIMESTAMP '2023-11-27 20:20:20', packet.time) as bucket,
+                cursor.execute(f"""SELECT date_bin('1 minute'::interval, packet.time, TIMESTAMP '2023-11-27 20:20:20') as bucket,
                                     pack_label.pack_class, count(*) as ct
                                FROM PACK_LABEL
                                LEFT JOIN packet ON packet.PACK_ID = pack_label.PACK_ID
+                               {where}
                                GROUP BY pack_label.pack_class, bucket
                                ORDER BY bucket, pack_label.pack_class""")
                 results = cursor.fetchall()
@@ -102,21 +109,27 @@ class ServerDataLoader(object):
                 print("Syntax error: {0}".format(e))
             except Exception as e:
                 print(f"General exception: {e}")
-        print(results)
+        # print(results)
         return [dict(row) for row in results]
 
-    def getClassCounts(self, timerange):
+    def getClassCounts(self, timerange, filters):
         results = None
+        where = ''
+        if filters and len(filters) > 0:
+            where = ServerDataLoader.SqlWhereFromFilters(filters=filters)
+
         with self.dbConn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cursor:
             try:  # probably need join for time range. consider merging with getPackets query?
-                cursor.execute("""SELECT pack_class, count(*) as ct FROM PACK_LABEL
+                cursor.execute(f"""SELECT pack_class, count(*) as ct FROM PACK_LABEL
+                               INNER JOIN packet ON packet.PACK_ID = pack_label.PACK_ID
+                               {where}
                                GROUP BY pack_class""")
                 results = cursor.fetchall()
             except psycopg2.errors.SyntaxError as e:
                 print("Syntax error: {0}".format(e))
             except Exception as e:
                 print(f"General exception: {e}")
-        print(results)
+        # print(results)
         return [dict(row) for row in results]
 
     def getPacket(self, id, model):
@@ -158,7 +171,7 @@ class ServerDataLoader(object):
         else:
             sqlParams['where'] = ServerDataLoader.SqlWhereFromFilters(requestData['filterModel'])
 
-        queryString = f"""SELECT packet.PACK_ID, packet.PACK_ORIGIN_IP, packet.PACK_DEST_IP, packet.SRCPORT, packet.DESTPORT,
+        queryString = f"""SELECT packet.PACK_ID, packet.PACK_ORIGIN_IP, packet.PACK_DEST_IP, packet.SRCPORT, packet.DESTPORT, PACKET.TIME,
                                 pack_label.PACK_CLASS, pack_label.PACK_CONFIDENCE, packet.PROTOCOL, packet.LENGTH, packet.T_DELTA, packet.TTL, count(*) OVER() AS full_count
                         FROM packet
                         LEFT JOIN pack_label ON pack_label.PACK_ID = packet.PACK_ID
@@ -246,7 +259,14 @@ class ServerDataLoader(object):
             except Exception as e:
                 print("General exception: {0}".format(e))
 
+    def createWarning(self, dataObj):
+        warning = {}
+        warning["numNonBenign"] = dataObj.num_packets - countOf(dataObj.predictions_string, "BENIGN")
+        warning["numMal"] = self.warning["numNonBenign"] - countOf(dataObj.predictions_string, "Unknown")
+        return warning
+
     def newPackets(self, payload):  # client shouldn't wait for this
+        print(self.modelInstances)
         if sum([model.loaded for _, model in self.modelInstances.items()]) == 0:
             print("No models are loaded, so payloads are being ignored.")
             return None
@@ -258,6 +278,7 @@ class ServerDataLoader(object):
             if not model.loaded:
                 continue
             dataObj = model.feed(payload)
+            model.warning = self.createWarning(dataObj)
             self.insertLabels(ids=ids, data=dataObj, model_id=1)
 
 
@@ -270,9 +291,14 @@ class ModelInstance(object):
 
     def loadModel(self, save_name=None):
         try:
+            print("Model should be loading right now...")
+            self.loaded = False
             if save_name is None:
                 print("A model save was not specified, so the model is being trained again.")
                 self.model = ModelStruct.get_model(path="Saves/models/MVP_model.pth")  # Use debug = True to use unitTesting dataset
+                self.loaded = True
+            else:
+                self.model = ModelStruct.get_model(path=f"Saves/models/{save_name}")  # Use debug = True to use unitTesting dataset
                 self.loaded = True
         except Exception as e:
             print(f"Loading error: {e}")
@@ -295,8 +321,27 @@ class DataLoaderInterface(object):
         ModelStruct.Config.parameters["Dataset"][0] = "UnitTesting"
         self.model = loader.getModelInstance(mac=self.mac)
         if self.model is None:
-            print(f"[{self.mac}]: Loading model")
-            self.model = loader.loadModel(mac=self.mac)
+            print("ModelInstance not found")
+            self.model = ModelInstance()  # temp
+            # loader.modelInstances[self.mac] = ModelInstance()
+            # self.model = loader.getModelInstance(mac=self.mac)
+            # print(self.model)
+            # print(f"[{self.mac}]: Loading model")
+            # self.model = loader.loadModel(mac=self.mac)
+
+    def loadModel(self, save_name):
+        self.connectModel()
+        loader.loadModel(mac=self.mac, save_name=save_name)
+        # self.model.loadModel(save_name=save_name)
+
+    def getWarning(self):
+        if self.model and self.model.warning:
+            return self.model.warning
+        else:
+            return None
+
+    def listModels(self):
+        return helperFunctions.get_saved_models()
 
     def setMac(self, mac1):
         self.mac = mac1
@@ -304,11 +349,11 @@ class DataLoaderInterface(object):
     def getMac(self):
         return self.mac
 
-    def getClassBins(self, timerange, binct):
-        return loader.getClassBins(timerange=timerange, binct=binct)
+    def getClassBins(self, timerange, binct, filters):
+        return loader.getClassBins(timerange=timerange, binct=binct, filters=filters)
 
-    def getClassCounts(self, timerange):
-        return loader.getClassCounts(timerange=timerange)
+    def getClassCounts(self, timerange, filters):
+        return loader.getClassCounts(timerange=timerange, filters=filters)
 
     def getPacket(self, id):
         return loader.getPacket(id=id, model=None)
@@ -331,7 +376,7 @@ uri = daemon.register(DataLoaderInterface, objectId="dataloader")
 if __name__ == "__main__":
     try:
         feedThread = threading.Thread(target=networkFeed.feedNetworkThr, args=(any, loader,))
-        feedThread.start()
+        # feedThread.start()
         daemon.requestLoop()
     except KeyboardInterrupt:
         print("Ending networkFeed and ServerDataLoader")
