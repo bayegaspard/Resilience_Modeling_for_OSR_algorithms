@@ -333,42 +333,45 @@ class AttackTrainingClassification(nn.Module):
                 This data should be in the form of: (IxF) where I is the number of instances of the data and F is the number of features.
             generateStability - Booliean value stating if datashiftFactor should be calculated.
         """
-        if not isinstance(batch, torch.Tensor):
-            batch = Dataload.pandas_to_tensor(batch)
+        with torch.no_grad():
+            if not isinstance(batch, torch.Tensor):
+                batch = Dataload.pandas_to_tensor(batch)
 
-        new_data = outputDataObject.outputDataUpdateObject()
-        self.eval()
-        out_logits = self(batch)  # Run the model without the endlayer
-        out = self.end(out_logits).cpu()  # Run the endlayer
-        # Find Argmax:
-        if out.ndim == 2:
-            predictions = torch.argmax(out, dim=1)
-        else:
-            # DOC already applies an argmax equivalent so we do not apply one here.
-            predictions = out
+            new_data = outputDataObject.outputDataUpdateObject()
+            self.eval()
+            out_logits = self(batch)  # Run the model without the endlayer
+            out = self.end(out_logits).cpu()  # Run the endlayer
+            # Find Argmax:
+            if out.ndim == 2:
+                predictions = torch.argmax(out, dim=1)
+            else:
+                # DOC already applies an argmax equivalent so we do not apply one here.
+                predictions = out
 
-        new_data.predictions_numerical = predictions.numpy()
-        index_to_class = Dataload.CLASSLIST.copy()
-        index_to_class[len(index_to_class)] = "Unknown"
-        new_data.predictions_string = [index_to_class[x] for x in new_data.predictions_numerical]
-        new_data.prediction_confidence = torch.softmax(out_logits, dim=1).max(dim=1)[0]
+            new_data.predictions_numerical = predictions.numpy()
+            index_to_class = Dataload.CLASSLIST.copy()
+            index_to_class[len(index_to_class)] = "Unknown"
+            new_data.predictions_string = [index_to_class[x] for x in new_data.predictions_numerical]
+            new_data.prediction_confidence = torch.softmax(out_logits, dim=1).max(dim=1)[0]
 
-        # This bit of code generates the stability metrics (Incomplete)
-        if generateStability:
-            self.batch_fdHook.class_vals = predictions
-            self.batch_fdHook.rm = self.flatten.register_forward_hook(self.batch_fdHook)
-            self(batch)
-            self.batch_fdHook.rm.remove()
-            new_data.datashiftFactor = np.array([self.batch_fdHook.distances[x].detach() for x in self.batch_fdHook.distances.keys()]).sum()
+            # This bit of code generates the stability metrics (Incomplete)
+            if generateStability:
+                self.batch_fdHook.class_vals = predictions
+                self.batch_fdHook.rm = self.flatten.register_forward_hook(self.batch_fdHook)
+                self(batch)
+                self.batch_fdHook.rm.remove()
+                new_data.datashiftFactor = np.array([self.batch_fdHook.distances[x].detach() for x in self.batch_fdHook.distances.keys()]).sum()
+                self.batch_fdHook.reset()
 
-        assert isinstance(predictions, torch.Tensor), "Model Output Not torch Tensor, should not be possible"
-        bincounts = predictions.bincount(minlength=Config.parameters["CLASSES"][0] + 1)
-        new_data.attacks = {Dataload.CLASSLIST[y + 1]: x.item() for y, x in enumerate(bincounts[1:Config.parameters["CLASSES"][0]])}
-        new_data.num_packets = bincounts.sum().item()
-        # This is temparary:
-        for y in torch.softmax(out_logits[predictions == Config.parameters["CLASSES"][0]], dim=1):
-            new_data.unknowns.append([Dataload.CLASSLIST[z] for z, x in enumerate(y) if x > 0.2])
+            assert isinstance(predictions, torch.Tensor), "Model Output Not torch Tensor, should not be possible"
+            bincounts = predictions.bincount(minlength=Config.parameters["CLASSES"][0] + 1)
+            new_data.attacks = {Dataload.CLASSLIST[y + 1]: x.item() for y, x in enumerate(bincounts[1:Config.parameters["CLASSES"][0]])}
+            new_data.num_packets = bincounts.sum().item()
+            # This is temparary:
+            for y in torch.softmax(out_logits[predictions == Config.parameters["CLASSES"][0]], dim=1):
+                new_data.unknowns.append([Dataload.CLASSLIST[z] for z, x in enumerate(y) if x > 0.2])
 
+            self.end.resetvals()
         return new_data
 
     @torch.no_grad()

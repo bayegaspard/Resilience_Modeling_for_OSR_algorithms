@@ -5,29 +5,29 @@ import math
 
 # Code from the iiMod file
 def distance_measures(Z: torch.Tensor, means: list, Y: torch.Tensor, distFunct) -> torch.Tensor:
+    with torch.no_grad():
+        intraspread = torch.tensor(0, dtype=torch.float32)
+        N = len(Y)
+        K = range(len(Config.parameters["Knowns_clss"][0]))
+        # K = range(len([0,1,2]))
+        # For each class in the knowns
+        for j in K:
+            if means[j].dim() != 0:
+                # The mask will only select items of the correct class
+                mask = (Y == Config.parameters["Knowns_clss"][0][j]).cpu()
+                # mask = Y==[0,1,2][j]
 
-    intraspread = torch.tensor(0, dtype=torch.float32)
-    N = len(Y)
-    K = range(len(Config.parameters["Knowns_clss"][0]))
-    # K = range(len([0,1,2]))
-    # For each class in the knowns
-    for j in K:
-        if means[j].dim() != 0:
-            # The mask will only select items of the correct class
-            mask = (Y == Config.parameters["Knowns_clss"][0][j]).cpu()
-            # mask = Y==[0,1,2][j]
-
-            # torch.flatten(x,start_dim=1,end_dim=-1)
-            dist = abs(distFunct(means[j].cpu(), Z.cpu()[mask.cpu()]))
-            if not math.isnan(dist):
-                intraspread += dist
-
-    return intraspread / N
+                # torch.flatten(x,start_dim=1,end_dim=-1)
+                dist = abs(distFunct(means[j].cpu(), Z.cpu()[mask.cpu()]))
+                if not math.isnan(dist):
+                    intraspread += dist
+        intraspread = intraspread / N
+    return intraspread
 
 
 # Equation 2 from iiMod file
 def class_means(Z: torch.Tensor, Y: torch.Tensor):
-    means = [torch.tensor(0) for x in range(Config.parameters["CLASSES"][0])]
+    means = [torch.tensor(0, requires_grad=False) for x in range(Config.parameters["CLASSES"][0])]
     # print(Y.bincount())
     for y in Config.parameters["Knowns_clss"][0]:
         # for y in [0,1,2]:
@@ -104,6 +104,9 @@ class forwardHook():
                 self.distances[name] = distance_measures(output, self.means[name], self.class_vals, dist_types_dict[self.distFunct])
             else:
                 self.distances[name] += distance_measures(output, self.means[name], self.class_vals, dist_types_dict[self.distFunct])
+
+    def reset(self):
+        self.distances = {}
 
 
 dist_types_dict = {
