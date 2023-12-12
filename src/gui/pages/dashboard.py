@@ -64,7 +64,7 @@ layout = html.Div([
             html.Div([
                 html.H3([
                     "Packets",
-                    dcc.Dropdown(['No Model'], 'No Model', id='model', persistence=True)
+                    dcc.Dropdown([], None, placeholder="Select Model", id='model', persistence=True)
                 ], className="card-header"),
 
                 html.Div([
@@ -128,7 +128,8 @@ def updateModelDropdown(n_intervals):
     list = c.listModels()
     if list is None:
         return {}
-    return dict(zip(list, list))
+    return dict(zip(list, list)) | {"train": "Train Model"}
+
 
 @callback(
     Output("emptydiv", "children"),

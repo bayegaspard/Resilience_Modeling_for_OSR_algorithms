@@ -1,0 +1,88 @@
+\documentclass{article}
+\usepackage{pgfplotstable, filecontents}
+
+\begin{filecontents*}{risks.csv}
+Risk type,Risk,Probability,Impact,Management Strategy,Sorting Order
+Project risk,Users trust model too much,53,3,Inform the users on the confidence and pitfalls of using such a model.,1.777777778
+Project risk,Other classwork prevents work on the project,63,3,Do a bad job on the other classwork.,1.688888889
+Technical risk,Model misclassifies data,72,2,Allow users to reclassify data for further retraining.,1.672222222
+Technical risk,Program crashes,47,3,Lots of Unit Testing to find issues before they become problems.,1.4
+Project risk,layout does not meet user needs,42,3,Assess and redesign interface according to requirements.,1.388888889
+Project risk,Communication failure with client,37,4,Plan a meeting to discuss the issues with communication.,1.368888889
+Business risk,Change to requirements,43,3,"Clarify requirements early on, and utilize a modular design which enables requirement changes.",1.155555556
+Technical risk,Improper IPC leading to bugs,36,3,Look for libraries that are easier to use.,1.08
+Project risk,Missed Deadline,27,4,"Plan ahead to identify possible harsh deadlines at least a week in advance. If the deadline cannot be moved, attempt to remove features from the deadline to make it manageable.",0.977777778
+Technical risk,Too slow to respond to packet data,33,3,Display the packets before they receive analysis/a response.,0.888888889
+Technical risk,Network packets in incompatible format,33,3,Use a different library that is sufficient for our purposes and has readable data.,0.871111111
+Technical risk,interface is accessible by outside actors,37,2,Only allow known clients to connect to the server.,0.855555556
+Technical risk,Too many packets for queue,29,3,Disregard the benevolent packets or packets of specific protocalls and spin up new datacollectors to analyze the excluded packets.,0.782222222
+Project risk,Someone on the team gets sick/ becomes unable to work,23,3,Maintain cohesion and communication so that work does not stall.,0.777777778
+Technical risk,Doesn't collect/show all packets,23,3,Research and implement the database with a high-performance option that can handle the task.,0.7
+Technical risk,The code does not work,16,4,Lots of Unit Testing to find issues before they become problems.,0.653333333
+Project risk,insufficient meetings,32,2,Prepare materials and questions for meetings to get the most out of them.,0.633333333
+Technical risk,Model fails to train,17,3,"Try different activation functions, learning rates, and model structures.",0.555555556
+Project risk,Viability failure,18,3,Discuss the possibility of useful functions for the final pruduct with the stakeholders.,0.55
+Project risk,Computer failure prevents work,15,3,Backup data on cloud. Can use school PCs,0.511111111
+Project risk,Internet Failure preventing work,17,3,Coordinate tasks so that work can be done when communication is impossible.,0.5
+Project risk,layout is confusing,28,1,Distribute user manuals and consider alternative interface designs.,0.377777778
+Project risk,Code has an unresolvable version conflict,9,4,Identify equivalent libraries that can work together that can replace the confilicting libraries.,0.317777778
+Project risk,User doesn�t understand interface,23,1,Distribute user manuals and consider alternative interface designs.,0.311111111
+Technical risk,Final platform has unforeseen incompatibilities,10,3,Utilize reputably cross-platform libraries.,0.31
+Project risk,Local/National emergency of some kind prevents work,4,4,In this case the project will be delayed until the end of the emergency.,0.174777778
+Business risk,Client drops project,4,5,If occurs: Speak with professor to identify new stakeholder to manage the project.,0.171111111
+Project risk,User confuses prod with testing,7,2,Clearly demarcate the currently-running version.,0.111111111
+Business risk,Change in management,4,2,Plan many meetings with new stakeholders to identify changes in the plan and stratagies to deal with those changes.,0.086666667
+Project risk,Computer stolen prevents work,1,4,Backup data on cloud. Can use school PCs,0.057777778
+Project risk,Project work stolen,2,2,Keep work computers safe and use passwords.,0.046666667    
+\end{filecontents*}
+
+\title{Risk Assessment Document}
+\author{Andrew Bajumpaa, Alexandre Broggi, Joseph O'Dowd}
+\date{November 17th, 2023}
+
+\begin{document}
+    \maketitle
+    \section{Risk Assessment}
+    Risk assessment is the process of brainstorming, analyzing, and mitigating potential project risks before it's too late. Below: a table. 
+    \subsection{Risk Table}
+    % Please add the following required packages to your document preamble:
+% \usepackage[normalem]{ulem}
+% \useunder{\uline}{\ul}{}
+\begin{table}[]
+    \begin{tabular}{llllll}
+    \hline
+    Risk type      & Risk                                                  & Probability & Impact & Management Strategy                                                                                                                                                              & Sorting Order \\ \hline
+    Project risk   & Users trust model too much                            & 53\%        & 3      & Inform the users on the confidence and pitfalls of using such a model.                                                                                                           & 1.777777778   \\
+    Project risk   & Other classwork prevents work on the project          & 63\%        & 3      & Do a bad job on the other classwork.                                                                                                                                             & 1.688888889   \\
+    Technical risk & Model misclassifies data                              & 72\%        & 2      & Allow users to reclassify data for further retraining.                                                                                                                           & 1.672222222   \\
+    Technical risk & Program crashes                                       & 47\%        & 3      & Lots of Unit Testing to find issues before they become problems.                                                                                                                 & 1.4           \\
+    Project risk   & layout does not meet user needs                       & 42\%        & 3      & Assess and redesign interface according to requirements.                                                                                                                         & 1.388888889   \\
+    Project risk   & Communication failure with client                     & 37\%        & 4      & Plan a meeting to discuss the issues with communication.                                                                                                                         & 1.368888889   \\
+    Business risk  & Change to requirements                                & 43\%        & 3      & Clarify requirements early on, and utilize a modular design which enables requirement changes.                                                                                   & 1.155555556   \\
+    Technical risk & Improper IPC leading to bugs                          & 36\%        & 3      & Look for libraries that are easier to use.                                                                                                                                       & 1.08          \\
+    Project risk   & Missed Deadline                                       & 27\%        & 4      & Plan ahead to identify possible harsh deadlines at least a week in advance. If the deadline cannot be moved, attempt to remove features from the deadline to make it manageable. & 0.977777778   \\
+    Technical risk & Too slow to respond to packet data                    & 33\%        & 3      & Display the packets before they receive analysis/a response.                                                                                                                     & 0.888888889   \\
+    Technical risk & Network packets in incompatible format                & 33\%        & 3      & Use a different library that is sufficient for our purposes and has readable data.                                                                                               & 0.871111111   \\
+    Technical risk & interface is accessible by outside actors             & 37\%        & 2      & Only allow known clients to connect to the server.                                                                                                                               & 0.855555556   \\
+    Technical risk & Too many packets for queue                            & 29\%        & 3      & Disregard the benevolent packets or packets of specific protocalls and spin up new datacollectors to analyze the excluded packets.                                               & 0.782222222   \\
+    Project risk   & Someone on the team gets sick/ becomes unable to work & 23\%        & 3      & Maintain cohesion and communication so that work does not stall.                                                                                                                 & 0.777777778   \\
+    Technical risk & Doesn't collect/show all packets                      & 23\%        & 3      & Research and implement the database with a high-performance option that can handle the task.                                                                                     & 0.7           \\
+    Technical risk & The code does not work                                & 16\%        & 4      & Lots of Unit Testing to find issues before they become problems.                                                                                                                 & 0.653333333   \\
+    Project risk   & insufficient meetings                                 & 32\%        & 2      & Prepare materials and questions for meetings to get the most out of them.                                                                                                        & 0.633333333   \\
+    Technical risk & Model fails to train                                  & 17\%        & 3      & Try different activation functions, learning rates, and model structures.                                                                                                        & 0.555555556   \\
+    Project risk   & Viability failure                                     & 18\%        & 3      & Discuss the possibility of useful functions for the final pruduct with the stakeholders.                                                                                         & 0.55          \\
+    Project risk   & Computer failure prevents work                        & 15\%        & 3      & Backup data on cloud. Can use school PCs                                                                                                                                         & 0.511111111   \\
+    Project risk   & Internet Failure preventing work                      & 17\%        & 3      & Coordinate tasks so that work can be done when communication is impossible.                                                                                                      & 0.5           \\
+    Project risk   & layout is confusing                                   & 28\%        & 1      & Distribute user manuals and consider alternative interface designs.                                                                                                              & 0.377777778   \\
+    Project risk   & Code has an unresolvable version conflict             & 9\%         & 4      & Identify equivalent libraries that can work together that can replace the confilicting libraries.                                                                                & 0.317777778   \\
+    Project risk   & User doesn't understand interface                     & 23\%        & 1      & Distribute user manuals and consider alternative interface designs.                                                                                                              & 0.311111111   \\
+    Technical risk & Final platform has unforeseen incompatibilities       & 10\%        & 3      & Utilize reputably cross-platform libraries.                                                                                                                                      & 0.31          \\
+    Project risk   & Local/National emergency of some kind prevents work   & 4\%         & 4      & In this case the project will be delayed until the end of the emergency.                                                                                                         & 0.174777778   \\
+    Business risk  & Client drops project                                  & 4\%         & 5      & If occurs: Speak with professor to identify new stakeholder to manage the project.                                                                                               & 0.171111111   \\
+    Project risk   & User confuses prod with testing                       & 7\%         & 2      & Clearly demarcate the currently-running version.                                                                                                                                 & 0.111111111   \\
+    Business risk  & Change in management                                  & 4\%         & 2      & Plan many meetings with new stakeholders to identify changes in the plan and stratagies to deal with those changes.                                                              & 0.086666667   \\
+    Project risk   & Computer stolen prevents work                         & 1\%         & 4      & Backup data on cloud. Can use school PCs                                                                                                                                         & 0.057777778   \\
+    Project risk   & Project work stolen                                   & 2\%         & 2      & Keep work computers safe and use passwords.                                                                                                                                      & 0.046666667   \\ \hline
+    \end{tabular}
+    \end{table}
+\end{document}

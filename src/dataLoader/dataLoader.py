@@ -298,6 +298,12 @@ class ModelInstance(object):
                 self.model
                 # self.model = ModelStruct.get_model(path="Saves/models/MVP_model.pth")  # Use debug = True to use unitTesting dataset
                 self.loaded = True
+            elif save_name == "train":
+                ModelStruct.Config.parameters["Dataset"][0] = "UnitTesting"
+                ModelStruct.Config.parameters["num_epochs"][0] = 1
+                self.model = ModelStruct.Conv1DClassifier()
+                ModelStruct.train_model(self.model)
+                self.loaded = True
             else:
                 self.model = ModelStruct.get_model(path=f"Saves/models/{save_name}")  # Use debug = True to use unitTesting dataset
                 self.loaded = True
