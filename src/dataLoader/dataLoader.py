@@ -278,7 +278,7 @@ class ServerDataLoader(object):
             if not model.loaded:
                 continue
             dataObj = model.feed(payload)
-            model.warning = self.createWarning(dataObj)
+            # model.warning = self.createWarning(dataObj)
             self.insertLabels(ids=ids, data=dataObj, model_id=1)
 
 
@@ -295,7 +295,14 @@ class ModelInstance(object):
             self.loaded = False
             if save_name is None:
                 print("A model save was not specified, so the model is being trained again.")
-                self.model = ModelStruct.get_model(path="Saves/models/MVP_model.pth")  # Use debug = True to use unitTesting dataset
+                self.model
+                # self.model = ModelStruct.get_model(path="Saves/models/MVP_model.pth")  # Use debug = True to use unitTesting dataset
+                self.loaded = True
+            elif save_name == "train":
+                ModelStruct.Config.parameters["Dataset"][0] = "UnitTesting"
+                ModelStruct.Config.parameters["num_epochs"][0] = 1
+                self.model = ModelStruct.Conv1DClassifier()
+                ModelStruct.train_model(self.model)
                 self.loaded = True
             else:
                 self.model = ModelStruct.get_model(path=f"Saves/models/{save_name}")  # Use debug = True to use unitTesting dataset
@@ -376,7 +383,7 @@ uri = daemon.register(DataLoaderInterface, objectId="dataloader")
 if __name__ == "__main__":
     try:
         feedThread = threading.Thread(target=networkFeed.feedNetworkThr, args=(any, loader,))
-        # feedThread.start()
+        feedThread.start()
         daemon.requestLoop()
     except KeyboardInterrupt:
         print("Ending networkFeed and ServerDataLoader")

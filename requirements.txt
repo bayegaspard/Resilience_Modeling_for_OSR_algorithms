@@ -9,5 +9,5 @@ tqdm
 pyshark
 dash
 Pyro5
-psycopg
+psycopg2-binary
 dash_ag_grid

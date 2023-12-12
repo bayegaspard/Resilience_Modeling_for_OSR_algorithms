@@ -64,7 +64,7 @@ layout = html.Div([
             html.Div([
                 html.H3([
                     "Packets",
-                    dcc.Dropdown(['No Model'], 'No Model', id='model', persistence=True)
+                    dcc.Dropdown([], None, placeholder="Select Model", id='model', persistence=True)
                 ], className="card-header"),
 
                 html.Div([
@@ -72,7 +72,7 @@ layout = html.Div([
                     dag.AgGrid(
                         id="packets",
                         columnDefs=[{"field": "pack_id", "hide": True}, {"field": "pack_origin_ip", "headerName": "Source"}, {"field": "srcport", "headerName": "Port (Source)", "filter": "agNumberColumnFilter"}, {"field": "pack_dest_ip", "headerName": "Destination"},
-                                    {"field": "destport", "headerName": "Port (Destination)", "filter": "agNumberColumnFilter"}, {"field": "pack_payload", "hide": True}, {"field": "pack_class", "headerName": "Class"}, {"field": "pack_confidence", "headerName": "Probability", "filter": "agNumberColumnFilter"},
+                                    {"field": "destport", "headerName": "Port (Destination)", "filter": "agNumberColumnFilter"}, {"field": "pack_payload", "hide": True}, {"field": "pack_class", "headerName": "Class"}, {"field": "pack_confidence", "headerName": "Probability", "filter": "agNumberColumnFilter", "filterModel": {"type": "greaterThan", "filter": 0.5}},
                                     {"field": "protocol"}, {"field": "length", "filter": "agNumberColumnFilter"}, {"field": "t_delta", "filter": "agNumberColumnFilter"}, {"field": "ttl", "headerName": "TTL", "filter": "agNumberColumnFilter"}, {"field": "time", "headerName": "Time", "filter": "agDateColumnFilter"}],
                         defaultColDef={"resizable": True, "sortable": True, "filter": True},
                         columnSize="sizeToFit",
@@ -128,7 +128,8 @@ def updateModelDropdown(n_intervals):
     list = c.listModels()
     if list is None:
         return {}
-    return dict(zip(list, list))
+    return dict(zip(list, list)) | {"train": "Train Model"}
+
 
 @callback(
     Output("emptydiv", "children"),

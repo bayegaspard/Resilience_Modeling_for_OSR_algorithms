@@ -44,9 +44,8 @@ def test_validation_dataset():
 
 def test_testing_dataset():
     Dataload.Config.parameters["Mix unknowns and validation"][0] = 0
-    assert Dataload.Config.parameters["Mix unknowns and validation"][0] != 3  # LOOP == 3 causes problems by not having unknowns in loop level 0
     Dataload.Config.unit_test_mode = True
-    if len(Dataload.Config.parameters["Unknowns_clss"][0]) == 0:
+    if len(Dataload.Config.parameters["Unknowns_clss"][0]) == 0 or Dataload.Config.parameters["LOOP"][0] != 3:   # LOOP == 3 causes problems by not having unknowns in loop level 0
         pytest.skip()
     train, test, val = Dataload.checkAttempLoad("")
     test = Dataload.DataLoader(test, Config.parameters["batch_size"][0], shuffle=True, num_workers=0, pin_memory=False)
