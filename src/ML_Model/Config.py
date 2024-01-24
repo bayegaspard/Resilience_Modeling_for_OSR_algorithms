@@ -101,7 +101,7 @@ parameters = {
 # Argparse tutorial: https: //docs.python.org/3/howto/argparse.html
 parser = argparse.ArgumentParser()
 for x in parameters.keys():
-    if x in ["batch_size", "num_workers", "MaxPerClass", "num_epochs", "Degree of Overcompleteness", "Number of Layers", "Nodes", "SchedulerStepSize", "Var_filtering_threshold"]:
+    if x in ["batch_size", "num_workers", "MaxPerClass", "num_epochs", "Degree of Overcompleteness", "Number of Layers", "Nodes", "SchedulerStepSize"]:
         parser.add_argument(f"--{x}", type=int, default=parameters[x][0], help=parameters[x][1], required=False)
     if x in ["testlength", "learningRate", "threshold", "Dropout", "Temperature", "SchedulerStep"]:
         parser.add_argument(f"--{x}", type=float, default=parameters[x][0], help=parameters[x][1], required=False)
@@ -111,7 +111,7 @@ for x in parameters.keys():
         parser.add_argument(f"--{x}", type=int, choices=[0, 1, 2, 3, 4], default=parameters[x][0], help=parameters[x][1], required=False)
     if x in ["model", "OOD Type", "Dataloader_Variation", "Activation", "Dataset"]:
         parser.add_argument(f"--{x}", choices=parameters[x].pop(), default=parameters[x][0], help=parameters[x][1], required=False)
-    if x in ["Unknowns_clss"]:
+    if x in ["Unknowns_clss", "Var_filtering_threshold"]:
         parser.add_argument(f"--{x}", default=f"{parameters[x][0]}", help=parameters[x][1], required=False)
     if x in ["Saveloc"]:
         parser.add_argument("--Saveloc", type=str, default="defaultSave.pth", help="Save location for running from __init__", required=False)
@@ -127,6 +127,15 @@ if isinstance(parameters["Unknowns_clss"][0], str):
     else:
         parameters["Unknowns_clss"][0] = []
 
+if isinstance(parameters["Var_filtering_threshold"][0], str):
+    if len(parameters["Var_filtering_threshold"][0]) > 0 and ("," in parameters["Var_filtering_threshold"][0]):
+        if len(parameters["Var_filtering_threshold"][0]) != 2:  # Not sure why I need this specifier but it breaks if the default is []
+            # print(len(parameters["Unknowns_clss"][0]))
+            parameters["Var_filtering_threshold"][0] = [float(y) for y in parameters["Var_filtering_threshold"][0].removesuffix("]").removeprefix("[").split(sep=", ")]
+    elif len(parameters["Var_filtering_threshold"][0]) > 0 and ("," not in parameters["Var_filtering_threshold"][0]):
+        parameters["Var_filtering_threshold"][0] = float(parameters["Var_filtering_threshold"][0])
+    else:
+        parameters["Var_filtering_threshold"][0] = [-1, -1]
 
 DOC_kernels = [3, 4, 5]
 
@@ -245,9 +254,15 @@ use_alg_thesholds = False
 
 
 if parameters["LOOP"][0] == 3:
+    print("Warning: Unknowns may have been changed due to LOOP 3 percentages file")
+    import pandas as pd
     # parameters["num_epochs"][0] = 0
     parameters["loopLevel"] = [0, "What percentages the model is on"]
     parameters["MaxSamples"] = [parameters["MaxPerClass"][0], "Max number of samples total"]
+    file = pd.read_csv("datasets/percentages.csv", index_col=None).to_numpy()
+    zeros = file[0][:parameters["CLASSES"][0]] == 0
+    unknownClasses = zeros.nonzero()[0]
+    parameters["Unknowns_clss"][0] = unknownClasses.tolist()
 
 
 # Getting version number

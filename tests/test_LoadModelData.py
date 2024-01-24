@@ -57,20 +57,20 @@ def test_testing_dataset():
 
 
 def test_add_new_class():
-    Dataload.LISTCLASS["Test"] = len(Dataload.LISTCLASS)
-    Dataload.CLASSLIST[Dataload.LISTCLASS["Test"]] = "Test"
+    Dataload.CLASSLIST["Test"] = len(Dataload.CLASSLIST)
+    Dataload.LISTCLASS[Dataload.CLASSLIST["Test"]] = "Test"
     old_number = Config.parameters["CLASSES"][0]
-    Config.recountclasses(CLASSLIST=Dataload.CLASSLIST)
+    Config.recountclasses(CLASSLIST=Dataload.LISTCLASS)
     new_number = Config.parameters["CLASSES"][0]
     assert old_number != new_number
 
 
 def test_add_new_class_function():
-    old_number_of_IDs = len(Dataload.CLASSLIST)
-    old_number_of_classes = len(Dataload.LISTCLASS)
+    old_number_of_IDs = len(Dataload.LISTCLASS)
+    old_number_of_classes = len(Dataload.CLASSLIST)
     Dataload.add_new_class("Test2")
-    new_number_of_IDs = len(Dataload.CLASSLIST)
-    new_number_of_classes = len(Dataload.LISTCLASS)
+    new_number_of_IDs = len(Dataload.LISTCLASS)
+    new_number_of_classes = len(Dataload.CLASSLIST)
     assert old_number_of_IDs != new_number_of_IDs
     assert old_number_of_classes != new_number_of_classes
 
@@ -85,4 +85,4 @@ def test_dynamic_dataloader():
         assert val[1][0] == val[1][1]
         assert val[1][0] < Config.parameters["CLASSES"][0]
         assert len(val[0]) == 1504
-        assert val[1][0].item() in Dataload.CLASSLIST.keys()
+        assert val[1][0].item() in Dataload.LISTCLASS.keys()

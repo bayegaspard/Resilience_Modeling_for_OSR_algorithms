@@ -67,8 +67,8 @@ def test_modelDataObject():
 
 def test_loadModelOld():
     listOfModels = helperFunctions.get_saved_models()
-    Dataload.CLASSLIST = {x: Dataload.CLASSLIST[x] for x in Dataload.CLASSLIST.keys() if Dataload.CLASSLIST[x] not in ["Test", "Test2"]}
-    Config.recountclasses(Dataload.CLASSLIST)
+    Dataload.LISTCLASS = {x: Dataload.LISTCLASS[x] for x in Dataload.LISTCLASS.keys() if Dataload.LISTCLASS[x] not in ["Test", "Test2"]}
+    Config.recountclasses(Dataload.LISTCLASS)
     if len(listOfModels) < 2:
         torch.manual_seed(0)
         for x in range(5):
@@ -100,8 +100,8 @@ def test_loadModelOld():
 
 def test_loadModel():
     listOfModels = helperFunctions.get_saved_models()
-    Dataload.CLASSLIST = {x: Dataload.CLASSLIST[x] for x in Dataload.CLASSLIST.keys() if Dataload.CLASSLIST[x] not in ["Test", "Test2"]}
-    Config.recountclasses(Dataload.CLASSLIST)
+    Dataload.LISTCLASS = {x: Dataload.LISTCLASS[x] for x in Dataload.LISTCLASS.keys() if Dataload.LISTCLASS[x] not in ["Test", "Test2"]}
+    Config.recountclasses(Dataload.LISTCLASS)
     if len(listOfModels) < 2:
         torch.manual_seed(0)
         for x in range(5):
