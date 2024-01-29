@@ -146,7 +146,7 @@ class AttackTrainingClassification(nn.Module):
         x_before_model = x_before_model.float()
         x = x_before_model.unsqueeze(1)
         if Config.parameters["Experimental_bitConvolution"][0] == 1:
-            x_before_model = self.bitpack(x_before_model)
+            x = self.bitpack(x)
         x = self.sequencePackage(x)
         return x
 
@@ -244,6 +244,8 @@ class AttackTrainingClassification(nn.Module):
             if Config.parameters["attemptLoadModel"][0] == 0:
                 # don't double load
                 epoch = self.loadPoint("Saves/models")
+            else:
+                epoch = startingEpoch
             result = self.evaluate(val_loader)
             result['train_loss'] = -1
             self.epoch_end(epoch, result)
@@ -312,6 +314,12 @@ class AttackTrainingClassification(nn.Module):
         #  out = self.end.endlayer(out, labels, type="Open")
         #  out = self.end.endlayer(out, labels, type="Energy")
 
+        # if out_post_endlayer.ndim == 2:
+        #     out_argmax = torch.argmax(out_post_endlayer, dim=1).cpu()
+        # else:
+        #     #DOC already applies an argmax equivalent so we do not apply one here.
+        #     out_argmax = out_post_endlayer.cpu()
+
         #  Y_pred = out
         #  Y_test = labels
         #  print("y-test from validation", Y_test)
@@ -355,7 +363,7 @@ class AttackTrainingClassification(nn.Module):
                 predictions = out
 
             new_data.predictions_numerical = predictions.numpy()
-            index_to_class = Dataload.CLASSLIST.copy()
+            index_to_class = Dataload.LISTCLASS.copy()
             index_to_class[len(index_to_class)] = "Unknown"
             new_data.predictions_string = [index_to_class[x] for x in new_data.predictions_numerical]
             new_data.prediction_confidence = torch.softmax(out_logits, dim=1).max(dim=1)[0]
@@ -371,11 +379,11 @@ class AttackTrainingClassification(nn.Module):
 
             assert isinstance(predictions, torch.Tensor), "Model Output Not torch Tensor, should not be possible"
             bincounts = predictions.bincount(minlength=Config.parameters["CLASSES"][0] + 1)
-            new_data.attacks = {Dataload.CLASSLIST[y + 1]: x.item() for y, x in enumerate(bincounts[1:Config.parameters["CLASSES"][0]])}
+            new_data.attacks = {Dataload.LISTCLASS[y + 1]: x.item() for y, x in enumerate(bincounts[1:Config.parameters["CLASSES"][0]])}
             new_data.num_packets = bincounts.sum().item()
             # This is temparary:
             for y in torch.softmax(out_logits[predictions == Config.parameters["CLASSES"][0]], dim=1):
-                new_data.unknowns.append([Dataload.CLASSLIST[z] for z, x in enumerate(y) if x > 0.2])
+                new_data.unknowns.append([Dataload.LISTCLASS[z] for z, x in enumerate(y) if x > 0.2])
 
             self.end.resetvals()
         return new_data
@@ -546,15 +554,15 @@ class AttackTrainingClassification(nn.Module):
                 print(f"Warning: Model trained with {x} as an unknown.")
 
         # # Count the classes
-        loaded_keys, current_keys = list(loaded["CLASSLIST"].keys()), list(Dataload.CLASSLIST.keys())
+        loaded_keys, current_keys = list(loaded["CLASSLIST"].keys()), list(Dataload.LISTCLASS.keys())
         loaded_keys.sort()
         current_keys.sort()
-        if all([x == y for x, y in zip(loaded_keys, current_keys)]) and all([loaded["CLASSLIST"][x] == Dataload.CLASSLIST[x] for x in loaded["CLASSLIST"].keys()]):
+        if all([x == y for x, y in zip(loaded_keys, current_keys)]) and all([loaded["CLASSLIST"][x] == Dataload.LISTCLASS[x] for x in loaded["CLASSLIST"].keys()]):
             print("Model has identical classes")
         else:
-            Dataload.CLASSLIST = loaded["CLASSLIST"]
-            Dataload.LISTCLASS = loaded["LISTCLASS"]
-            Config.recountclasses(Dataload.CLASSLIST)
+            Dataload.LISTCLASS = loaded["CLASSLIST"]
+            Dataload.CLASSLIST = loaded["LISTCLASS"]
+            Config.recountclasses(Dataload.LISTCLASS)
             print(f"CLASSES have changed, there are now {Config.parameters['CLASSES'][0]} classes")
             net.use_relabeled_packets = True
 

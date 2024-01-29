@@ -84,10 +84,18 @@ def definedLoops(path="datasets/hyperparamList.csv", row=0):
                 Config.parameters[x][0] = hyperparams[x]
                 if isinstance(Config.parameters[x][0], np.generic):
                     Config.parameters[x][0] = Config.parameters[x][0].item()
-                if x == "Unknowns_clss":
+                if x in ["Unknowns_clss", "Knowns_clss"]:
                     # str.removesuffix("]").removeprefix("[").split(sep=", ")
                     Config.parameters[x][0] = [int(y) for y in Config.parameters[x][0].removesuffix("]").removeprefix("[").split(sep=", ")]
-        Config.loopOverUnknowns()
+                if x in ["Var_filtering_threshold"]:
+                    # str.removesuffix("]").removeprefix("[").split(sep=",")
+                    if isinstance(Config.parameters[x][0], str):
+                        Config.parameters[x][0] = [float(y) for y in Config.parameters[x][0].removesuffix("]").removeprefix("[").split(sep=",")]
+                    else:
+                        Config.parameters[x][0] = float(Config.parameters[x][0])
+        if "Knowns_clss" not in Config.parameters.keys():
+            # If the Known classes are not explicitly stated then they will be regenerated
+            Config.loopOverUnknowns()
         return row + 1
     Config.parameters["LOOP"][0] = 0
     return row + 1

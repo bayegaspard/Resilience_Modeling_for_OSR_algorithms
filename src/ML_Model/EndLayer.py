@@ -35,6 +35,8 @@ class EndLayers(nn.Module):
         self.DOO = Config.parameters["Degree of Overcompleteness"][0]    # Degree of Overcompleteness for COOL
         self.weibulInfo = None
         self.var_cutoff = Config.parameters["Var_filtering_threshold"][0]
+        if not isinstance(self.var_cutoff, list):
+            self.var_cutoff = [self.var_cutoff]
         self.resetvals()
 
     def forward(self, output_true: torch.Tensor, y=None, type=None) -> torch.Tensor:
@@ -54,11 +56,11 @@ class EndLayers(nn.Module):
             type = self.end_type
 
         if y is not None and False:
-            if type == "Energy":
+            if type in ["Var"]:
                 # Energy kind of reverses things.
-                self.rocData[0] = y == Config.parameters["CLASSES"][0]
+                self.rocData[0] = y == Config.parameters["CLASSES"][0]  # True if data is unknown
             else:
-                self.rocData[0] = y != Config.parameters["CLASSES"][0]
+                self.rocData[0] = y != Config.parameters["CLASSES"][0]  # True if data is known
 
         # modify outputs if nessisary for algorithm
         output_modified = self.typesOfMod.get(type, self.typesOfMod["none"])(self, output_true)
@@ -66,11 +68,18 @@ class EndLayers(nn.Module):
         # This is supposted to add an extra column for unknowns
         output_complete = self.typesOfUnknown[type](self, output_modified)
 
-        if self.var_cutoff > 0 and type not in ["COOL"]:
-            output_m_soft = self.typesOfMod.get("Soft", self.typesOfMod["none"])(self, output_true)
-            output_c_soft = self.typesOfUnknown["Soft"](self, output_m_soft)
-            var_mask = ~self.varmax_mask(output_true)
-            output_complete[var_mask] = output_c_soft[var_mask]
+        # This performs the multi stage selection using variance.
+        if self.var_cutoff[0] > 0 and type not in ["COOL"]:
+            output_m_soft = self.typesOfMod.get("Soft", self.typesOfMod["none"])(self, output_true)  # Applies softmax
+            output_c_soft = self.typesOfUnknown["Soft"](self, output_m_soft, roc=False)   # Adds a column of zeros so that softmax matches the rest
+            top_k = torch.topk(output_m_soft, 2, dim=1)[0]  # tensor
+            diff_topk = top_k[:, 0] - top_k[:, 1]  # diffecerence of the top 2 chosen classes
+            thresh_mask = diff_topk.less(0.5)
+            # thresh_mask is things to send to Var_mask
+            var_mask = self.varmax_mask(output_true)
+            # var_mask is things to send to OOD
+
+            output_complete[~(var_mask & thresh_mask)] = output_c_soft[~(var_mask & thresh_mask)]  # This line replaces anywhere that does not pass both tests
 
         return output_complete
 
@@ -122,7 +131,7 @@ class EndLayers(nn.Module):
     # ---------------------------------------------------------------------------------------------
     # This is the section for adding unknown column
 
-    def softMaxUnknown(self, percentages: torch.Tensor):
+    def softMaxUnknown(self, percentages: torch.Tensor, roc=True):
         """
         This is just Softmax. It adds a column of zeros to fit in with the rest of the algorithms.
         """
@@ -132,6 +141,8 @@ class EndLayers(nn.Module):
         unknownColumn = torch.zeros(batchsize, device=percentages.device)
         # self.Save_score.append(unknownColumn)
         # self.rocData[1] = unknownColumn
+        if roc and False:  # ROC is currently disabled
+            self.rocData[1] = unknownColumn
         return torch.cat((percentages, unknownColumn.unsqueeze(1)), dim=1)
 
     def normalThesholdUnknown(self, percentages: torch.Tensor):
@@ -214,16 +225,47 @@ class EndLayers(nn.Module):
         return torch.cat([percentages, unknowns.unsqueeze(dim=-1)], dim=-1)
 
     def varmax_final(self, logits: torch.Tensor):
-        self.rocData[1] = torch.var(torch.abs(logits), dim=1)
-        var_mask = self.varmax_mask(logits)
+        """
+        Varmax is a method that selects anything below a cutoff value and assumes that it is unknown because a high value means that one class is more highly selected than the rest.
+
+        This implementation does that by finding everywhere the filter selects as unknown and then performing softmax on the original logits.
+        Then the filter is multiplied by 2 and concatinated to the softmax as an "unknown" column.
+        Since the max values outside of the unknown column sum to 1. The unknown column will always be selected in argmax if it is a 2.
+        This can be implemented in other ways though.
+        """
+        self.rocData[1] = self.var(logits)
+        var_mask = self.varmax_mask(logits, self.cutoff)
         shape = logits.shape
         unknown = torch.zeros([shape[0], 1], device=logits.device)
         unknown[var_mask] = 2
         output = torch.concat([torch.softmax(logits, dim=-1), unknown], dim=-1)
         return output
 
-    def varmax_mask(self, logits):
-        return torch.var(torch.abs(logits), dim=1) < self.var_cutoff
+    def varmax_mask(self, logits, cutoff=None):
+        """
+        Varmax is a method that selects anything below a cutoff value and assumes that it is unknown because a high value means that one class is more highly selected than the rest.
+
+        Inputs:
+            logits, a series of logits
+            cutoff, a float for single cutoff
+
+        Outputs:
+            A single dimentional array that has a 1 where the value is more unknonw and a 0 where it is less.
+        """
+        if cutoff is not None:
+            return self.var(logits) < cutoff
+        elif len(self.var_cutoff) == 1:
+            return self.var(logits) < self.var_cutoff[0]
+        else:
+            var = self.var(logits)
+            return (var < self.var_cutoff[1]) & (var > self.var_cutoff[0])
+
+    def var(self, logits):
+        """
+        Just calculates variance.
+        """
+        logits = helperFunctions.renameClasses(logits)
+        return torch.var(torch.abs(logits), dim=1)
 
     # all functions here return a mask with 1 in all valid locations and 0 in all invalid locations
     typesOfUnknown = {"Soft": softMaxUnknown, "Energy": energyUnknown, "COOL": normalThesholdUnknown, "SoftThresh": normalThesholdUnknown, "DOC": DOCUnknown, "iiMod": iiUnknown, "Var": varmax_final}
