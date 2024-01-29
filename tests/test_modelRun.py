@@ -71,6 +71,8 @@ def test_loadModelOld():
     Config.recountclasses(Dataload.LISTCLASS)
     if len(listOfModels) < 2:
         torch.manual_seed(0)
+        model = ModelStruct.Conv1DClassifier(mode="SoftThresh", numberOfFeatures=Dataload.getDatagroup()[0].data_length)
+        torch.manual_seed(0)
         for x in range(5):
             model.fit(1, 2, training, validation, opt_func=torch.optim.Adam)
             Config.unit_test_mode = False
@@ -78,6 +80,11 @@ def test_loadModelOld():
             Config.unit_test_mode = True
         listOfModels = helperFunctions.get_saved_models()
         # pytest.skip(f"Too few model savepoints to test loading. Need at least two, found {len(listOfModels)}.")
+    else:
+        torch.manual_seed(0)
+        model = ModelStruct.initialize_model("Saves/models/" + listOfModels[0])
+
+    torch.manual_seed(0)
     batch = iter(training)._next_data()
     i = 1
     Failures_to_load = 0
@@ -103,6 +110,8 @@ def test_loadModel():
     Dataload.LISTCLASS = {x: Dataload.LISTCLASS[x] for x in Dataload.LISTCLASS.keys() if Dataload.LISTCLASS[x] not in ["Test", "Test2"]}
     Config.recountclasses(Dataload.LISTCLASS)
     if len(listOfModels) < 2:
+        torch.manual_seed(0)
+        model = ModelStruct.Conv1DClassifier(mode="SoftThresh", numberOfFeatures=Dataload.getDatagroup()[0].data_length)
         torch.manual_seed(0)
         for x in range(5):
             model.fit(1, 2, training, validation, opt_func=torch.optim.Adam)
