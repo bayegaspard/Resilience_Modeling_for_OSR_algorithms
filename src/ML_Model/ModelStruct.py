@@ -490,8 +490,8 @@ class AttackTrainingClassification(nn.Module):
             "model_state": net.state_dict(),
             "parameter_keys": list(Config.parameters.keys()),
             "parameters": Config.parameters,
-            "CLASSLIST": Dataload.LISTCLASS,
-            "LISTCLASS": Dataload.CLASSLIST,
+            "LISTCLASS": Dataload.LISTCLASS,
+            "CLASSLIST": Dataload.CLASSLIST,
             "info": info
         }
 
@@ -554,14 +554,14 @@ class AttackTrainingClassification(nn.Module):
                 print(f"Warning: Model trained with {x} as an unknown.")
 
         # # Count the classes
-        loaded_keys, current_keys = list(loaded["CLASSLIST"].keys()), list(Dataload.LISTCLASS.keys())
+        loaded_keys, current_keys = list(loaded["LISTCLASS"].keys()), list(Dataload.LISTCLASS.keys())
         loaded_keys.sort()
         current_keys.sort()
-        if all([x == y for x, y in zip(loaded_keys, current_keys)]) and all([loaded["CLASSLIST"][x] == Dataload.LISTCLASS[x] for x in loaded["CLASSLIST"].keys()]):
+        if all([x == y for x, y in zip(loaded_keys, current_keys)]) and all([loaded["LISTCLASS"][x] == Dataload.LISTCLASS[x] for x in loaded["LISTCLASS"].keys()]):
             print("Model has identical classes")
         else:
-            Dataload.LISTCLASS = loaded["CLASSLIST"]
-            Dataload.CLASSLIST = loaded["LISTCLASS"]
+            Dataload.LISTCLASS = loaded["LISTCLASS"]
+            Dataload.CLASSLIST = loaded["CLASSLIST"]
             Config.recountclasses(Dataload.LISTCLASS)
             print(f"CLASSES have changed, there are now {Config.parameters['CLASSES'][0]} classes")
             net.use_relabeled_packets = True
@@ -573,6 +573,7 @@ class AttackTrainingClassification(nn.Module):
 
         net.end.end_type = Config.parameters["OOD Type"][0]
         net.untrained = loaded["info"]["untrained"] if "info" in loaded.keys() else False  # I am going to assume that it is trained if it is really old
+        net.date_of_creation = loaded["info"]["date_of_creation"] if "info" in loaded.keys() else None
 
         return epochFound
 
@@ -760,19 +761,19 @@ def initialize_config(load_dict):
     for x in load_dict["parameter_keys"]:
 
         #  assert x in Config.parameters.keys() # Make sure that the model loaded actually has all of the needed values
-        if x in Config.parameters.keys() and load_dict["parameters"][x][0] != Config.parameters[x][0]:
+        if (x in Config.parameters.keys() and load_dict["parameters"][x][0] != Config.parameters[x][0]) and x not in ["Unknowns"]:
             print(f"{x} has been changed from default values")
             Config.parameters[x][0] = load_dict["parameters"][x][0]
 
     # # Count the classes
-    loaded_keys, current_keys = list(load_dict["CLASSLIST"].keys()), list(Dataload.LISTCLASS.keys())
+    loaded_keys, current_keys = list(load_dict["LISTCLASS"].keys()), list(Dataload.LISTCLASS.keys())
     loaded_keys.sort()
     current_keys.sort()
-    if all([x == y for x, y in zip(loaded_keys, current_keys)]) and all([load_dict["CLASSLIST"][x] == Dataload.LISTCLASS[x] for x in load_dict["CLASSLIST"].keys()]):
+    if all([x == y for x, y in zip(loaded_keys, current_keys)]) and all([load_dict["LISTCLASS"][x] == Dataload.LISTCLASS[x] for x in load_dict["LISTCLASS"].keys()]):
         print("Model has identical classes")
     else:
-        Dataload.LISTCLASS = load_dict["CLASSLIST"]
-        Dataload.CLASSLIST = load_dict["LISTCLASS"]
+        Dataload.LISTCLASS = load_dict["LISTCLASS"]
+        Dataload.CLASSLIST = load_dict["CLASSLIST"]
         Config.recountclasses(Dataload.LISTCLASS)
         print(f"CLASSES have changed, there are now {Config.parameters['CLASSES'][0]} classes")
 
