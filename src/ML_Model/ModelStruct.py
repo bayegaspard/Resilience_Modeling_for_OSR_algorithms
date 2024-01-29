@@ -4,6 +4,7 @@ from torch.nn import functional as F
 import os
 from tqdm import tqdm
 import time
+from datetime import datetime
 
 #  # #  user defined functions
 import Config
@@ -45,9 +46,14 @@ class AttackTrainingClassification(nn.Module):
         if mode is None:
             mode = Config.parameters["OOD Type"][0]
 
-        self.model_loaded = False
+        self.untrained = True
+        self.date_of_creation = None
         self.maxpooling = [4, 2]
         self.convolutional_channels = [32, 64]
+
+        # This is for doing a convolution of the bits
+        if Config.parameters["Experimental_bitConvolution"][0] != 1:
+            self.bitpack = expand_bitPackets(numberOfFeatures, device=device)
 
         # This is the length of the packets in the dataset we are currently using.
         self.fullyConnectedStart = ((numberOfFeatures) / (self.maxpooling[0]) // 1) - 1
@@ -463,28 +469,43 @@ class AttackTrainingClassification(nn.Module):
             return
         if not os.path.exists(path):
             os.mkdir(path)
+
+        # useful information about the model.
+        info = {
+            "date_of_creation": net.date_of_creation if net.date_of_creation is not None else datetime.now(),
+            "latest_update": datetime.now(),
+            "untrained": net.untrained if epoch == 0 else False
+        }
+
+        # The whole dictionary to save
         to_save = {
             "model_state": net.state_dict(),
             "parameter_keys": list(Config.parameters.keys()),
             "parameters": Config.parameters,
-            "CLASSLIST": Dataload.CLASSLIST,
-            "LISTCLASS": Dataload.LISTCLASS
+            "CLASSLIST": Dataload.LISTCLASS,
+            "LISTCLASS": Dataload.CLASSLIST,
+            "info": info
         }
+
+        # Save the means as well, so that they don't need to be recalculated.
         if net.batch_fdHook is not None:
             to_save["batchSaveClassMeans"] = net.batch_fdHook.means
+
+        # Optimizer is an object and would be annoying to save.
         to_save["parameter_keys"].remove("optimizer")
-        to_save["parameter_keys"].remove("Unknowns")
+
+        # Sometimes you want to save to a specific file instead of the generic name.
         if not exact_name:
             torch.save(to_save, path + f"/Epoch{epoch:03d}{Config.parameters['OOD Type'][0]}.pth")
+            # We had a problem with saving too many versions.
+            if epoch >= 5:
+                oldPath, epoch = AttackTrainingClassification.findloadPath(path, epoch=epoch - 5)
+                if os.path.exists(oldPath):
+                    os.remove(oldPath)
         else:
             torch.save(to_save, path)
 
-        if epoch >= 5:
-            oldPath, epoch = AttackTrainingClassification.findloadPath(path, epoch=epoch - 5)
-            if os.path.exists(oldPath):
-                os.remove(oldPath)
-
-    def loadPoint(net, path=None, deleteOld=False, startEpoch=999):
+    def loadPoint(net, path=None, startEpoch=999):
         """
         Loads the most trained model from the path. Note: will break if trying to load a model with different configs.
 
@@ -513,12 +534,13 @@ class AttackTrainingClassification(nn.Module):
                     print(f"Warning: {x} has been changed from when model was created")
                 else:
                     print(f"Critital mismatch for model {x} is different from loaded version. No load can occur")
-                    if epochFound != -1:
+                    if epochFound > 0:
                         print("Trying next model")
                         net.loadPoint(path=path, startEpoch=epochFound - 1)
                     return -1
                 if x in ["OOD Type"]:
-                    Config.parameters[x][0] = loaded["parameters"][x][0] 
+                    Config.parameters[x][0] = loaded["parameters"][x][0]
+
         for x in loaded["parameters"]["Unknowns_clss"][0]:
             if x not in Config.parameters["Unknowns_clss"][0]:
                 print(f"Warning: Model trained with {x} as an unknown.")
@@ -542,8 +564,8 @@ class AttackTrainingClassification(nn.Module):
             net.batch_fdHook.means = loaded["batchSaveClassMeans"]
 
         net.end.end_type = Config.parameters["OOD Type"][0]
+        net.untrained = loaded["info"]["untrained"] if "info" in loaded.keys() else False  # I am going to assume that it is trained if it is really old
 
-        net.model_loaded = True
         return epochFound
 
     @staticmethod
@@ -699,63 +721,64 @@ def train_model(model: AttackTrainingClassification):
     model.fit(Config.parameters["num_epochs"][0], Config.parameters["learningRate"][0], training, validation, opt_func=torch.optim.Adam)
 
 
-def load_config(path=None):
+def initialize_model(path: str):
+    """
+    Returns a model with the settings and savefile from an prior run.
+    """
+    try:
+        print(f"Loading  Config from {path}")
+        loaded = torch.load(path, map_location=device)
+        initialize_config(loaded)
+    except FileNotFoundError:
+        print(f"{path} path not found, initializing model with defaults.")
+
+    model = (Conv1DClassifier if Config.parameters["model"][0] != "Fully_Connected" else FullyConnected)(mode=Config.parameters["OOD Type"][0])
+
+    model.loadPoint(path)
+    return model
+
+
+def initialize_config(load_dict):
     """
     Loads the most trained model from the path. Note: will break if trying to load a model with different configs.
 
     parameters:
-        path- path to the folder where the models are stored.
+        load_dict- Dictionary gotten by loading the savefile.
 
     returns:
         epochFound - the number of epochs the model that was found has run for.
     """
+
+    for x in load_dict["parameter_keys"]:
+
+        #  assert x in Config.parameters.keys() # Make sure that the model loaded actually has all of the needed values
+        if x in Config.parameters.keys() and load_dict["parameters"][x][0] != Config.parameters[x][0]:
+            print(f"{x} has been changed from default values")
+            Config.parameters[x][0] = load_dict["parameters"][x][0]
+
+    # # Count the classes
+    loaded_keys, current_keys = list(load_dict["CLASSLIST"].keys()), list(Dataload.LISTCLASS.keys())
+    loaded_keys.sort()
+    current_keys.sort()
+    if all([x == y for x, y in zip(loaded_keys, current_keys)]) and all([load_dict["CLASSLIST"][x] == Dataload.LISTCLASS[x] for x in load_dict["CLASSLIST"].keys()]):
+        print("Model has identical classes")
+    else:
+        Dataload.LISTCLASS = load_dict["CLASSLIST"]
+        Dataload.CLASSLIST = load_dict["LISTCLASS"]
+        Config.recountclasses(Dataload.LISTCLASS)
+        print(f"CLASSES have changed, there are now {Config.parameters['CLASSES'][0]} classes")
+
+
+def get_model(path=None, debug=False):
     if path is None:
         pathFound, epochFound = AttackTrainingClassification.findloadPath(start_search_at=999)
         if epochFound == -1:
             return epochFound
     else:
         pathFound, epochFound = (path, 0)
+    model = initialize_model(pathFound)
 
-    loaded = torch.load(pathFound, map_location=device)
-
-    print(f"Loading  Config from {pathFound}")
-
-    for x in loaded["parameter_keys"]:
-
-        #  assert x in Config.parameters.keys() # Make sure that the model loaded actually has all of the needed values
-        if x in Config.parameters.keys() and loaded["parameters"][x][0] != Config.parameters[x][0]:
-            print(f"{x} has been changed from when model was created")
-            Config.parameters[x][0] = loaded["parameters"][x][0]
-
-    # # Count the classes
-    loaded_keys, current_keys = list(loaded["CLASSLIST"].keys()), list(Dataload.CLASSLIST.keys())
-    loaded_keys.sort()
-    current_keys.sort()
-    if all([x == y for x, y in zip(loaded_keys, current_keys)]) and all([loaded["CLASSLIST"][x] == Dataload.CLASSLIST[x] for x in loaded["CLASSLIST"].keys()]):
-        print("Model has identical classes")
-    else:
-        Dataload.CLASSLIST = loaded["CLASSLIST"]
-        Dataload.LISTCLASS = loaded["LISTCLASS"]
-        Config.recountclasses(Dataload.CLASSLIST)
-        print(f"CLASSES have changed, there are now {Config.parameters['CLASSES'][0]} classes")
-    return epochFound
-
-
-def get_model(path=None, debug=False):
-    epoch = load_config(path)
-    model_list = {"Convolutional": Conv1DClassifier, "Fully_Connected": FullyConnected}
-    model = model_list[Config.parameters["model"][0]](mode=Config.parameters["OOD Type"][0])
-    assert isinstance(model, AttackTrainingClassification)
-
-    if path is not None:
-        found = model.loadPoint(path)
-    else:
-        if epoch >= 0:
-            found = model.loadPoint(AttackTrainingClassification.findloadPath(epoch=epoch)[0])
-        else:
-            found = -1
-
-    if found == -1:
+    if model.untrained:
         if debug == True:
             Config.parameters["Dataset"][0] = "UnitTesting"
             Config.parameters["num_epochs"][0] = 1
