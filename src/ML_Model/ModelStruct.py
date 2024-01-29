@@ -573,6 +573,7 @@ class AttackTrainingClassification(nn.Module):
 
         net.end.end_type = Config.parameters["OOD Type"][0]
         net.untrained = loaded["info"]["untrained"] if "info" in loaded.keys() else False  # I am going to assume that it is trained if it is really old
+        net.date_of_creation = loaded["info"]["date_of_creation"] if "info" in loaded.keys() else None
 
         return epochFound
 
@@ -760,7 +761,7 @@ def initialize_config(load_dict):
     for x in load_dict["parameter_keys"]:
 
         #  assert x in Config.parameters.keys() # Make sure that the model loaded actually has all of the needed values
-        if x in Config.parameters.keys() and load_dict["parameters"][x][0] != Config.parameters[x][0]:
+        if (x in Config.parameters.keys() and load_dict["parameters"][x][0] != Config.parameters[x][0]) and x not in ["Unknowns"]:
             print(f"{x} has been changed from default values")
             Config.parameters[x][0] = load_dict["parameters"][x][0]
 

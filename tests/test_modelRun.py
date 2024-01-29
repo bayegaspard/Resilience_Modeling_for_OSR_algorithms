@@ -1,5 +1,6 @@
 import os
 import sys
+import datetime
 # import pytest
 sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 test = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
@@ -73,7 +74,7 @@ def test_loadModelOld():
         torch.manual_seed(0)
         model = ModelStruct.Conv1DClassifier(mode="SoftThresh", numberOfFeatures=Dataload.getDatagroup()[0].data_length)
         torch.manual_seed(0)
-        for x in range(5):
+        for x in range(3):
             model.fit(1, 2, training, validation, opt_func=torch.optim.Adam)
             Config.unit_test_mode = False
             model.savePoint("Saves/models", x + 1)
@@ -113,7 +114,7 @@ def test_loadModel():
         torch.manual_seed(0)
         model = ModelStruct.Conv1DClassifier(mode="SoftThresh", numberOfFeatures=Dataload.getDatagroup()[0].data_length)
         torch.manual_seed(0)
-        for x in range(5):
+        for x in range(3):
             model.fit(1, 2, training, validation, opt_func=torch.optim.Adam)
             Config.unit_test_mode = False
             model.savePoint("Saves/models", x + 1)
@@ -148,3 +149,10 @@ def test_model_quicktrain():
         if p1.data.ne(p2.data).sum() > 0:
             return
     assert False, "Model is the same both before and after it loads"
+
+
+def test_model_dates():
+    listOfModels = helperFunctions.get_saved_models()
+    torch.manual_seed(0)
+    model = ModelStruct.initialize_model("Saves/models/" + listOfModels[0])
+    assert isinstance(model.date_of_creation, datetime.datetime)

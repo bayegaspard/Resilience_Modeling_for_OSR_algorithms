@@ -13,3 +13,4 @@ __pycache__
 !Saves/renamedPackets/chunkWeb Attack – XSS0.csv
 *.pth
 !Saves/models/MVP_model.pth
+datasets/Payload_data_CICIDS2017
