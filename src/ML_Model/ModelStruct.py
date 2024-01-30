@@ -308,7 +308,7 @@ class AttackTrainingClassification(nn.Module):
 
         out = self(data)  # Generate predictions
         zeross = torch.zeros(len(out), 1, device=device)
-        loss = F.cross_entropy(torch.cat((out, zeross), dim=1), labels)  # Calculate loss
+        loss = F.cross_entropy(torch.cat((out, zeross), dim=1), labels.to(out.device))  # Calculate loss
         out = self.end(out, labels).to(labels.device)  # <----Here is where it is using Softmax TODO: make this be able to run all of the versions and save the outputs.
         # loss = F.cross_entropy(torch.cat((out, zeross), dim=1), labels)  #  Calculate loss
         #  out = self.end.endlayer(out, labels, type="Open")

@@ -272,5 +272,5 @@ if parameters["LOOP"][0] == 3:
 
 save_as_tensorboard = False
 datasetRandomOffset = True
-dataparallel = False
+dataparallel = True
 use_saved_packets = True
