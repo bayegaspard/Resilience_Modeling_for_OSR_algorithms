@@ -435,7 +435,7 @@ class AttackTrainingClassification(nn.Module):
             return torch.tensor(0.0)
 
         # First is the guess, second is the actual class and third is the class to consider correct.
-        self.store = torch.cat((self.store[0], preds)), torch.cat((self.store[1], labels[:, 1])), torch.cat((self.store[2], labels[:, 0]))
+        self.store = torch.cat((self.store[0], preds)), torch.cat((self.store[1], labels[:, 1].to(self.store[1].device))), torch.cat((self.store[2], labels[:, 0].to(self.store[2].device)))
         return torch.tensor(torch.sum(preds == labels[:, 0]).item() / len(preds))
         #  def fit(epochs, lr, model, train_loader, val_loader, opt_func=torch.optim.SGD):
 
