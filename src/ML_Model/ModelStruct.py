@@ -436,7 +436,7 @@ class AttackTrainingClassification(nn.Module):
 
         # First is the guess, second is the actual class and third is the class to consider correct.
         self.store = torch.cat((self.store[0], preds)), torch.cat((self.store[1], labels[:, 1].to(self.store[1].device))), torch.cat((self.store[2], labels[:, 0].to(self.store[2].device)))
-        return torch.tensor(torch.sum(preds == labels[:, 0]).item() / len(preds))
+        return torch.tensor(torch.sum(preds == labels[:, 0].to(preds.device)).item() / len(preds))
         #  def fit(epochs, lr, model, train_loader, val_loader, opt_func=torch.optim.SGD):
 
     def evaluation_epoch_end(self, outputs):
@@ -475,7 +475,7 @@ class AttackTrainingClassification(nn.Module):
         """
         if Config.unit_test_mode:
             return
-        if not os.path.exists(path):
+        if not os.path.exists(path) and exact_name == False:
             os.mkdir(path)
 
         # useful information about the model.
