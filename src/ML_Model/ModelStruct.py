@@ -5,6 +5,7 @@ import os
 from tqdm import tqdm
 import time
 from datetime import datetime
+from sklearn.metrics import confusion_matrix, f1_score
 
 #  # #  user defined functions
 import Config
@@ -116,10 +117,10 @@ class AttackTrainingClassification(nn.Module):
             self.sequencePackage.append(DOC_Module())
 
         self.sequencePackage.append(self.flatten)
+        self.sequencePackage.append(self.dropout)
         self.sequencePackage.append(self.fc1)
         self.sequencePackage.append(self.activation)
         self.sequencePackage.append(self.addedLayers)
-        self.sequencePackage.append(self.dropout)
         if self.end.end_type != "COOL":
             self.sequencePackage.append(self.fc2)
         else:
@@ -163,19 +164,12 @@ class AttackTrainingClassification(nn.Module):
             val_loader- the model is tested every epoch against this data
             opt_func- the optimization function to use
 
-        returns:
-            history- a list of tuples, each containing:
-                val_loss - the loss from the validation stage
-                val_acc - the accuract from the validation  stage. Note: this accuracy is not used in the save.
-                epoch - the epoch that this data was taken
-                train_loss - the average training loss per batch of this epoch
         """
         if Config.parameters["attemptLoadModel"][0] == 1:
             startingEpoch = self.loadPoint("Saves/models")
             # If it cannot find a model to load because of some error, the epoch number starts at -1 to avoid overwriting a possilby working model
         else:
             startingEpoch = 0
-        history = []
         optimizer = opt_func(self.parameters(), lr)
         if isinstance(Config.parameters["SchedulerStep"][0], float) and Config.parameters["SchedulerStep"][0] != 0:
             sch = torch.optim.lr_scheduler.StepLR(optimizer, Config.parameters["SchedulerStepSize"][0], Config.parameters["SchedulerStep"][0])
@@ -184,6 +178,7 @@ class AttackTrainingClassification(nn.Module):
         self.los = helperFunctions.LossPerEpoch("TestingDuringTrainEpochs.csv")
         #  torch.cuda.empty_cache()
         if epochs > 0:
+            self.train_loader = train_loader
             with tqdm(range(epochs), desc="Running epochs ") as tqdmEpoch:
                 for epoch in tqdmEpoch:
                     self.end.resetvals()
@@ -197,7 +192,7 @@ class AttackTrainingClassification(nn.Module):
                     self.train()
                     train_losses = []
                     num = 0
-                    for batch in train_loader:
+                    for batch in self.train_loader:
                         self.train()
                         self.batch_fdHook.class_vals = batch[1][:, 0]
                         # print("Batch")
@@ -236,7 +231,6 @@ class AttackTrainingClassification(nn.Module):
                     #  self.epoch_end(epoch+startingEpoch, result)
                     # print("result", result)
 
-                    history.append(result)
                     # self.los.collect(measurement)
                     self.epoch = epoch + startingEpoch
         else:
@@ -250,9 +244,8 @@ class AttackTrainingClassification(nn.Module):
             result['train_loss'] = -1
             self.epoch_end(epoch, result)
             # print("result", result)
-            history.append(result)
             self.epoch = epoch
-        return history
+        return
 
     def training_step(self, batch):
         """Preforms a step for training the model but does not begin backpropigation
@@ -464,7 +457,7 @@ class AttackTrainingClassification(nn.Module):
                                                                                          result['val_loss'],
                                                                                          result['val_acc']))
 
-    def savePoint(net, path: str, epoch=0, exact_name=False):
+    def savePoint(self, path: str, epoch=0, exact_name=False):
         """
         Saves the model
 
@@ -480,14 +473,16 @@ class AttackTrainingClassification(nn.Module):
 
         # useful information about the model.
         info = {
-            "date_of_creation": net.date_of_creation if net.date_of_creation is not None else datetime.now(),
+            "date_of_creation": self.date_of_creation if self.date_of_creation is not None else datetime.now(),
             "latest_update": datetime.now(),
-            "untrained": net.untrained if epoch == 0 else False
+            "untrained": self.untrained if epoch == 0 else False,
+            "confusion_matrix": self.gen_confusion(),
+            "LISTCLASS": Dataload.LISTCLASS
         }
 
         # The whole dictionary to save
         to_save = {
-            "model_state": net.state_dict(),
+            "model_state": self.state_dict(),
             "parameter_keys": list(Config.parameters.keys()),
             "parameters": Config.parameters,
             "LISTCLASS": Dataload.LISTCLASS,
@@ -496,8 +491,8 @@ class AttackTrainingClassification(nn.Module):
         }
 
         # Save the means as well, so that they don't need to be recalculated.
-        if net.batch_fdHook is not None:
-            to_save["batchSaveClassMeans"] = net.batch_fdHook.means
+        if self.batch_fdHook is not None:
+            to_save["batchSaveClassMeans"] = self.batch_fdHook.means
 
         # Optimizer is an object and would be annoying to save.
         to_save["parameter_keys"].remove("optimizer")
@@ -513,7 +508,7 @@ class AttackTrainingClassification(nn.Module):
         else:
             torch.save(to_save, path)
 
-    def loadPoint(net, path=None, startEpoch=999):
+    def loadPoint(self, path=None, startEpoch=999):
         """
         Loads the most trained model from the path. Note: will break if trying to load a model with different configs.
 
@@ -544,7 +539,7 @@ class AttackTrainingClassification(nn.Module):
                     print(f"Critital mismatch for model {x} is different from loaded version. No load can occur")
                     if epochFound > 0:
                         print("Trying next model")
-                        net.loadPoint(path=path, startEpoch=epochFound - 1)
+                        self.loadPoint(path=path, startEpoch=epochFound - 1)
                     return -1
                 if x in ["OOD Type"]:
                     Config.parameters[x][0] = loaded["parameters"][x][0]
@@ -564,18 +559,34 @@ class AttackTrainingClassification(nn.Module):
             Dataload.CLASSLIST = loaded["CLASSLIST"]
             Config.recountclasses(Dataload.LISTCLASS)
             print(f"CLASSES have changed, there are now {Config.parameters['CLASSES'][0]} classes")
-            net.use_relabeled_packets = True
+            self.use_relabeled_packets = True
 
-        net.load_state_dict(loaded["model_state"])
+        self.load_state_dict(loaded["model_state"])
         if "batchSaveClassMeans" in loaded.keys():
-            net.batch_fdHook = Distance_Types.forwardHook()
-            net.batch_fdHook.means = loaded["batchSaveClassMeans"]
+            self.batch_fdHook = Distance_Types.forwardHook()
+            self.batch_fdHook.means = loaded["batchSaveClassMeans"]
 
-        net.end.end_type = Config.parameters["OOD Type"][0]
-        net.untrained = loaded["info"]["untrained"] if "info" in loaded.keys() else False  # I am going to assume that it is trained if it is really old
-        net.date_of_creation = loaded["info"]["date_of_creation"] if "info" in loaded.keys() else None
+        self.end.end_type = Config.parameters["OOD Type"][0]
+        self.untrained = loaded["info"]["untrained"] if "info" in loaded.keys() else False  # I am going to assume that it is trained if it is really old
+        self.date_of_creation = loaded["info"]["date_of_creation"] if "info" in loaded.keys() else None
 
         return epochFound
+
+    def gen_confusion(self):
+        with torch.no_grad():
+            final_matrix = None
+            for batch in self.train_loader:
+                outputs = self.end(self(batch[0]))
+                outputs_arg = torch.argmax(outputs, dim=1).detach().numpy()
+                labels = batch[1][:, 1].detach().numpy()
+                if final_matrix is None:
+                    final_matrix = confusion_matrix(labels, outputs_arg, labels=range(len(Dataload.CLASSLIST)))
+                else:
+                    final_matrix = final_matrix + confusion_matrix(labels, outputs_arg, labels=range(len(Dataload.CLASSLIST)))
+                    # for x in len(new_matrix):
+                    #     for y in len(new_matrix[x]):
+                    #         final_matrix[x, y] += new_matrix[x, y]
+        return final_matrix
 
     @staticmethod
     def findloadEpoch(path="Saves/models", start_at=999):
@@ -793,3 +804,34 @@ def get_model(path=None, debug=False):
             Config.parameters["num_epochs"][0] = 1
         train_model(model)
     return model
+
+
+def get_model_info(path=None):
+    model_info = outputDataObject.ModelInfo()
+
+    loaded = torch.load("Saves/models/" + path, map_location=device)
+
+    print(f"Loading  model info from {path}")
+
+    model_info.params = loaded["parameters"]
+
+    model_info.classes_used = loaded["info"]["LISTCLASS"]
+    model_info.classes_used.update({len(model_info.classes_used): "Unknown"})
+
+    model_info.first_created = loaded["info"]["date_of_creation"]
+
+    model_info.last_updated = loaded["info"]["latest_update"]
+
+    model_info.confusion_matrix = loaded["info"]["confusion_matrix"]
+    assert isinstance(model_info.confusion_matrix, np.ndarray)
+    confusion_matrix
+
+    rebuilt_predictions = [[], []]
+    for x in range(len(model_info.confusion_matrix)):
+        for y in range(len(model_info.confusion_matrix[x])):
+            rebuilt_predictions[0].append(1 if model_info.classes_used[x] in ["benign"] else 0)
+            rebuilt_predictions[1].append(1 if model_info.classes_used[y] in ["benign"] else 0)
+
+    model_info.benign_f1 = f1_score(rebuilt_predictions[0], rebuilt_predictions[1])
+
+    return model_info

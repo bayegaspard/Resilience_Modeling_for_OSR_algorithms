@@ -1,4 +1,6 @@
 # Just the idea for the data output object
+import datetime
+
 
 class outputDataUpdateObject():
     def __init__(self):
@@ -22,3 +24,24 @@ class outputDataUpdateObject():
         outputObject.unknowns = [{"SSH", "Long_term", "High_severity"}, {"Portscan", "Low_severity"}]
         outputObject.attacks = {"Benign": 7, "SSH": 2, "Heartbleed": 1}
         return outputObject
+
+
+class ModelInfo():
+    def __init__(self):
+        # First created
+        self.first_created = datetime.datetime.now()
+
+        # Last updated
+        self.last_updated = datetime.datetime.now()
+
+        # Classes used
+        self.classes_used = {}
+
+        # Validation benign accuracy
+        self.benign_f1 = 0
+
+        # confusion matrix
+        self.confusion_matrix = []
+
+        # Last used parameters
+        self.params = {}
