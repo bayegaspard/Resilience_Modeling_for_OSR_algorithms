@@ -824,13 +824,12 @@ def get_model_info(path=None):
 
     model_info.confusion_matrix = loaded["info"]["confusion_matrix"]
     assert isinstance(model_info.confusion_matrix, np.ndarray)
-    confusion_matrix
 
     rebuilt_predictions = [[], []]
     for x in range(len(model_info.confusion_matrix)):
         for y in range(len(model_info.confusion_matrix[x])):
-            rebuilt_predictions[0].append(1 if model_info.classes_used[x] in ["benign"] else 0)
-            rebuilt_predictions[1].append(1 if model_info.classes_used[y] in ["benign"] else 0)
+            rebuilt_predictions[0].append(1 if x in model_info.classes_used.keys() and model_info.classes_used[x] in ["benign"] else 0)
+            rebuilt_predictions[1].append(1 if y in model_info.classes_used.keys() and model_info.classes_used[y] in ["benign"] else 0)
 
     model_info.benign_f1 = f1_score(rebuilt_predictions[0], rebuilt_predictions[1])
 
