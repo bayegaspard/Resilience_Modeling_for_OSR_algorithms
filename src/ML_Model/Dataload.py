@@ -307,7 +307,9 @@ class ClassDivDataset(Dataset):
         if path is None:
             path = self.path
         downloadDataset()
-        if not os.path.exists(os.path.join(path, "")):
+        if not os.path.exists(os.path.join(path, "counts.csv")):
+            if os.path.exists(os.path.join(path, "")):
+                os.rmdir(path)
             os.mkdir(path)
 
             # this stores the data in dataframes
@@ -494,9 +496,11 @@ class ClusterDivDataset(ClassDivDataset):
 
         """
         downloadDataset()
-        if not os.path.exists(self.path + "_Clustered"):
+        if not os.path.exists(os.path.join(path, "_Clusteredcounts.csv")):
             print("Generating clustered data folder.")
-            os.mkdir(self.path + "_Clustered")
+            if os.path.exists(os.path.join(path, "_Clustered")):
+                os.rmdir(path + "_Clustered")
+            os.mkdir(path + "_Clustered")
 
             # Create an dataframe to store how many of each cluster there is
             counts = pd.DataFrame(0, index=range(Config.parameters["CLASSES"][0]), columns=range(self.clusters))
