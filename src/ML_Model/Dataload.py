@@ -307,8 +307,11 @@ class ClassDivDataset(Dataset):
         if path is None:
             path = self.path
         downloadDataset()
-        if not os.path.exists(os.path.join(path, "counts.csv")):
+        if not os.path.exists(path + "counts.csv"):
             if os.path.exists(os.path.join(path, "")):
+                files = glob.glob("*.csv", root_dir=path)
+                for x in files:
+                    os.remove(os.path.join(path, x))
                 os.rmdir(path)
             os.mkdir(path)
 
@@ -496,9 +499,12 @@ class ClusterDivDataset(ClassDivDataset):
 
         """
         downloadDataset()
-        if not os.path.exists(os.path.join(path, "_Clusteredcounts.csv")):
+        if not os.path.exists(path + "_Clusteredcounts.csv"):
             print("Generating clustered data folder.")
-            if os.path.exists(os.path.join(path, "_Clustered")):
+            if os.path.exists(path + "_Clustered"):
+                files = glob.glob("*.csv", root_dir=path + "_Clustered")
+                for x in files:
+                    os.remove(os.path.join(path + "_Clustered", x))
                 os.rmdir(path + "_Clustered")
             os.mkdir(path + "_Clustered")
 

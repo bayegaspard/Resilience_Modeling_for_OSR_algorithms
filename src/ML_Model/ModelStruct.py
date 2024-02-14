@@ -49,6 +49,7 @@ class AttackTrainingClassification(nn.Module):
 
         self.untrained = True
         self.date_of_creation = None
+        self.loadedFrom = None
         self.maxpooling = [4, 2]
         self.convolutional_channels = [32, 64]
 
@@ -477,7 +478,8 @@ class AttackTrainingClassification(nn.Module):
             "latest_update": datetime.now(),
             "untrained": self.untrained if epoch == 0 else False,
             "confusion_matrix": self.gen_confusion(),
-            "LISTCLASS": Dataload.LISTCLASS
+            "LISTCLASS": Dataload.LISTCLASS,
+            "fileName": path if exact_name else f"/Epoch{epoch:03d}{Config.parameters['OOD Type'][0]}.pth"
         }
 
         # The whole dictionary to save
@@ -525,6 +527,7 @@ class AttackTrainingClassification(nn.Module):
                 return epochFound
         else:
             pathFound, epochFound = (path, 0)
+
         loaded = torch.load(pathFound, map_location=device)
 
         print(f"Loading  model from {pathFound}")
@@ -569,6 +572,7 @@ class AttackTrainingClassification(nn.Module):
         self.end.end_type = Config.parameters["OOD Type"][0]
         self.untrained = loaded["info"]["untrained"] if "info" in loaded.keys() else False  # I am going to assume that it is trained if it is really old
         self.date_of_creation = loaded["info"]["date_of_creation"] if "info" in loaded.keys() else None
+        self.loadedFrom = pathFound
 
         return epochFound
 
