@@ -5,7 +5,7 @@ pandas>=1.3.4
 scikit-learn>=0.24
 pytest
 tqdm
-# onedrivedownloader
+gdown   #https://www.intodeeplearning.com/how-to-download-files-or-folders-in-gdrive-in-python/
 pyshark
 dash
 Pyro5

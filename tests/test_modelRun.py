@@ -11,6 +11,7 @@ import ModelStruct
 import Config
 import helperFunctions
 import torch
+import numpy as np
 torch.manual_seed(0)
 Config.parameters["Dataset"][0] = "UnitTesting"
 Config.parameters["Dataloader_Variation"][0] = "Standard"
@@ -156,3 +157,27 @@ def test_model_dates():
     torch.manual_seed(0)
     model = ModelStruct.initialize_model("Saves/models/" + listOfModels[0])
     assert isinstance(model.date_of_creation, datetime.datetime)
+
+
+def test_model_info():
+    listOfModels = helperFunctions.get_saved_models()
+    for model in listOfModels:
+        info = ModelStruct.get_model_info(model)
+
+        if info.params is not None:
+            assert isinstance(info.params, dict)
+
+        if info.classes_used is not None:
+            assert isinstance(info.classes_used, dict)
+
+        if info.confusion_matrix is not None:
+            assert isinstance(info.confusion_matrix, np.ndarray)
+
+        if info.first_created is not None:
+            assert isinstance(info.first_created, datetime.datetime)
+
+        if info.last_updated is not None:
+            assert isinstance(info.last_updated, datetime.datetime)
+
+        if info.benign_f1 is not None:
+            assert isinstance(info.benign_f1, float)

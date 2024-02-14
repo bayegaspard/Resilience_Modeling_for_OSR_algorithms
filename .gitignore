@@ -14,3 +14,4 @@ __pycache__
 *.pth
 !Saves/models/MVP_model.pth
 datasets/Payload_data_CICIDS2017
+datasets/Payload_data_UNSW

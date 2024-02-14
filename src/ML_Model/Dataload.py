@@ -146,6 +146,9 @@ class ClassDivDataset(Dataset):
         if "MaxSamples" in Config.parameters:
             self.totalSamples = Config.parameters["MaxSamples"][0]
 
+        # this will check if the file is chunked and chunk it if it is not
+        self.checkIfSplit(path)
+
         # This is setting what classes are considered to be knowns.
         if use is not None:
             # test = pd.read_csv(self.countspath, index_col=0)
@@ -161,9 +164,6 @@ class ClassDivDataset(Dataset):
         else:
             self.use = [True for i in range(len(pd.read_csv(self.countspath, index_col=0)))]
             self.usedDict = LISTCLASS
-
-        # this will check if the file is chunked and chunk it if it is not
-        self.checkIfSplit(path)
 
     def __len__(self) -> int:
         """
@@ -307,7 +307,12 @@ class ClassDivDataset(Dataset):
         if path is None:
             path = self.path
         downloadDataset()
-        if not os.path.exists(os.path.join(path, "")):
+        if not os.path.exists(path + "counts.csv"):
+            if os.path.exists(os.path.join(path, "")):
+                files = glob.glob("*.csv", root_dir=path)
+                for x in files:
+                    os.remove(os.path.join(path, x))
+                os.rmdir(path)
             os.mkdir(path)
 
             # this stores the data in dataframes
@@ -494,9 +499,14 @@ class ClusterDivDataset(ClassDivDataset):
 
         """
         downloadDataset()
-        if not os.path.exists(self.path + "_Clustered"):
+        if not os.path.exists(path + "_Clusteredcounts.csv"):
             print("Generating clustered data folder.")
-            os.mkdir(self.path + "_Clustered")
+            if os.path.exists(path + "_Clustered"):
+                files = glob.glob("*.csv", root_dir=path + "_Clustered")
+                for x in files:
+                    os.remove(os.path.join(path + "_Clustered", x))
+                os.rmdir(path + "_Clustered")
+            os.mkdir(path + "_Clustered")
 
             # Create an dataframe to store how many of each cluster there is
             counts = pd.DataFrame(0, index=range(Config.parameters["CLASSES"][0]), columns=range(self.clusters))
@@ -1181,8 +1191,19 @@ def downloadDataset():
     if not os.path.exists("datasets"):
         os.mkdir("datasets")
     if not os.path.exists("datasets/" + name + ".csv") and name in ["Payload_data_CICIDS2017", "Payload_data_UNSW"]:
-        # import onedrivedownloader
-        print(f"I am sorry, the dataset {name} cannot currently be downloaded remotely. \n Please visit 'https://github.com/Yasir-ali-farrukh/Payload-Byte/tree/main/Data' and put the datasets in the 'datasets' directory")
+        import gdown
+        import shutil
+        # https://www.intodeeplearning.com/how-to-download-files-or-folders-in-gdrive-in-python/
+        if name == "Payload_data_CICIDS2017":
+            gdown.download_folder("https://drive.google.com/drive/folders/1sFBgQyvO2Wde8fwgZXTgVFXrD2W7v8WB?usp=sharing", quiet=True, use_cookies=False)
+            shutil.move("CIC_IDS2017/Payload_data_CICIDS2017.csv", "datasets/Payload_data_CICIDS2017.csv")
+            os.rmdir("CIC_IDS2017")
+        elif name == "Payload_data_UNSW":
+            gdown.download_folder("https://drive.google.com/drive/folders/1xuPB6VxQD70qvSH1YU69E2ICzLHJI2mO?usp=sharing", quiet=True, use_cookies=False)
+            shutil.move("UNSW_NB15/Payload_data_UNSW.csv", "datasets/Payload_data_UNSW.csv")
+            os.rmdir("UNSW_NB15")
+        else:
+            print(f"I am sorry, the dataset {name} cannot currently be downloaded remotely. \n Please visit 'https://github.com/Yasir-ali-farrukh/Payload-Byte/tree/main/Data' and put the datasets in the 'datasets' directory")
 
 
 def getDatagroup():
