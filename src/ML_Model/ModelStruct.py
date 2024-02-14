@@ -118,10 +118,10 @@ class AttackTrainingClassification(nn.Module):
             self.sequencePackage.append(DOC_Module())
 
         self.sequencePackage.append(self.flatten)
-        self.sequencePackage.append(self.dropout)
         self.sequencePackage.append(self.fc1)
         self.sequencePackage.append(self.activation)
         self.sequencePackage.append(self.addedLayers)
+        self.sequencePackage.append(self.dropout)
         if self.end.end_type != "COOL":
             self.sequencePackage.append(self.fc2)
         else:
