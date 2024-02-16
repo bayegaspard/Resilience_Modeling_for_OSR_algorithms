@@ -54,7 +54,7 @@ class AttackTrainingClassification(nn.Module):
         self.convolutional_channels = [32, 64]
 
         # This is for doing a convolution of the bits
-        if Config.get_global("experimental_bit_convolution") != 1:
+        if Config.get_global("experimental_bit_convolution") == 1:
             self.bitpack = expand_bitPackets(numberOfFeatures, device=device)
 
         # This is the length of the packets in the dataset we are currently using.

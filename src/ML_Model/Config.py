@@ -288,5 +288,5 @@ def set_global(name: str, val):
 
 save_as_tensorboard = False
 datasetRandomOffset = True
-dataparallel = True
+dataparallel = False
 use_saved_packets = True
