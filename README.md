@@ -1,4 +1,4 @@
-## OpenSetPerf
+pip## OpenSetPerf
 A Practitioner's Guide to the Performance of Deep-Learning Based Open Set Recognition Algorithms for Network Intrusion Detection Systems
 
 ### Steps to run:

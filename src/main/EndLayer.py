@@ -84,13 +84,22 @@ class EndLayers(nn.Module):
             output_c_soft = self.typesOfUnknown["Soft"](self,output_m_soft,roc=False)   # Adds a column of zeros so that softmax matches the rest
             top_k = torch.topk(output_m_soft,2,dim=1)[0] # tensor  
             diff_topk = top_k[:,0] - top_k[:,1] # diffecerence of the top 2 chosen classes
-            thresh_mask = diff_topk.less(0.5)
+            thresh_mask = diff_topk.less(0.8)
             # thresh_mask is things to send to Var_mask
             var_mask = self.varmax_mask(output_true)
             # var_mask is things to send to OOD
 
             output_complete[~(var_mask&thresh_mask)] = output_c_soft[~(var_mask&thresh_mask)] # This line replaces anywhere that does not pass both tests 
+        if False:
+            print(type)
+            rah = torch.argmax(output_complete, dim=1)
+            mask = rah == 15
+            indices_of_true_values = mask.nonzero(as_tuple=False).squeeze()
+            #print(indices_of_true_values)
 
+            for num in rah:
+                if(num == 15):
+                    print('unknown!')
 
         if False:
             print(f"Alg")
@@ -107,9 +116,7 @@ class EndLayers(nn.Module):
         This function creates a class Args that stores the values so that they can be called with args.value
         We have done this to preserve some of the original code for implementations.
         """
-        param = pd.read_csv(os.path.join("Saves","hyperparam","hyperParam.csv"))
-        unknowns = pd.read_csv(os.path.join("Saves","unknown","unknowns.csv"))
-        unknowns = unknowns["Unknowns"].to_list()
+        param = pd.read_csv(os.path.join("datasets","hyperparamList.csv"))
         if temp is None:
             temp = float(param["Temperature"][0])
         if classes is None:

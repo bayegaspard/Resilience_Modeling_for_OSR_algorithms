@@ -4,6 +4,7 @@ from torch.nn import functional as F
 import os
 from tqdm import tqdm
 import time
+from sender import sender
 
 ### user defined functions
 import Config
@@ -158,6 +159,9 @@ class AttackTrainingClassification(nn.Module):
         if Config.parameters["Experimental_bitConvolution"][0] == 1:
             x = self.bitpack(x)
         x = self.sequencePackage(x)
+
+
+
         return x
         
     def fit(self, epochs, lr, train_loader, val_loader, opt_func, measurement=None):
@@ -178,7 +182,7 @@ class AttackTrainingClassification(nn.Module):
                 val_loss - the loss from the validation stage
                 val_acc - the accuract from the validation  stage. Note: this accuracy is not used in the save.
                 epoch - the epoch that this data was taken
-                train_loss - the average training loss per batch of this epoch
+                train_loss - the average training loss per batch oncostagliolaf this epoch
         """
         if measurement is None:
             measurement = FileHandling.Score_saver()
@@ -194,7 +198,8 @@ class AttackTrainingClassification(nn.Module):
         else:
             sch = None
         self.los = helperFunctions.LossPerEpoch("TestingDuringTrainEpochs.csv")
-        # torch.cuda.empty_cache()
+        # torch.cuda.empty_cache()a
+
         if epochs > 0:
             with tqdm(range(epochs),desc="Running epochs ") as tqdmEpoch:
                 for epoch in tqdmEpoch:
@@ -325,7 +330,8 @@ class AttackTrainingClassification(nn.Module):
             self.batch_saves_start()
             self.batch_saves_fucnt("Kind","Testing")
             # removeHandle = self.sequencePackage.module.register_module_forward_hook(self.batch_fdHook())
-        
+
+        #Data - input data
         out_pre_endlayer = self(data)  # Generate predictions
         if Config.parameters["ItemLogitData"][0] == 1:
             item_logit_data = FileHandling.items_with_classes_record(labels_extended)
@@ -338,8 +344,9 @@ class AttackTrainingClassification(nn.Module):
         out_post_endlayer = self.end(out_pre_endlayer, labels).to(labels.device)  # <----Here is where it is using Softmax TODO: make this be able to run all of the versions and save the outputs.
         out_soft_threshold = self.end_soft(out_pre_endlayer, labels).to(labels.device)
 
-        if Config.parameters["ApplyPrelimSoft"][0] and self.end.end_type not in ["COOL","DOC"]:
-            out_post_endlayer[torch.argmax(out_soft_threshold,dim=1)!=Config.parameters["CLASSES"][0]] = out_soft_threshold[[torch.argmax(out_soft_threshold,dim=1)!=Config.parameters["CLASSES"][0]]]
+        if False:
+            if Config.parameters["ApplyPrelimSoft"][0] and self.end.end_type not in ["COOL","DOC"]:
+                out_post_endlayer[torch.argmax(out_soft_threshold,dim=1)!=Config.parameters["CLASSES"][0]] = out_soft_threshold[[torch.argmax(out_soft_threshold,dim=1)!=Config.parameters["CLASSES"][0]]]
 
         #loss = F.cross_entropy(torch.cat((out,zeross),dim=1), labels)  # Calculate loss
         # out = self.end.endlayer(out, labels, type="Open")
@@ -371,6 +378,39 @@ class AttackTrainingClassification(nn.Module):
         acc = self.accuracy(out_post_endlayer, labels_extended)  # Calculate accuracy
         #FileHandling.write_batch_to_file(loss, self.batchnum, self.end.type, "Saves")
         #print("validation accuracy: ", acc)
+        #self.batch_saves_fucnt("Knowns Only F1_Score",f1_score(labels_extended[labels_extended[:, 0] != Config.parameters["CLASSES"][0], 0],out_argmax[labels_extended[:, 0] != Config.parameters["CLASSES"][0]],average="weighted", zero_division=0))
+        rah = out_argmax
+        mask = rah == 15
+        indices_of_true_values = mask.nonzero(as_tuple=False).squeeze()
+        #print(indices_of_true_values)
+        selected_data = data[indices_of_true_values]
+        is_empty = (selected_data.size(0) == 0)
+        if(is_empty == False):
+            # Convert the tensor to a NumPy array
+            selected_data_cpu = data.cpu()
+            integer_tensor = selected_data_cpu.to(dtype=torch.int)
+            integer_array = integer_tensor.numpy()
+
+            # Convert integers in the second dimension to hexadecimal
+            hex_array = np.vectorize(hex)(integer_array).astype(str)
+            hex_strings = [''.join(format(int(byte, 16), '02x') for byte in row).rstrip('0') for row in hex_array]
+            np.set_printoptions(threshold=np.inf, linewidth=np.inf)
+            print(len(hex_strings))
+
+
+        if False:
+            # Get the indices of the maximum values along dimension 1
+            argmax_indices = torch.argmax(out_post_endlayer, dim=1)
+
+            # Create a mask for elements numbered 15
+            mask_for_15 = (out_post_endlayer == 15).int()  # Since indexing is zero-based, 15 is at index 14
+
+            # Use the mask to access elements numbered 15
+            elements_numbered_15 = out_post_endlayer[mask_for_15]
+            selected_data = data[mask_for_15.nonzero(as_tuple=False)]
+            print(selected_data.shape)
+
+
 
         if self.keep_batch_saves:
             self.batch_saves_fucnt("Identfier",self.batch_saves_identifier)
@@ -391,9 +431,9 @@ class AttackTrainingClassification(nn.Module):
             if len(labels_extended[labels_extended[:,0]!=Config.parameters["CLASSES"][0],0]) != 0:
                 labels_extended = labels_extended.cpu()
                 out_argmax = out_argmax.cpu()
+                #Mask Example
                 self.batch_saves_fucnt("Knowns Only F1_Score",f1_score(labels_extended[labels_extended[:,0]!=Config.parameters["CLASSES"][0],0],out_argmax[labels_extended[:,0]!=Config.parameters["CLASSES"][0]],average="weighted",zero_division=0))
             self.batch_saves_fucnt("Time",time.time()-t)
-            
             # torch.Tensor.bincount(minlength=Config.parameters["CLASSES"][0])
             sampleCounts = labels.bincount(minlength=Config.parameters["CLASSES"][0]+1)
             guessCounts = out_post_endlayer.argmax(dim=-1).bincount(minlength=Config.parameters["CLASSES"][0]+1)

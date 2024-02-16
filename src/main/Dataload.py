@@ -259,7 +259,7 @@ class ClassDivDataset(Dataset):
         item = data,labels
 
         return item
-
+    #Mutate Column here -single row fed in at a time
     def seriesprocess(self,x:pd.Series) -> tuple([torch.Tensor,torch.Tensor]):
         """
         This separates the data from the labels with series
@@ -291,7 +291,7 @@ class ClassDivDataset(Dataset):
     def checkIfSplit(self, path=None):
         """
         This checks if the data is in the correct format, if it is not in the correct format it will generate the correct format.
-        The correct format is clustered by type into chunks with a csv conainging the counts of all of the classes.
+        The correct format is clustered by type into chunks with a csv containing the counts of all of the classes.
 
         Parameters:
             path - string containing the path to look for the dataset.
