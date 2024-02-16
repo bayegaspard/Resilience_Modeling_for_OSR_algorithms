@@ -14,9 +14,9 @@ import random
 import glob
 
 # List of conversions:
-if Config.parameters["Dataset"][0] == "Payload_data_CICIDS2017":
+if Config.parameters["dataset"][0] == "Payload_data_CICIDS2017":
     LISTCLASS = {0: 'BENIGN', 1: 'Infiltration', 2: 'Bot', 3: 'PortScan', 4: 'DDoS', 5: 'FTP-Patator', 6: 'SSH-Patator', 7: 'DoS slowloris', 8: 'DoS Slowhttptest', 9: 'DoS Hulk', 10: 'DoS GoldenEye', 11: 'Heartbleed', 12: 'Web Attack – Brute Force', 13: 'Web Attack – XSS', 14: 'Web Attack – Sql Injection'}
-elif Config.parameters["Dataset"][0] == "Payload_data_UNSW":
+elif Config.parameters["dataset"][0] == "Payload_data_UNSW":
     LISTCLASS = {0: "analysis", 1: "backdoor", 2: "dos", 3: "exploits", 4: "fuzzers", 5: "generic", 6: "normal", 7: "reconnaissance", 8: "shellcode", 9: "worms"}
 else:
     print("ERROR, Dataset not implemented")
@@ -29,7 +29,7 @@ attemptload_message = True
 
 
 def groupDoS(x):
-    if False and Config.parameters["Dataset"][0] == "Payload_data_CICIDS2017":
+    if False and Config.parameters["dataset"][0] == "Payload_data_CICIDS2017":
         x[x >= 7 and x <= 10] = 7
     return x
 
@@ -141,7 +141,7 @@ class ClassDivDataset(Dataset):
         self.countspath = path + "counts.csv"
         self.length = None
         self.listOfCounts = None
-        self.maxclass = Config.parameters["MaxPerClass"][0]
+        self.maxclass = Config.parameters["max_per_class"][0]
         self.data_length = 1504
         if "MaxSamples" in Config.parameters:
             self.totalSamples = Config.parameters["MaxSamples"][0]
@@ -396,7 +396,7 @@ class ClusterDivDataset(ClassDivDataset):
                 self.listOfCounts = self.listOfCounts.loc[self.use]
                 print(f"Items per class: \n{self.listOfCounts.sum(axis=1)}")
             else:
-                if isinstance(Config.parameters["MaxPerClass"][0], int):
+                if isinstance(Config.parameters["max_per_class"][0], int):
                     for y in range(self.listOfCounts.shape[0]):
                         x = 0
                         cutofflist = self.listOfCounts.iloc[y].copy()
@@ -563,7 +563,7 @@ class ClusterDivDataset(ClassDivDataset):
 class ClusterLimitDataset(ClusterDivDataset):
     """
     This version of the dataset will use agglomerative clustering to split each class into 32 subclasses.
-    It will then take Config.parameters["MaxPerClass"] sample points from each subclass to compile the dataset.
+    It will then take Config.parameters["max_per_class"] sample points from each subclass to compile the dataset.
     If a subclass does not have that number of samples it will take the maximum number of samples.
 
     The thought behind this is that the catagories we have are broad,
@@ -701,9 +701,9 @@ class DatasetWithFlows(IterableDataset):
 
         self.state_worker_loads = state_worker_loads
         self.unknownData = unknownData
-        if Config.parameters["Dataset"][0] == "Payload_data_CICIDS2017":
+        if Config.parameters["dataset"][0] == "Payload_data_CICIDS2017":
             self.dataset_name = 'CIC-IDS2017'
-        elif Config.parameters["Dataset"][0] == "Payload_data_CICIDS2017":
+        elif Config.parameters["dataset"][0] == "Payload_data_CICIDS2017":
             self.dataset_name = 'UNSW-NB15'
         else:
             raise ValueError("Invalid name of dataset")
@@ -743,7 +743,7 @@ class DatasetWithFlows(IterableDataset):
         percentages = self.dfInfo / self.listOfCounts
         # print(percentages)
         # https: //stackoverflow.com/a/35125872
-        self.filecounts = -((-percentages * Config.parameters["MaxPerClass"][0]) // 1)
+        self.filecounts = -((-percentages * Config.parameters["max_per_class"][0]) // 1)
         for name in self.notuse:
             self.filecounts[name] *= 0
         # print(self.filecounts.sum())
@@ -885,7 +885,7 @@ class ClassDivDataset_flows(Dataset):
         self.listOfCounts = DatasetInfo(length_name).sum()
         self.listOfCounts.drop(labels="total", inplace=True)
         self.length = None
-        self.maxclass = Config.parameters["MaxPerClass"][0]
+        self.maxclass = Config.parameters["max_per_class"][0]
         if "MaxSamples" in Config.parameters:
             self.totalSamples = Config.parameters["MaxSamples"][0]
 
@@ -1058,9 +1058,9 @@ class ClassDivDataset_flows(Dataset):
                 -list - loads the specific files given split as evenly as possible over the workers.
         """
         from nids_datasets import Dataset as Data_set_with_flows
-        if Config.parameters["Dataset"][0] == "Payload_data_CICIDS2017":
+        if Config.parameters["dataset"][0] == "Payload_data_CICIDS2017":
             dataset_name = 'CIC-IDS2017'
-        elif Config.parameters["Dataset"][0] == "Payload_data_CICIDS2017":
+        elif Config.parameters["dataset"][0] == "Payload_data_CICIDS2017":
             dataset_name = 'UNSW-NB15'
         else:
             raise ValueError("Invalid name of dataset")
@@ -1187,7 +1187,7 @@ class savedPacketDataset(Dataset):
 
 
 def downloadDataset():
-    name = Config.parameters["Dataset"][0]
+    name = Config.parameters["dataset"][0]
     if not os.path.exists("datasets"):
         os.mkdir("datasets")
     if not os.path.exists("datasets/" + name + ".csv") and name in ["Payload_data_CICIDS2017", "Payload_data_UNSW"]:
@@ -1215,16 +1215,16 @@ def getDatagroup():
             knowns set - torch dataloader using the classes in config knowns_clss
             unknown set - torch dataloader using the classes in congfig unknowns_clss
     """
-    groupType = Config.parameters["Dataloader_Variation"][0]
-    train = DataloaderTypes[groupType](os.path.join("datasets", Config.parameters["Dataset"][0]), use=Config.parameters["Knowns_clss"][0])
-    unknowns = DataloaderTypes[groupType](os.path.join("datasets", Config.parameters["Dataset"][0]), use=Config.parameters["Unknowns_clss"][0], unknownData=True)
+    groupType = Config.parameters["dataloader_variation"][0]
+    train = DataloaderTypes[groupType](os.path.join("datasets", Config.parameters["dataset"][0]), use=Config.parameters["knowns_clss"][0])
+    unknowns = DataloaderTypes[groupType](os.path.join("datasets", Config.parameters["dataset"][0]), use=Config.parameters["unknowns_clss"][0], unknownData=True)
     return train, unknowns
 
 
 def checkAttempLoad(root_path=""):
     """
     Creates the training, testing, and validaton datasets and saves them in Saves/Data.pt, Saves/DataTest.pt, and Saves/DataVal.pt.
-    if Config's "attemptLoadData" is true it instead loads the datasets from the files and does not create them.
+    if Config's "attempt_load_data" is true it instead loads the datasets from the files and does not create them.
     This is so that the validation and testing data does not get mixed up which would invalidate the validation data.
     """
     # get the data and create a test set and train set
@@ -1232,10 +1232,10 @@ def checkAttempLoad(root_path=""):
     print("Reading datasets to create test and train sets")
 
     train, unknowns = getDatagroup()
-    train, val = torch.utils.data.random_split(train, [len(train) - int(len(train) * Config.parameters["testlength"][0]), int(len(train) * Config.parameters["testlength"][0])])
+    train, val = torch.utils.data.random_split(train, [len(train) - int(len(train) * Config.parameters["test_length"][0]), int(len(train) * Config.parameters["test_length"][0])])
 
-    if len(Config.parameters["Unknowns_clss"][0]) > 0:
-        if (Config.parameters["Mix unknowns and validation"][0]):
+    if len(Config.parameters["unknowns_clss"][0]) > 0:
+        if (Config.parameters["mix_unknowns_and_validation"][0]):
             test = torch.utils.data.ConcatDataset([val, unknowns])
         else:
             test = unknowns
@@ -1245,7 +1245,7 @@ def checkAttempLoad(root_path=""):
     if Config.unit_test_mode:
         return train, test, val
 
-    if Config.parameters["attemptLoadData"][0] and os.path.exists(os.path.join(root_path, "Saves", "Data.pt")):
+    if Config.parameters["attempt_load_data"][0] and os.path.exists(os.path.join(root_path, "Saves", "Data.pt")):
         print("Found prior dataset to load")
         try:
             train = torch.load(os.path.join(root_path, "Saves", "Data.pt"))
@@ -1266,10 +1266,10 @@ def checkAttempLoad(root_path=""):
         torch.save(train, os.path.join(root_path, "Saves", "Data.pt"))
         torch.save(test, os.path.join(root_path, "Saves", "DataTest.pt"))
         torch.save(val, os.path.join(root_path, "Saves", "DataVal.pt"))
-        if Config.parameters["attemptLoadData"][0]:
+        if Config.parameters["attempt_load_data"][0]:
             print("No model train and test checkpoint was found, saving datacheckpoints ...")
 
-    if Config.parameters["testlength"][0] == 1 and Config.parameters["num_epochs"][0] == 0:
+    if Config.parameters["test_length"][0] == 1 and Config.parameters["num_epochs"][0] == 0:
         train = test
     return train, test, val
 

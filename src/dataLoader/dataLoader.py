@@ -299,7 +299,7 @@ class ModelInstance(object):
                 # self.model = ModelStruct.get_model(path="Saves/models/MVP_model.pth")  # Use debug = True to use unitTesting dataset
                 self.loaded = True
             elif save_name == "train":
-                ModelStruct.Config.parameters["Dataset"][0] = "UnitTesting"
+                ModelStruct.Config.parameters["dataset"][0] = "UnitTesting"
                 ModelStruct.Config.parameters["num_epochs"][0] = 1
                 self.model = ModelStruct.Conv1DClassifier()
                 ModelStruct.train_model(self.model)
@@ -325,7 +325,7 @@ class DataLoaderInterface(object):
     def connectModel(self):
         # The connection message is excessive
         # print(f"[{self.mac}]: Connecting model")
-        ModelStruct.Config.parameters["Dataset"][0] = "UnitTesting"
+        ModelStruct.Config.parameters["dataset"][0] = "UnitTesting"
         self.model = loader.getModelInstance(mac=self.mac)
         if self.model is None:
             print("ModelInstance not found")

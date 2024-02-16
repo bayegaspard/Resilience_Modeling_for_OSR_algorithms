@@ -26,7 +26,7 @@ def setrelabel():
     # This is the mask to apply to tensors to make them ignore unknown classes.
     global mask
     mask = torch.zeros(Config.parameters["CLASSES"][0])
-    for x in Config.parameters["Knowns_clss"][0]:
+    for x in Config.parameters["knowns_clss"][0]:
         mask[x] = 1
     mask = mask == 1
 
@@ -34,7 +34,7 @@ def setrelabel():
     rerelabel = {Config.parameters["CLASSES"][0]: Config.parameters["CLASSES"][0]}
     temp = 0
     for x in range(Config.parameters["CLASSES"][0]):
-        if temp < len(Config.parameters["Unknowns_clss"][0]) and x == Config.parameters["Unknowns_clss"][0][temp]:
+        if temp < len(Config.parameters["unknowns_clss"][0]) and x == Config.parameters["unknowns_clss"][0][temp]:
             temp = temp + 1
         else:
             relabel[x] = x - temp
@@ -80,20 +80,20 @@ def definedLoops(path="datasets/hyperparamList.csv", row=0):
     if len(hyperparamsFile) > row:
         hyperparams = hyperparamsFile.iloc[row]
         for x in Config.parameters.keys():
-            if x in hyperparams.keys() and x not in ["Unknowns", "Knowns_clss", "Version", "optimizer", "LOOP"]:
+            if x in hyperparams.keys() and x not in ["Unknowns", "knowns_clss", "Version", "optimizer", "LOOP"]:
                 Config.parameters[x][0] = hyperparams[x]
                 if isinstance(Config.parameters[x][0], np.generic):
                     Config.parameters[x][0] = Config.parameters[x][0].item()
-                if x in ["Unknowns_clss", "Knowns_clss"]:
+                if x in ["unknowns_clss", "knowns_clss"]:
                     # str.removesuffix("]").removeprefix("[").split(sep=", ")
                     Config.parameters[x][0] = [int(y) for y in Config.parameters[x][0].removesuffix("]").removeprefix("[").split(sep=", ")]
-                if x in ["Var_filtering_threshold"]:
+                if x in ["var_filtering_threshold"]:
                     # str.removesuffix("]").removeprefix("[").split(sep=",")
                     if isinstance(Config.parameters[x][0], str):
                         Config.parameters[x][0] = [float(y) for y in Config.parameters[x][0].removesuffix("]").removeprefix("[").split(sep=",")]
                     else:
                         Config.parameters[x][0] = float(Config.parameters[x][0])
-        if "Knowns_clss" not in Config.parameters.keys():
+        if "knowns_clss" not in Config.parameters.keys():
             # If the Known classes are not explicitly stated then they will be regenerated
             Config.loopOverUnknowns()
         return row + 1
@@ -117,7 +117,7 @@ def renameClasses(modelOut: torch.Tensor):
     lastval = -1
     label = list(range(Config.parameters["CLASSES"][0]))
     newout = []
-    remove = Config.parameters["Unknowns_clss"][0] + Config.UnusedClasses
+    remove = Config.parameters["unknowns_clss"][0] + Config.UnusedClasses
     remove.sort()
     for val in remove:
         label.remove(val)
@@ -154,7 +154,7 @@ def renameClassesLabeled(modelOut: torch.Tensor, labels: torch.Tensor):
     label = list(range(Config.parameters["CLASSES"][0]))
     keep_label = label.copy()
     newout = []
-    remove = Config.parameters["Unknowns_clss"][0] + Config.UnusedClasses
+    remove = Config.parameters["unknowns_clss"][0] + Config.UnusedClasses
     remove.sort()
     # print(Config.helper_variables["unknowns_clss"])
     for val in remove:

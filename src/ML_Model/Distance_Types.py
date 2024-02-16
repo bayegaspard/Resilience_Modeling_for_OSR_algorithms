@@ -16,13 +16,13 @@ def distance_measures(Z: torch.Tensor, means: list, Y: torch.Tensor, distFunct) 
     with torch.no_grad():
         intraspread = torch.tensor(0, dtype=torch.float32)
         N = len(Y)
-        K = range(len(Config.parameters["Knowns_clss"][0]))
+        K = range(len(Config.parameters["knowns_clss"][0]))
         # K = range(len([0,1,2]))
         # For each class in the knowns
         for j in K:
             if means[j].dim() != 0:
                 # The mask will only select items of the correct class
-                mask = (Y == Config.parameters["Knowns_clss"][0][j]).cpu()
+                mask = (Y == Config.parameters["knowns_clss"][0][j]).cpu()
                 # mask = Y==[0,1,2][j]
 
                 # torch.flatten(x,start_dim=1,end_dim=-1)
@@ -43,7 +43,7 @@ def class_means(Z: torch.Tensor, Y: torch.Tensor):
     """
     means = [torch.tensor(0, requires_grad=False) for x in range(Config.parameters["CLASSES"][0])]
     # print(Y.bincount())
-    for y in Config.parameters["Knowns_clss"][0]:
+    for y in Config.parameters["knowns_clss"][0]:
         # for y in [0,1,2]:
         # Technically only this part is actually equation 2 but it seems to want to output a value for each class.
         mask = (Y == y)

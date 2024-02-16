@@ -5,7 +5,7 @@ import ML_Model
 
 def load_model(dataframe):
 	# TODO FileNotFoundError: [Errno 2] No such file or directory: 'datasets/UnitTestingcounts.csv'
-	ML_Model.Config.parameters["Dataset"][0] = "UnitTesting"
+	ML_Model.Config.parameters["dataset"][0] = "UnitTesting"
 	model = ML_Model.ModelStruct.Conv1DClassifier()
 	ML_Model.ModelStruct.train_model(model)
 	data_object = model.generateDataObject(dataframe)

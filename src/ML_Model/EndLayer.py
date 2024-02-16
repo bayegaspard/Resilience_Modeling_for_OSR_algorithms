@@ -32,9 +32,9 @@ class EndLayers(nn.Module):
         self.cutoff = cutoff
         self.classCount = num_classes
         self.end_type = type
-        self.DOO = Config.parameters["Degree of Overcompleteness"][0]    # Degree of Overcompleteness for COOL
+        self.DOO = Config.parameters["degree_of_overcompleteness"][0]    # Degree of Overcompleteness for COOL
         self.weibulInfo = None
-        self.var_cutoff = Config.parameters["Var_filtering_threshold"][0]
+        self.var_cutoff = Config.parameters["var_filtering_threshold"][0]
         if not isinstance(self.var_cutoff, list):
             self.var_cutoff = [self.var_cutoff]
         self.resetvals()
@@ -92,9 +92,9 @@ class EndLayers(nn.Module):
         """
         param = Config.parameters.copy()
         if temp is None:
-            temp = float(param["Temperature"][0])
+            temp = float(param["temperature"][0])
         if classes is None:
-            classes = len(Config.parameters["Knowns_clss"][0])
+            classes = len(Config.parameters["knowns_clss"][0])
 
         class argsc():
             def __init__(self):
@@ -192,11 +192,11 @@ class EndLayers(nn.Module):
             if self.weibulInfo is None:
                 return
             else:
-                self.docMu = DOC.muStandardsFromDataloader(Config.parameters["Knowns_clss"][0], self.weibulInfo["loader"], self.weibulInfo["net"])
+                self.docMu = DOC.muStandardsFromDataloader(Config.parameters["knowns_clss"][0], self.weibulInfo["loader"], self.weibulInfo["net"])
                 # self.Save_score = [torch.tensor(self.docMu)[:, 1]]
 
         # self.rocData[1] = []
-        newPredictions = DOC.runDOC(percentages.detach().cpu().numpy(), self.docMu, Config.parameters["Knowns_clss"][0], self.rocData[1])
+        newPredictions = DOC.runDOC(percentages.detach().cpu().numpy(), self.docMu, Config.parameters["knowns_clss"][0], self.rocData[1])
         newPredictions = torch.tensor(newPredictions)
         for x in range(len(newPredictions)):
             newPredictions[x] = torch.tensor(helperFunctions.rerelabel[newPredictions[x].item()])
@@ -388,6 +388,6 @@ class EndLayers(nn.Module):
         Finds the distances using iiMod's intra_spread function.
         """
         from CodeFromImplementations.iiMod import intra_spread
-        outputs_for_known_columns = outputs[:, Config.parameters["Knowns_clss"][0]]
+        outputs_for_known_columns = outputs[:, Config.parameters["knowns_clss"][0]]
         anti_unknown_value_mask = labels != Config.parameters["CLASSES"][0]
         return intra_spread(outputs_for_known_columns[anti_unknown_value_mask], means, labels[anti_unknown_value_mask])
