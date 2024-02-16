@@ -32,9 +32,9 @@ class EndLayers(nn.Module):
         self.cutoff = cutoff
         self.classCount = num_classes
         self.end_type = type
-        self.DOO = Config.parameters["degree_of_overcompleteness"][0]    # Degree of Overcompleteness for COOL
+        self.DOO = Config.get_global("degree_of_overcompleteness")    # Degree of Overcompleteness for COOL
         self.weibulInfo = None
-        self.var_cutoff = Config.parameters["var_filtering_threshold"][0]
+        self.var_cutoff = Config.get_global("var_filtering_threshold")
         if not isinstance(self.var_cutoff, list):
             self.var_cutoff = [self.var_cutoff]
         self.resetvals()
@@ -58,9 +58,9 @@ class EndLayers(nn.Module):
         if y is not None and False:
             if type in ["Var"]:
                 # Energy kind of reverses things.
-                self.rocData[0] = y == Config.parameters["CLASSES"][0]  # True if data is unknown
+                self.rocData[0] = y == Config.get_global("CLASSES")  # True if data is unknown
             else:
-                self.rocData[0] = y != Config.parameters["CLASSES"][0]  # True if data is known
+                self.rocData[0] = y != Config.get_global("CLASSES")  # True if data is known
 
         # modify outputs if nessisary for algorithm
         output_modified = self.typesOfMod.get(type, self.typesOfMod["none"])(self, output_true)
@@ -94,7 +94,7 @@ class EndLayers(nn.Module):
         if temp is None:
             temp = float(param["temperature"][0])
         if classes is None:
-            classes = len(Config.parameters["knowns_clss"][0])
+            classes = len(Config.get_global("knowns_clss"))
 
         class argsc():
             def __init__(self):
@@ -192,17 +192,17 @@ class EndLayers(nn.Module):
             if self.weibulInfo is None:
                 return
             else:
-                self.docMu = DOC.muStandardsFromDataloader(Config.parameters["knowns_clss"][0], self.weibulInfo["loader"], self.weibulInfo["net"])
+                self.docMu = DOC.muStandardsFromDataloader(Config.get_global("knowns_clss"), self.weibulInfo["loader"], self.weibulInfo["net"])
                 # self.Save_score = [torch.tensor(self.docMu)[:, 1]]
 
         # self.rocData[1] = []
-        newPredictions = DOC.runDOC(percentages.detach().cpu().numpy(), self.docMu, Config.parameters["knowns_clss"][0], self.rocData[1])
+        newPredictions = DOC.runDOC(percentages.detach().cpu().numpy(), self.docMu, Config.get_global("knowns_clss"), self.rocData[1])
         newPredictions = torch.tensor(newPredictions)
         for x in range(len(newPredictions)):
             newPredictions[x] = torch.tensor(helperFunctions.rerelabel[newPredictions[x].item()])
 
         # to fit with the rest of the endlayers I am setting this back to a one hot vector even though we are just going to colapse it again.
-        oneHotPredictions = F.one_hot(newPredictions, num_classes=Config.parameters["CLASSES"][0] + 1).float()
+        oneHotPredictions = F.one_hot(newPredictions, num_classes=Config.get_global("CLASSES") + 1).float()
 
         return oneHotPredictions
 
@@ -388,6 +388,6 @@ class EndLayers(nn.Module):
         Finds the distances using iiMod's intra_spread function.
         """
         from CodeFromImplementations.iiMod import intra_spread
-        outputs_for_known_columns = outputs[:, Config.parameters["knowns_clss"][0]]
-        anti_unknown_value_mask = labels != Config.parameters["CLASSES"][0]
+        outputs_for_known_columns = outputs[:, Config.get_global("knowns_clss")]
+        anti_unknown_value_mask = labels != Config.get_global("CLASSES")
         return intra_spread(outputs_for_known_columns[anti_unknown_value_mask], means, labels[anti_unknown_value_mask])

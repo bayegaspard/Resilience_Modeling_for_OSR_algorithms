@@ -278,6 +278,14 @@ def get_global(name: str):
         return parameters[name][0]
 
 
+def set_global(name: str, val):
+    global parameters
+    if name in parameter_name_conversions.keys():
+        name = parameter_name_conversions[name]
+    if name in parameters.keys():
+        parameters[name][0] = val
+
+
 save_as_tensorboard = False
 datasetRandomOffset = True
 dataparallel = True

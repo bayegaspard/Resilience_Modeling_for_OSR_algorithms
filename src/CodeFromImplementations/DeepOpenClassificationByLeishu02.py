@@ -73,7 +73,7 @@ def runDOC(test_X_pred_true, mu_stds, seen, saved_scores=[]):
              test_y_pred.append(max_class)#predicted probability is greater than threshold, accept
         else:
             #THE NEXT LINE HAS BEEN MODIFIED (to not hardcode the rejection value)
-            test_y_pred.append(Config.parameters["CLASSES"][0])#otherwise, reject
+            test_y_pred.append(Config.get_global("CLASSES"))#otherwise, reject
 
     
     # In[]:

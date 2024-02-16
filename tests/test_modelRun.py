@@ -13,10 +13,10 @@ import helperFunctions
 import torch
 import numpy as np
 torch.manual_seed(0)
-Config.parameters["dataset"][0] = "UnitTesting"
-Config.parameters["dataloader_variation"][0] = "Standard"
-Config.parameters["max_per_class"][0] = 10
-Config.parameters["use_renamed_packets"][0] = 0
+Config.set_global("dataset", "UnitTesting")
+Config.set_global("dataloader_variation", "Standard")
+Config.set_global("max_per_class", 10)
+Config.set_global("use_renamed_packets", 0)
 
 
 train, test, val = Dataload.checkAttempLoad()
@@ -59,7 +59,7 @@ def test_modelDataObject():
     torch.manual_seed(0)
     model.fit(1, 0.001, training, validation, opt_func=torch.optim.Adam)
     data_object = model.generateDataObject(batch[0])
-    assert len(data_object.attacks) == Config.parameters["CLASSES"][0] - 1
+    assert len(data_object.attacks) == Config.get_global("CLASSES") - 1
     assert data_object.num_packets == len(batch[0])
     assert isinstance(data_object.unknowns, list)
     assert len(batch[0]) == len(data_object.predictions_numerical)

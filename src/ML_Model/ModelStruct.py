@@ -37,7 +37,7 @@ class AttackTrainingClassification(nn.Module):
     """This is the Default Model for the project"""
     def __init__(self, mode=None, numberOfFeatures=1504):
         super().__init__()
-        if Config.parameters["use_renamed_packets"][0] == 1:
+        if Config.get_global("use_renamed_packets") == 1:
             # This just updates CLASSLIST if renamed packets are used so that the model is the correct size.
             Dataload.savedPacketDataset()
             self.use_relabeled_packets = True
@@ -45,7 +45,7 @@ class AttackTrainingClassification(nn.Module):
             self.use_relabeled_packets = False
 
         if mode is None:
-            mode = Config.parameters["OOD_type"][0]
+            mode = Config.get_global("OOD_type")
 
         self.untrained = True
         self.date_of_creation = None
@@ -54,7 +54,7 @@ class AttackTrainingClassification(nn.Module):
         self.convolutional_channels = [32, 64]
 
         # This is for doing a convolution of the bits
-        if Config.parameters["experimental_bit_convolution"][0] != 1:
+        if Config.get_global("experimental_bit_convolution") != 1:
             self.bitpack = expand_bitPackets(numberOfFeatures, device=device)
 
         # This is the length of the packets in the dataset we are currently using.
@@ -64,12 +64,12 @@ class AttackTrainingClassification(nn.Module):
         self.fullyConnectedStart = int(self.fullyConnectedStart)
 
         # There are 15 classes
-        numClasses = Config.parameters["CLASSES"][0]
-        if Config.parameters['dataloader_variation'][0] == "Old_Cluster":
+        numClasses = Config.get_global("CLASSES")
+        if Config.get_global('dataloader_variation') == "Old_Cluster":
             numClasses = numClasses * 32
 
         # These are for DOC, it has a special model structure. Because of that we allow it to override what we have.
-        if Config.parameters["OOD_type"][0] == "DOC":
+        if Config.get_global("OOD_type") == "DOC":
             class DOC_Module(nn.Module):
                 def __init__(self):
                     super().__init__()
@@ -87,27 +87,27 @@ class AttackTrainingClassification(nn.Module):
         # This menu switches between the diffrent options for activation functions.
         self.activation = nn.ReLU()
         activations = {"Sigmoid": nn.Sigmoid(), "Tanh": nn.Tanh(), "Leaky": nn.LeakyReLU(), "Elu": nn.ELU(), "PRElu": nn.PReLU(device=device), "Softplus": nn.Softplus(), "Softmax": nn.Softmax(dim=1)}
-        self.activation = activations[Config.parameters["activation"][0]] if Config.parameters["activation"][0] in activations.keys() else self.activation
+        self.activation = activations[Config.get_global("activation")] if Config.get_global("activation") in activations.keys() else self.activation
 
         # We use two normal fully connected layers after the CNN specific layers (or substiute layers)
-        self.fc1 = nn.Linear(self.fullyConnectedStart, Config.parameters["nodes"][0], device=device)
-        self.fc2 = nn.Linear(Config.parameters["nodes"][0], numClasses, device=device)
+        self.fc1 = nn.Linear(self.fullyConnectedStart, Config.get_global("nodes"), device=device)
+        self.fc2 = nn.Linear(Config.get_global("nodes"), numClasses, device=device)
 
         self.addedLayers = torch.nn.Sequential()
         # If the config says to add more layers, that is done here.
-        for x in range(Config.parameters["number_of_layers"][0]):
-            self.addedLayers.append(torch.nn.Linear(Config.parameters["nodes"][0], Config.parameters["nodes"][0], device=device))
+        for x in range(Config.get_global("number_of_layers")):
+            self.addedLayers.append(torch.nn.Linear(Config.get_global("nodes"), Config.get_global("nodes"), device=device))
             self.addedLayers.append(self.activation)
 
         #  self.COOL = nn.Linear(256, 15*n)
         self.flatten = nn.Flatten()
-        self.dropout = nn.Dropout(int(Config.parameters["dropout"][0]))
+        self.dropout = nn.Dropout(int(Config.get_global("dropout")))
 
-        self.end = EndLayers(numClasses, type="Soft", cutoff=Config.parameters["threshold"][0])
+        self.end = EndLayers(numClasses, type="Soft", cutoff=Config.get_global("threshold"))
         self.batchnum = 0
         self.storeReset()
         # COOL neeeds its own outputl layer.
-        self.COOL = nn.Linear(Config.parameters["nodes"][0], numClasses * self.end.DOO, device=device)
+        self.COOL = nn.Linear(Config.get_global("nodes"), numClasses * self.end.DOO, device=device)
 
         self.los = False
         self.end.end_type = mode
@@ -135,8 +135,8 @@ class AttackTrainingClassification(nn.Module):
             # I am wondering if passing the direct feature vectors to the last layer will help identify specific points,
             #  such as port id numbers.
             # The thought is that the port id numbers get distorted over the course of the model and need to be re-added later.
-            self.fc2 = nn.Linear(Config.parameters["nodes"][0] + numberOfFeatures, numClasses, device=device)
-            self.COOL = nn.Linear(Config.parameters["nodes"][0] + numberOfFeatures, numClasses * self.end.DOO, device=device)
+            self.fc2 = nn.Linear(Config.get_global("nodes") + numberOfFeatures, numClasses, device=device)
+            self.COOL = nn.Linear(Config.get_global("nodes") + numberOfFeatures, numClasses * self.end.DOO, device=device)
 
     # Specify how the data passes in the neural network
     def forward(self, x_before_model: torch.Tensor):
@@ -147,7 +147,7 @@ class AttackTrainingClassification(nn.Module):
         #  x = to_device(x, device)
         x_before_model = x_before_model.float()
         x = x_before_model.unsqueeze(1)
-        if Config.parameters["experimental_bit_convolution"][0] == 1:
+        if Config.get_global("experimental_bit_convolution") == 1:
             x = self.bitpack(x)
         x = self.sequencePackage(x)
         return x
@@ -166,14 +166,14 @@ class AttackTrainingClassification(nn.Module):
             opt_func- the optimization function to use
 
         """
-        if Config.parameters["attempt_load_model"][0] == 1:
+        if Config.get_global("attempt_load_model") == 1:
             startingEpoch = self.loadPoint("Saves/models")
             # If it cannot find a model to load because of some error, the epoch number starts at -1 to avoid overwriting a possilby working model
         else:
             startingEpoch = 0
         optimizer = opt_func(self.parameters(), lr)
-        if isinstance(Config.parameters["scheduler_step_distance"][0], float) and Config.parameters["scheduler_step_distance"][0] != 0:
-            sch = torch.optim.lr_scheduler.StepLR(optimizer, Config.parameters["scheduler_num_epochs"][0], Config.parameters["scheduler_step_distance"][0])
+        if isinstance(Config.get_global("scheduler_step_distance"), float) and Config.get_global("scheduler_step_distance") != 0:
+            sch = torch.optim.lr_scheduler.StepLR(optimizer, Config.get_global("scheduler_num_epochs"), Config.get_global("scheduler_step_distance"))
         else:
             sch = None
         self.los = helperFunctions.LossPerEpoch("TestingDuringTrainEpochs.csv")
@@ -236,7 +236,7 @@ class AttackTrainingClassification(nn.Module):
                     self.epoch = epoch + startingEpoch
         else:
             #  Validation phase
-            if Config.parameters["attempt_load_model"][0] == 0:
+            if Config.get_global("attempt_load_model") == 0:
                 # don't double load
                 epoch = self.loadPoint("Saves/models")
             else:
@@ -372,11 +372,11 @@ class AttackTrainingClassification(nn.Module):
                 self.batch_fdHook.reset()
 
             assert isinstance(predictions, torch.Tensor), "Model Output Not torch Tensor, should not be possible"
-            bincounts = predictions.bincount(minlength=Config.parameters["CLASSES"][0] + 1)
-            new_data.attacks = {Dataload.LISTCLASS[y + 1]: x.item() for y, x in enumerate(bincounts[1:Config.parameters["CLASSES"][0]])}
+            bincounts = predictions.bincount(minlength=Config.get_global("CLASSES") + 1)
+            new_data.attacks = {Dataload.LISTCLASS[y + 1]: x.item() for y, x in enumerate(bincounts[1:Config.get_global("CLASSES")])}
             new_data.num_packets = bincounts.sum().item()
             # This is temparary:
-            for y in torch.softmax(out_logits[predictions == Config.parameters["CLASSES"][0]], dim=1):
+            for y in torch.softmax(out_logits[predictions == Config.get_global("CLASSES")], dim=1):
                 new_data.unknowns.append([Dataload.LISTCLASS[z] for z, x in enumerate(y) if x > 0.2])
 
             self.end.resetvals()
@@ -479,14 +479,14 @@ class AttackTrainingClassification(nn.Module):
             "untrained": self.untrained if epoch == 0 else False,
             "confusion_matrix": self.gen_confusion(),
             "LISTCLASS": Dataload.LISTCLASS,
-            "fileName": path if exact_name else f"/Epoch{epoch:03d}{Config.parameters['OOD_type'][0]}.pth"
+            "fileName": path if exact_name else f"/Epoch{epoch:03d}{Config.get_global('OOD_type')}.pth"
         }
 
         # The whole dictionary to save
         to_save = {
             "model_state": self.state_dict(),
             "parameter_keys": list(Config.parameters.keys()),
-            "parameter_settings": {x: Config.parameters[x][0] for x in Config.parameters.keys()},
+            "parameter_settings": {x: Config.get_global(x) for x in Config.parameters.keys()},
             "LISTCLASS": Dataload.LISTCLASS,
             "CLASSLIST": Dataload.CLASSLIST,
             "info": info
@@ -501,7 +501,7 @@ class AttackTrainingClassification(nn.Module):
 
         # Sometimes you want to save to a specific file instead of the generic name.
         if not exact_name:
-            torch.save(to_save, path + f"/Epoch{epoch:03d}{Config.parameters['OOD_type'][0]}.pth")
+            torch.save(to_save, path + f"/Epoch{epoch:03d}{Config.get_global('OOD_type')}.pth")
             # We had a problem with saving too many versions.
             if epoch >= 5:
                 oldPath, epoch = AttackTrainingClassification.findloadPath(path, epoch=epoch - 5)
@@ -542,7 +542,7 @@ class AttackTrainingClassification(nn.Module):
             for x in new_names.keys():
 
                 #  assert x in Config.parameters.keys() # Make sure that the model loaded actually has all of the needed values
-                if x in Config.parameters.keys() and new_names[x][0] != Config.parameters[x][0]:
+                if x in Config.parameters.keys() and new_names[x][0] != Config.get_global(x):
                     if x not in ["model", "degree_of_overcompleteness", "number_of_layers", "nodes"]:
                         print(f"Warning: {x} has been changed from when model was created")
                     else:
@@ -552,16 +552,16 @@ class AttackTrainingClassification(nn.Module):
                             self.loadPoint(path=path, startEpoch=epochFound - 1)
                         return -1
                     if x in ["OOD_type"]:
-                        Config.parameters[x][0] = new_names[x][0]
+                        Config.set_global(x, new_names[x][0])
 
             for x in new_names["unknowns_clss"][0]:
-                if x not in Config.parameters["unknowns_clss"][0]:
+                if x not in Config.get_global("unknowns_clss"):
                     print(f"Warning: Model trained with {x} as an unknown.")
         else:
             # New structure
             for x in loaded["parameter_keys"]:
                 #  assert x in Config.parameters.keys() # Make sure that the model loaded actually has all of the needed values
-                if x in Config.parameters.keys() and loaded["parameter_settings"][x] != Config.parameters[x][0]:
+                if x in Config.parameters.keys() and loaded["parameter_settings"][x] != Config.get_global(x):
                     if x not in ["model", "degree_of_overcompleteness", "number_of_layers", "nodes"]:
                         print(f"Warning: {x} has been changed from when model was created")
                     else:
@@ -571,10 +571,10 @@ class AttackTrainingClassification(nn.Module):
                             self.loadPoint(path=path, startEpoch=epochFound - 1)
                         return -1
                     if x in ["OOD_type"]:
-                        Config.parameters[x][0] = loaded["parameter_settings"][x]
+                        Config.set_global(x, loaded["parameter_settings"][x])
 
             for x in loaded["parameter_settings"]["unknowns_clss"]:
-                if x not in Config.parameters["unknowns_clss"][0]:
+                if x not in Config.get_global("unknowns_clss"):
                     print(f"Warning: Model trained with {x} as an unknown.")
 
         # # Count the classes
@@ -587,7 +587,7 @@ class AttackTrainingClassification(nn.Module):
             Dataload.LISTCLASS = loaded["LISTCLASS"]
             Dataload.CLASSLIST = loaded["CLASSLIST"]
             Config.recountclasses(Dataload.LISTCLASS)
-            print(f"CLASSES have changed, there are now {Config.parameters['CLASSES'][0]} classes")
+            print(f"CLASSES have changed, there are now {Config.get_global('CLASSES')} classes")
             self.use_relabeled_packets = True
 
         self.load_state_dict(loaded["model_state"])
@@ -595,7 +595,7 @@ class AttackTrainingClassification(nn.Module):
             self.batch_fdHook = Distance_Types.forwardHook()
             self.batch_fdHook.means = loaded["batchSaveClassMeans"]
 
-        self.end.end_type = Config.parameters["OOD_type"][0]
+        self.end.end_type = Config.get_global("OOD_type")
         self.untrained = loaded["info"]["untrained"] if "info" in loaded.keys() else False  # I am going to assume that it is trained if it is really old
         self.date_of_creation = loaded["info"]["date_of_creation"] if "info" in loaded.keys() else None
         self.loadedFrom = pathFound
@@ -629,7 +629,7 @@ class AttackTrainingClassification(nn.Module):
         i = start_at
         # epochFound = -1
         for i in range(start_at, -1, -1):
-            if os.path.exists(path + f"/Epoch{i:03d}{Config.parameters['OOD_type'][0]}.pth"):
+            if os.path.exists(path + f"/Epoch{i:03d}{Config.get_global('OOD_type')}.pth"):
                 return i
         return -1
 
@@ -644,7 +644,7 @@ class AttackTrainingClassification(nn.Module):
         if epochFound == -1:
             print("No model to load found.")
             return "", -1
-        return path + f"/Epoch{epochFound:03d}{Config.parameters['OOD_type'][0]}.pth", epochFound
+        return path + f"/Epoch{epochFound:03d}{Config.get_global('OOD_type')}.pth", epochFound
 
     def storeReset(self):
         """
@@ -704,12 +704,12 @@ class Conv1DClassifier(AttackTrainingClassification):
             nn.Conv1d(1, self.convolutional_channels[0], 3, device=device),
             self.activation,
             nn.MaxPool1d(self.maxpooling[0]),
-            nn.Dropout(int(Config.parameters["dropout"][0])))
+            nn.Dropout(int(Config.get_global("dropout"))))
         self.layer2 = nn.Sequential(
             nn.Conv1d(self.convolutional_channels[0], self.convolutional_channels[1], 3, device=device),
             self.activation,
             nn.MaxPool1d(self.maxpooling[1]),
-            nn.Dropout(int(Config.parameters["dropout"][0])))
+            nn.Dropout(int(Config.get_global("dropout"))))
 
         sequencePackage = nn.Sequential()
 
@@ -731,11 +731,11 @@ class FullyConnected(AttackTrainingClassification):
             # Sorry about the big block of math, trying to calculate how big the convolutional tensor is after the first layer
             nn.Linear(numberOfFeatures, int(self.convolutional_channels[0] * (((numberOfFeatures) / (self.maxpooling[0]) // 1) - 1)), device=device),
             self.activation,
-            nn.Dropout(int(Config.parameters["dropout"][0])))
+            nn.Dropout(int(Config.get_global("dropout"))))
         self.layer2 = nn.Sequential(
             nn.Linear(int(self.convolutional_channels[0] * (((numberOfFeatures) / (self.maxpooling[0]) // 1) - 1)), self.fullyConnectedStart, device=device),
             self.activation,
-            nn.Dropout(int(Config.parameters["dropout"][0])))
+            nn.Dropout(int(Config.get_global("dropout"))))
 
         sequencePackage = nn.Sequential()
 
@@ -756,19 +756,19 @@ def train_model(model: AttackTrainingClassification):
         new_data = Dataload.savedPacketDataset()
         train = torch.utils.data.ConcatDataset([train, new_data])
 
-    training = Dataload.DataLoader(train, Config.parameters["batch_size"][0], shuffle=True, num_workers=Config.parameters["num_workers"][0], pin_memory=False)
-    testing = Dataload.DataLoader(test, Config.parameters["batch_size"][0], shuffle=True, num_workers=Config.parameters["num_workers"][0], pin_memory=False)
-    validation = Dataload.DataLoader(val, Config.parameters["batch_size"][0], shuffle=True, num_workers=Config.parameters["num_workers"][0], pin_memory=False)
+    training = Dataload.DataLoader(train, Config.get_global("batch_size"), shuffle=True, num_workers=Config.get_global("num_workers"), pin_memory=False)
+    testing = Dataload.DataLoader(test, Config.get_global("batch_size"), shuffle=True, num_workers=Config.get_global("num_workers"), pin_memory=False)
+    validation = Dataload.DataLoader(val, Config.get_global("batch_size"), shuffle=True, num_workers=Config.get_global("num_workers"), pin_memory=False)
 
     testing
     validation
 
     model.end.prepWeibull(training, torch.device('cpu'), model)
 
-    if len(training) < 100000 and Config.parameters["num_epochs"][0] > 0:
+    if len(training) < 100000 and Config.get_global("num_epochs") > 0:
         training = Dataload.recreateDL(training)
 
-    model.fit(Config.parameters["num_epochs"][0], Config.parameters["learning_rate"][0], training, validation, opt_func=torch.optim.Adam)
+    model.fit(Config.get_global("num_epochs"), Config.get_global("learning_rate"), training, validation, opt_func=torch.optim.Adam)
 
 
 def initialize_model(path: str):
@@ -782,7 +782,7 @@ def initialize_model(path: str):
     except FileNotFoundError:
         print(f"{path} path not found, initializing model with defaults.")
 
-    model = (Conv1DClassifier if Config.parameters["model"][0] != "Fully_Connected" else FullyConnected)(mode=Config.parameters["OOD_type"][0])
+    model = (Conv1DClassifier if Config.get_global("model") != "Fully_Connected" else FullyConnected)(mode=Config.get_global("OOD_type"))
 
     model.loadPoint(path)
     return model
@@ -807,15 +807,15 @@ def initialize_config(load_dict):
 
         for x in new_names.keys():
             #  assert x in Config.parameters.keys() # Make sure that the model loaded actually has all of the needed values
-            if (x in Config.parameters.keys() and new_names[x][0] != Config.parameters[x][0]) and x not in ["Unknowns"]:
+            if (x in Config.parameters.keys() and new_names[x][0] != Config.get_global(x)) and x not in ["Unknowns"]:
                 print(f"{x} has been changed from default values")
-                Config.parameters[x][0] = new_names[x][0]
+                Config.set_global(x, new_names[x][0])
     else:
         for x in load_dict["parameter_keys"]:
             #  assert x in Config.parameters.keys() # Make sure that the model loaded actually has all of the needed values
-            if (x in Config.parameters.keys() and load_dict["parameter_settings"][x] != Config.parameters[x][0]):
+            if (x in Config.parameters.keys() and load_dict["parameter_settings"][x] != Config.get_global(x)):
                 print(f"{x} has been changed from default values")
-                Config.parameters[x][0] = load_dict["parameter_settings"][x]
+                Config.set_global(x, load_dict["parameter_settings"][x])
 
     # # Count the classes
     loaded_keys, current_keys = list(load_dict["LISTCLASS"].keys()), list(Dataload.LISTCLASS.keys())
@@ -827,7 +827,7 @@ def initialize_config(load_dict):
         Dataload.LISTCLASS = load_dict["LISTCLASS"]
         Dataload.CLASSLIST = load_dict["CLASSLIST"]
         Config.recountclasses(Dataload.LISTCLASS)
-        print(f"CLASSES have changed, there are now {Config.parameters['CLASSES'][0]} classes")
+        print(f"CLASSES have changed, there are now {Config.get_global('CLASSES')} classes")
 
 
 def get_model(path=None, debug=False):
@@ -841,8 +841,8 @@ def get_model(path=None, debug=False):
 
     if model.untrained:
         if debug == True:
-            Config.parameters["dataset"][0] = "UnitTesting"
-            Config.parameters["num_epochs"][0] = 1
+            Config.set_global("dataset", "UnitTesting")
+            Config.set_global("num_epochs", 1)
         train_model(model)
     return model
 
