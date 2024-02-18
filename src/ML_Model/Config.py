@@ -1,6 +1,7 @@
 import torch
 import sys
 import argparse
+import numpy as np
 
 
 if __name__ != "Config":
@@ -282,11 +283,38 @@ def set_global(name: str, val):
     global parameters
     if name in parameter_name_conversions.keys():
         name = parameter_name_conversions[name]
+
+    if isinstance(val, np.generic):
+        val = val.item()
+
+    if name in ["CLASSES"]:
+        # This is for things that cannot be changed
+        return
+
+    if name in ["unknowns_clss", "knowns_clss"]:
+        if isinstance(val, str):
+            parameters[name][0] = [int(y) for y in val.removesuffix("]").removeprefix("[").split(sep=", ")]
+        elif isinstance(val, list):
+            parameters[name][0] = val
+        else:
+            raise ValueError(f"{name} global only accepts strings and lists")
+        return
+
+    if x in ["var_filtering_threshold"]:
+        if isinstance(val, str):
+            parameters[name][0] = [float(y) for y in val.removesuffix("]").removeprefix("[").split(sep=",")]
+        else:
+            parameters[name][0] = float(val)
+        return
+
     if name in parameters.keys():
-        parameters[name][0] = val
+        if isinstance(val, parameters[name][3]):
+            parameters[name][0] = val
+        else:
+            raise ValueError(f"{name} can only be of type {parameters[name][3]}")
 
 
 save_as_tensorboard = False
 datasetRandomOffset = True
-dataparallel = False
+dataparallel = True
 use_saved_packets = True

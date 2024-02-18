@@ -3,7 +3,6 @@ import Config as Config
 import os
 import pandas as pd
 import torch
-import numpy as np
 import glob
 from sklearn.metrics import (precision_score, recall_score, accuracy_score)
 from sklearn.metrics import confusion_matrix
@@ -80,19 +79,8 @@ def definedLoops(path="datasets/hyperparamList.csv", row=0):
     if len(hyperparamsFile) > row:
         hyperparams = hyperparamsFile.iloc[row]
         for x in Config.parameters.keys():
-            if x in hyperparams.keys() and x not in ["Unknowns", "knowns_clss", "Version", "optimizer", "LOOP"]:
+            if x in hyperparams.keys() and x not in ["Version", "optimizer", "LOOP"]:
                 Config.set_global(x, hyperparams[x])
-                if isinstance(Config.get_global(x), np.generic):
-                    Config.set_global(x, Config.get_global(x).item())
-                if x in ["unknowns_clss", "knowns_clss"]:
-                    # str.removesuffix("]").removeprefix("[").split(sep=", ")
-                    Config.set_global(x, [int(y) for y in Config.get_global(x).removesuffix("]").removeprefix("[").split(sep=", ")])
-                if x in ["var_filtering_threshold"]:
-                    # str.removesuffix("]").removeprefix("[").split(sep=",")
-                    if isinstance(Config.get_global(x), str):
-                        Config.set_global(x, [float(y) for y in Config.get_global(x).removesuffix("]").removeprefix("[").split(sep=",")])
-                    else:
-                        Config.set_global(x, float(Config.get_global(x)))
         if "knowns_clss" not in Config.parameters.keys():
             # If the Known classes are not explicitly stated then they will be regenerated
             Config.loopOverUnknowns()
