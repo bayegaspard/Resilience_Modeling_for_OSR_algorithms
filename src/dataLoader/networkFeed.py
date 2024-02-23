@@ -9,7 +9,9 @@ import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))) + "/dataLoader")
 import parser as pcap
+from cfg import config_interface
 
+cfg = config_interface()
 cols = [f"payload_byte_{x+1}" for x in range(1500)] + ["ttl", "total_len", "protocol", "t_delta"]
 other_protocols = ["OSPF", "SCTP", "GRE", "SWIPE", "MOBILE", "SUN-ND", "SEP", "UNAS", "PIM", "SECURE-VMTP", "PIPE", "ETHERIP", "IB", "AX.25", "IPIP", "SPS", "IPLT", "HMP", "GGP", "IPV6", "RDP", "RSVP", "SCCOPMCE", "EGP", "VMTP", "SNP", "CRTP", "EMCON", "NVP", "FIRE", "CRUDP", "GMTP", "DGP", "MICP", "LEAF-2", "ARP", "FC", "ICMP"]
 
@@ -38,7 +40,7 @@ async def feedNetwork(interface=any, loader=None):
         print("Please stop using WiFi; packets will be discarded. Use Ethernet. Thanks")
     print("Intialized feedNetwork")
 
-    feed = pyshark.LiveCapture(interface="\\Device\\NPF_{5A8EEC35-5F07-425C-A9D5-F087D02A8E6D}", use_json=True, include_raw=True)
+    feed = pyshark.LiveCapture(interface=cfg("interface"), use_json=True, include_raw=True)
 
     batch = []
     for packet in feed.sniff_continuously():

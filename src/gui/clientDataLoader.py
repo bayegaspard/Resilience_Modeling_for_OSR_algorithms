@@ -3,9 +3,10 @@ import sys
 import Pyro5.api
 from uuid import getnode as get_mac
 sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
+from cfg import config_interface
 
-
-uriPyro = "PYRO:dataloader@localhost:58116"  # move to config file somewhere
+cfg = config_interface()
+uriPyro = f"PYRO:dataloader@localhost:{cfg('pyro_port')}"  # move to config file somewhere
 
 
 class ClientDataLoader:
