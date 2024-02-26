@@ -14,9 +14,9 @@ import random
 import glob
 
 # List of conversions:
-if Config.parameters["Dataset"][0] == "Payload_data_CICIDS2017":
+if Config.get_global("dataset") == "Payload_data_CICIDS2017":
     LISTCLASS = {0: 'BENIGN', 1: 'Infiltration', 2: 'Bot', 3: 'PortScan', 4: 'DDoS', 5: 'FTP-Patator', 6: 'SSH-Patator', 7: 'DoS slowloris', 8: 'DoS Slowhttptest', 9: 'DoS Hulk', 10: 'DoS GoldenEye', 11: 'Heartbleed', 12: 'Web Attack – Brute Force', 13: 'Web Attack – XSS', 14: 'Web Attack – Sql Injection'}
-elif Config.parameters["Dataset"][0] == "Payload_data_UNSW":
+elif Config.get_global("dataset") == "Payload_data_UNSW":
     LISTCLASS = {0: "analysis", 1: "backdoor", 2: "dos", 3: "exploits", 4: "fuzzers", 5: "generic", 6: "normal", 7: "reconnaissance", 8: "shellcode", 9: "worms"}
 else:
     print("ERROR, Dataset not implemented")
@@ -29,7 +29,7 @@ attemptload_message = True
 
 
 def groupDoS(x):
-    if False and Config.parameters["Dataset"][0] == "Payload_data_CICIDS2017":
+    if False and Config.get_global("dataset") == "Payload_data_CICIDS2017":
         x[x >= 7 and x <= 10] = 7
     return x
 
@@ -77,7 +77,7 @@ def to_device(data, device):
 def recreateDL(dl: torch.utils.data.DataLoader, shuffle=True):
     """
     Recreates the dataloader but keeps the values in memory.
-    Because the initial dataloaders are so unoptimized, this speeds up the process of loading each batch by a lot. 
+    Because the initial dataloaders are so unoptimized, this speeds up the process of loading each batch by a lot.
     (assuming around 10x but never calcuated)
     The problem is that loading all of the data takes a lot of memory.
     Input:
@@ -96,11 +96,11 @@ def recreateDL(dl: torch.utils.data.DataLoader, shuffle=True):
     xList = torch.cat(xList)
     yList = torch.cat(yList)
     combinedList = TensorDataset(xList, yList)
-    if Config.parameters["num_workers"][0] > 0:
+    if Config.get_global("num_workers") > 0:
         persistant_workers = True
     else:
         persistant_workers = False
-    return DataLoader(combinedList, Config.parameters["batch_size"][0], shuffle=shuffle, num_workers=Config.parameters["num_workers"][0], pin_memory=True, persistent_workers=persistant_workers)
+    return DataLoader(combinedList, Config.get_global("batch_size"), shuffle=shuffle, num_workers=Config.get_global("num_workers"), pin_memory=True, persistent_workers=persistant_workers)
 
 
 def add_new_class(clss):
@@ -141,10 +141,10 @@ class ClassDivDataset(Dataset):
         self.countspath = path + "counts.csv"
         self.length = None
         self.listOfCounts = None
-        self.maxclass = Config.parameters["MaxPerClass"][0]
+        self.maxclass = Config.get_global("max_per_class")
         self.data_length = 1504
         if "MaxSamples" in Config.parameters:
-            self.totalSamples = Config.parameters["MaxSamples"][0]
+            self.totalSamples = Config.get_global("MaxSamples")
 
         # this will check if the file is chunked and chunk it if it is not
         self.checkIfSplit(path)
@@ -181,7 +181,7 @@ class ClassDivDataset(Dataset):
                 # Max Samples limits the total number of samples to self.totalSamples
                 # It then distributes those samples to match with the percentages given in percentages.csv as best as possible.
                 maxperclass = pd.read_csv("datasets/percentages.csv", index_col=None)
-                maxperclass = maxperclass.iloc[Config.parameters["loopLevel"][0], : len(self.listOfCounts)]
+                maxperclass = maxperclass.iloc[Config.get_global("loopLevel"), : len(self.listOfCounts)]
                 maxperclass = ((torch.tensor(maxperclass) / 100) * self.totalSamples).ceil()
                 for x in range(len(self.listOfCounts)):
                     if self.listOfCounts.iloc[x, 0] > maxperclass[x].item():
@@ -220,7 +220,7 @@ class ClassDivDataset(Dataset):
             self.length = self.listOfCounts.sum().item()
         return self.length
 
-    def __getitem__(self, index) -> tuple([torch.Tensor, torch.Tensor]):
+    def __getitem__(self, index) -> tuple[torch.Tensor, torch.Tensor]:
         """
         Gets the item at integer index. Note: you should not be calling this directly. Torch dataloaders will do that for you.
 
@@ -269,7 +269,7 @@ class ClassDivDataset(Dataset):
 
         return item
 
-    def seriesprocess(self, x: pd.Series) -> tuple([torch.Tensor, torch.Tensor]):
+    def seriesprocess(self, x: pd.Series) -> tuple[torch.Tensor, torch.Tensor]:
         """
         This separates the data from the labels with series
 
@@ -288,7 +288,7 @@ class ClassDivDataset(Dataset):
         label = torch.tensor(int(label), dtype=torch.long)    # The int is because the loss function is expecting ints
         label.unsqueeze_(0)              # This is to allow it to be two dimentional
         if self.unknownData:
-            label2 = torch.tensor(Config.parameters["CLASSES"][0], dtype=torch.long).unsqueeze_(0)    # unknowns are marked as unknown
+            label2 = torch.tensor(Config.get_global("CLASSES"), dtype=torch.long).unsqueeze_(0)    # unknowns are marked as unknown
         else:
             label2 = groupDoS(label.clone())
         label = torch.cat([label2, label], dim=0)
@@ -381,7 +381,7 @@ class ClusterDivDataset(ClassDivDataset):
                 # Max Samples limits the total number of samples to self.totalSamples
                 # It then distributes those samples to match with the percentages given in percentages.csv as best as possible.
                 maxclass = pd.read_csv("datasets/percentages.csv", index_col=None)
-                maxclass = maxclass.iloc[Config.parameters["loopLevel"][0], : len(self.listOfCounts)]
+                maxclass = maxclass.iloc[Config.get_global("loopLevel"), : len(self.listOfCounts)]
                 maxclass = ((torch.tensor(maxclass) / 100) * self.totalSamples).ceil()
                 for y in range(self.listOfCounts.shape[0]):
                     x = 0
@@ -396,7 +396,7 @@ class ClusterDivDataset(ClassDivDataset):
                 self.listOfCounts = self.listOfCounts.loc[self.use]
                 print(f"Items per class: \n{self.listOfCounts.sum(axis=1)}")
             else:
-                if isinstance(Config.parameters["MaxPerClass"][0], int):
+                if isinstance(Config.get_global("max_per_class"), int):
                     for y in range(self.listOfCounts.shape[0]):
                         x = 0
                         cutofflist = self.listOfCounts.iloc[y].copy()
@@ -410,7 +410,7 @@ class ClusterDivDataset(ClassDivDataset):
                     # This is a diffrent version of doing a MaxPerClass
                     # It revolves around the maxperclass being a percentage of the total number of samples of that class
                     # this preserves the distribution but may not make sense in all cases.
-                    maxclass = [self.maxclass] * Config.parameters["CLASSES"][0]
+                    maxclass = [self.maxclass] * Config.get_global("CLASSES")
                     maxclass = (torch.tensor(maxclass))
                     self.listOfCounts = torch.tensor(self.listOfCounts.to_numpy())
                     # test = torch.stack([maxclass]*listOfCounts.size()[1]).T
@@ -435,7 +435,7 @@ class ClusterDivDataset(ClassDivDataset):
         self.perclassgroups = (self.listOfCounts > self.minclass).sum(axis=1)
         return self.length
 
-    def __getitem__(self, index) -> tuple([torch.Tensor, torch.Tensor]):
+    def __getitem__(self, index) -> tuple[torch.Tensor, torch.Tensor]:
         """
         Gets the item at integer index. Note: you should not be calling this directly. Torch dataloaders will do that for you.
 
@@ -509,11 +509,11 @@ class ClusterDivDataset(ClassDivDataset):
             os.mkdir(path + "_Clustered")
 
             # Create an dataframe to store how many of each cluster there is
-            counts = pd.DataFrame(0, index=range(Config.parameters["CLASSES"][0]), columns=range(self.clusters))
+            counts = pd.DataFrame(0, index=range(Config.get_global("CLASSES")), columns=range(self.clusters))
             # Read the data and make sure that the protocols and labels are numbers. Then convert them to integers
             data = pd.read_csv(path + ".csv", converters={"protocol": protocalConvert, "label": classConvert})
             path = path + "_Clustered"
-            for x in range(Config.parameters["CLASSES"][0]):
+            for x in range(Config.get_global("CLASSES")):
                 X = data.astype(int)
                 X = X[X["label"] == x]
                 X = X.sample(n=100000 if 100000 < len(X) else len(X))
@@ -531,7 +531,7 @@ class ClusterDivDataset(ClassDivDataset):
                     X3.to_csv(self.path + "_Clustered" + f"/chunk{LISTCLASS[x]}-type{i: 03d}.csv", index_label=False, index=False)
             counts.to_csv(f"{path}/counts.csv", index_label=False)
 
-    def seriesprocess(self, x: pd.Series, classNumber: int) -> tuple([torch.Tensor, torch.Tensor]):
+    def seriesprocess(self, x: pd.Series, classNumber: int) -> tuple[torch.Tensor, torch.Tensor]:
         """
         This separates the data from the labels with series
 
@@ -550,7 +550,7 @@ class ClusterDivDataset(ClassDivDataset):
         label.unsqueeze_(0)              # This is to allow it to be two dimentional
         if self.unknownData:
             # label2 = torch.tensor(self.perclassgroups.sum().item(), dtype=torch.long).unsqueeze_(0)    # unknowns are marked as unknown
-            label2 = torch.tensor(Config.parameters["CLASSES"][0], dtype=torch.long).unsqueeze_(0)
+            label2 = torch.tensor(Config.get_global("CLASSES"), dtype=torch.long).unsqueeze_(0)
         else:
             label2 = groupDoS(x.iloc[len(x) - 1])         # This selects the label
             label2 = torch.tensor(int(label2), dtype=torch.long)    # The int is because the loss function is expecting ints
@@ -563,7 +563,7 @@ class ClusterDivDataset(ClassDivDataset):
 class ClusterLimitDataset(ClusterDivDataset):
     """
     This version of the dataset will use agglomerative clustering to split each class into 32 subclasses.
-    It will then take Config.parameters["MaxPerClass"] sample points from each subclass to compile the dataset.
+    It will then take Config.get_global("max_per_class"] sample points from each subclass to compile the dataset.
     If a subclass does not have that number of samples it will take the maximum number of samples.
 
     The thought behind this is that the catagories we have are broad,
@@ -594,7 +594,7 @@ class ClusterLimitDataset(ClusterDivDataset):
             # print(self.listOfCounts)
         return self.length
 
-    def __getitem__(self, index) -> tuple([torch.Tensor, torch.Tensor]):
+    def __getitem__(self, index) -> tuple[torch.Tensor, torch.Tensor]:
         """
         Gets the item at integer index. Note: you should not be calling this directly. Torch dataloaders will do that for you.
 
@@ -654,7 +654,7 @@ class ClusterLimitDataset(ClusterDivDataset):
 
         return item
 
-    def seriesprocess(self, x: pd.Series) -> tuple([torch.Tensor, torch.Tensor]):
+    def seriesprocess(self, x: pd.Series) -> tuple[torch.Tensor, torch.Tensor]:
         """
         This checks if the data is in the correct format, if it is not in the correct format it will generate the correct format.
         The correct format is clustered by type into chunks with a csv conainging the counts of all of the classes.
@@ -672,7 +672,7 @@ class ClusterLimitDataset(ClusterDivDataset):
         label.unsqueeze_(0)              # This is to allow it to be two dimentional
         if self.unknownData:
             # unknowns are marked as unknown
-            label2 = torch.tensor(Config.parameters["CLASSES"][0], dtype=torch.long).unsqueeze_(0)
+            label2 = torch.tensor(Config.get_global("CLASSES"), dtype=torch.long).unsqueeze_(0)
         else:
             label2 = groupDoS(label.clone())
         label = torch.cat([label2, label], dim=0)
@@ -701,16 +701,16 @@ class DatasetWithFlows(IterableDataset):
 
         self.state_worker_loads = state_worker_loads
         self.unknownData = unknownData
-        if Config.parameters["Dataset"][0] == "Payload_data_CICIDS2017":
+        if Config.get_global("dataset") == "Payload_data_CICIDS2017":
             self.dataset_name = 'CIC-IDS2017'
-        elif Config.parameters["Dataset"][0] == "Payload_data_CICIDS2017":
+        elif Config.get_global("dataset") == "Payload_data_CICIDS2017":
             self.dataset_name = 'UNSW-NB15'
         else:
             raise ValueError("Invalid name of dataset")
         self.df = Data_set_with_flows(dataset=self.dataset_name, subset=["Payload-Bytes"], files="all")
 
         self.use = [LISTCLASS[x] for x in use]
-        self.notuse = [LISTCLASS[x] for x in range(Config.parameters["CLASSES"][0]) if LISTCLASS[x] not in self.use]
+        self.notuse = [LISTCLASS[x] for x in range(Config.get_global("CLASSES")) if LISTCLASS[x] not in self.use]
         if 'Web Attack – Sql Injection' in self.use:
             self.use[self.use.index('Web Attack – Sql Injection')] = 'Web Attack – SQL Injection'
         if 'Web Attack – Sql Injection' in self.notuse:
@@ -743,7 +743,7 @@ class DatasetWithFlows(IterableDataset):
         percentages = self.dfInfo / self.listOfCounts
         # print(percentages)
         # https: //stackoverflow.com/a/35125872
-        self.filecounts = -((-percentages * Config.parameters["MaxPerClass"][0]) // 1)
+        self.filecounts = -((-percentages * Config.get_global("max_per_class")) // 1)
         for name in self.notuse:
             self.filecounts[name] *= 0
         # print(self.filecounts.sum())
@@ -782,7 +782,7 @@ class DatasetWithFlows(IterableDataset):
         if self.state_worker_loads is True:
             print(f"Worker {worker_info.id}, with id {id}, is handling files {self.files_to_acces} and has {self.filecounts.sum().sum()} items")
 
-    def dictionaryprocess(self, x: dict) -> tuple([torch.Tensor, torch.Tensor]):
+    def dictionaryprocess(self, x: dict) -> tuple[torch.Tensor, torch.Tensor]:
         """
         This separates the data from the labels
 
@@ -809,14 +809,14 @@ class DatasetWithFlows(IterableDataset):
         # index.unsqueeze_(0)
         flow_id.unsqueeze_(0)
         if self.unknownData:
-            obsficated_label = torch.tensor(Config.parameters["CLASSES"][0], dtype=torch.long).unsqueeze_(0)    # unknowns are marked as unknown
+            obsficated_label = torch.tensor(Config.get_global("CLASSES"), dtype=torch.long).unsqueeze_(0)    # unknowns are marked as unknown
         else:
             obsficated_label = groupDoS(true_label.clone())
         true_label = torch.cat([obsficated_label, true_label, flow_id], dim=0)
 
         return (data, true_label)
 
-    def process_data(self, item: dict) -> tuple([torch.Tensor, torch.Tensor]):
+    def process_data(self, item: dict) -> tuple[torch.Tensor, torch.Tensor]:
         """
         This method removes all non-numeric columns from the dictionary and then runs dictionary process to turn it into tensors.
 
@@ -885,9 +885,9 @@ class ClassDivDataset_flows(Dataset):
         self.listOfCounts = DatasetInfo(length_name).sum()
         self.listOfCounts.drop(labels="total", inplace=True)
         self.length = None
-        self.maxclass = Config.parameters["MaxPerClass"][0]
+        self.maxclass = Config.get_global("max_per_class")
         if "MaxSamples" in Config.parameters:
-            self.totalSamples = Config.parameters["MaxSamples"][0]
+            self.totalSamples = Config.get_global("MaxSamples")
 
         self.use_numerical = use.copy()
         # This is setting what classes are considered to be knowns.
@@ -917,7 +917,7 @@ class ClassDivDataset_flows(Dataset):
                 # Max Samples limits the total number of samples to self.totalSamples
                 # It then distributes those samples to match with the percentages given in percentages.csv as best as possible.
                 maxperclass = pd.read_csv("datasets/percentages.csv", index_col=None)
-                maxperclass = maxperclass.iloc[Config.parameters["loopLevel"][0], : len(self.listOfCounts)]
+                maxperclass = maxperclass.iloc[Config.get_global("loopLevel"), : len(self.listOfCounts)]
                 maxperclass = ((torch.tensor(maxperclass) / 100) * self.totalSamples).ceil()
                 for x in range(len(self.listOfCounts)):
                     if self.listOfCounts.iloc[x, 0] > maxperclass[x].item():
@@ -941,7 +941,7 @@ class ClassDivDataset_flows(Dataset):
             self.length = self.listOfCounts.sum().item()
         return self.length
 
-    def __getitem__(self, index) -> tuple([torch.Tensor, torch.Tensor]):
+    def __getitem__(self, index) -> tuple[torch.Tensor, torch.Tensor]:
         """
         Gets the item at integer index. Note: you should not be calling this directly. Torch dataloaders will do that for you.
 
@@ -989,7 +989,7 @@ class ClassDivDataset_flows(Dataset):
 
         return item
 
-    def seriesprocess(self, x: pd.Series) -> tuple([torch.Tensor, torch.Tensor]):
+    def seriesprocess(self, x: pd.Series) -> tuple[torch.Tensor, torch.Tensor]:
         """
         This separates the data from the labels with series
 
@@ -1020,7 +1020,7 @@ class ClassDivDataset_flows(Dataset):
         index.unsqueeze_(0)
         flow_id.unsqueeze_(0)
         if self.unknownData:
-            obsficated_label = torch.tensor(Config.parameters["CLASSES"][0], dtype=torch.long).unsqueeze_(0)    # unknowns are marked as unknown
+            obsficated_label = torch.tensor(Config.get_global("CLASSES"), dtype=torch.long).unsqueeze_(0)    # unknowns are marked as unknown
         else:
             obsficated_label = groupDoS(true_label.clone())
         true_label = torch.cat([obsficated_label, true_label, flow_id, index], dim=0)
@@ -1038,11 +1038,11 @@ class ClassDivDataset_flows(Dataset):
         """
         if path is None:
             path = self.path
-        if False in [os.path.exists(f"datasets/{Config.parameters['Dataset'][0]}_with_flows/{LISTCLASS[clas]}.csv") for clas in self.use_numerical]:
-            if False in [os.path.exists(f"datasets/{Config.parameters['Dataset'][0]}_with_flows/file{x + 1}") for x in range(18)]:
-                files_to_refresh = [x + 1 for x in range(18) if not os.path.exists(f"datasets/{Config.parameters['Dataset'][0]}_with_flows/file{x+1}")]
+        if False in [os.path.exists(f"datasets/{Config.get_global('Dataset')}_with_flows/{LISTCLASS[clas]}.csv") for clas in self.use_numerical]:
+            if False in [os.path.exists(f"datasets/{Config.get_global('Dataset')}_with_flows/file{x + 1}") for x in range(18)]:
+                files_to_refresh = [x + 1 for x in range(18) if not os.path.exists(f"datasets/{Config.get_global('Dataset')}_with_flows/file{x+1}")]
                 run_demo(self.split_flows_dataset, len(files_to_refresh), files_to_refresh)
-            self.join_split_flows_dataset([x for x in CLASSLIST.keys() if not os.path.exists(f"datasets/{Config.parameters['Dataset'][0]}_with_flows/{x}.csv")])
+            self.join_split_flows_dataset([x for x in CLASSLIST.keys() if not os.path.exists(f"datasets/{Config.get_global('Dataset')}_with_flows/{x}.csv")])
 
     @staticmethod
     def split_flows_dataset(worker=None, worldsize=18, file=None):
@@ -1058,9 +1058,9 @@ class ClassDivDataset_flows(Dataset):
                 -list - loads the specific files given split as evenly as possible over the workers.
         """
         from nids_datasets import Dataset as Data_set_with_flows
-        if Config.parameters["Dataset"][0] == "Payload_data_CICIDS2017":
+        if Config.get_global("dataset") == "Payload_data_CICIDS2017":
             dataset_name = 'CIC-IDS2017'
-        elif Config.parameters["Dataset"][0] == "Payload_data_CICIDS2017":
+        elif Config.get_global("dataset") == "Payload_data_CICIDS2017":
             dataset_name = 'UNSW-NB15'
         else:
             raise ValueError("Invalid name of dataset")
@@ -1089,20 +1089,20 @@ class ClassDivDataset_flows(Dataset):
 
         df = Data_set_with_flows(dataset=dataset_name, subset=["Payload-Bytes"], files="all")
 
-        if not os.path.exists(f"datasets/{Config.parameters['Dataset'][0]}_with_flows"):
-            os.mkdir(f"datasets/{Config.parameters['Dataset'][0]}_with_flows")
+        if not os.path.exists(f"datasets/{Config.get_global('Dataset')}_with_flows"):
+            os.mkdir(f"datasets/{Config.get_global('Dataset')}_with_flows")
 
         for file in files:
-            if not os.path.exists(f"datasets/{Config.parameters['Dataset'][0]}_with_flows/file{file}"):
-                os.mkdir(f"datasets/{Config.parameters['Dataset'][0]}_with_flows/file{file}")
+            if not os.path.exists(f"datasets/{Config.get_global('Dataset')}_with_flows/file{file}"):
+                os.mkdir(f"datasets/{Config.get_global('Dataset')}_with_flows/file{file}")
             for num, item in enumerate(map(fixes, df.read(files=[file], stream=True))):
                 item["index"] = num
                 # https: //stackoverflow.com/a/68206394
                 item_df = pd.Series(item).to_frame().T
-                if os.path.exists(f"datasets/{Config.parameters['Dataset'][0]}_with_flows/file{file}/{LISTCLASS[item['label']]}.csv"):
-                    item_df.to_csv(f"datasets/{Config.parameters['Dataset'][0]}_with_flows/file{file}/{LISTCLASS[item['label']]}.csv", mode='a', header=False, index_label="index")
+                if os.path.exists(f"datasets/{Config.get_global('Dataset')}_with_flows/file{file}/{LISTCLASS[item['label']]}.csv"):
+                    item_df.to_csv(f"datasets/{Config.get_global('Dataset')}_with_flows/file{file}/{LISTCLASS[item['label']]}.csv", mode='a', header=False, index_label="index")
                 else:
-                    item_df.to_csv(f"datasets/{Config.parameters['Dataset'][0]}_with_flows/file{file}/{LISTCLASS[item['label']]}.csv", index_label="index")
+                    item_df.to_csv(f"datasets/{Config.get_global('Dataset')}_with_flows/file{file}/{LISTCLASS[item['label']]}.csv", index_label="index")
                 if num % 10000 == 0:
                     print(f"{num} rows finished in file {file}")
         print(f"{file} finished.")
@@ -1118,19 +1118,19 @@ class ClassDivDataset_flows(Dataset):
         """
         for file in range(18):
             for clas in classes:
-                if os.path.exists(f"datasets/{Config.parameters['Dataset'][0]}_with_flows/file{file+1}/{clas}.csv"):
-                    csv = pd.read_csv(f"datasets/{Config.parameters['Dataset'][0]}_with_flows/file{file+1}/{clas}.csv")
-                    if os.path.exists(f"datasets/{Config.parameters['Dataset'][0]}_with_flows/{clas}.csv"):
+                if os.path.exists(f"datasets/{Config.get_global('Dataset')}_with_flows/file{file+1}/{clas}.csv"):
+                    csv = pd.read_csv(f"datasets/{Config.get_global('Dataset')}_with_flows/file{file+1}/{clas}.csv")
+                    if os.path.exists(f"datasets/{Config.get_global('Dataset')}_with_flows/{clas}.csv"):
                         mod = 'a'
                         header = False
                     else:
                         mod = 'w'
                         header = True
                     if deleteOld:
-                        os.remove(f"datasets/{Config.parameters['Dataset'][0]}_with_flows/file{file+1}/{clas}.csv")
-                    csv.to_csv(f"datasets/{Config.parameters['Dataset'][0]}_with_flows/{clas}.csv", header=header, mode=mod)
+                        os.remove(f"datasets/{Config.get_global('Dataset')}_with_flows/file{file+1}/{clas}.csv")
+                    csv.to_csv(f"datasets/{Config.get_global('Dataset')}_with_flows/{clas}.csv", header=header, mode=mod)
             if deleteOld:
-                os.remove(f"datasets/{Config.parameters['Dataset'][0]}_with_flows/file{file+1}")
+                os.remove(f"datasets/{Config.get_global('Dataset')}_with_flows/file{file+1}")
             print(f"File {file} consolidation finished.")
 
 
@@ -1160,7 +1160,7 @@ class savedPacketDataset(Dataset):
     def __len__(self):
         return sum(self.filelengths)
 
-    def __getitem__(self, index) -> (torch.Tensor, torch.Tensor):
+    def __getitem__(self, index) -> tuple[torch.Tensor, torch.Tensor]:
 
         starting_index = index
         starting_index
@@ -1187,7 +1187,7 @@ class savedPacketDataset(Dataset):
 
 
 def downloadDataset():
-    name = Config.parameters["Dataset"][0]
+    name = Config.get_global("dataset")
     if not os.path.exists("datasets"):
         os.mkdir("datasets")
     if not os.path.exists("datasets/" + name + ".csv") and name in ["Payload_data_CICIDS2017", "Payload_data_UNSW"]:
@@ -1215,16 +1215,16 @@ def getDatagroup():
             knowns set - torch dataloader using the classes in config knowns_clss
             unknown set - torch dataloader using the classes in congfig unknowns_clss
     """
-    groupType = Config.parameters["Dataloader_Variation"][0]
-    train = DataloaderTypes[groupType](os.path.join("datasets", Config.parameters["Dataset"][0]), use=Config.parameters["Knowns_clss"][0])
-    unknowns = DataloaderTypes[groupType](os.path.join("datasets", Config.parameters["Dataset"][0]), use=Config.parameters["Unknowns_clss"][0], unknownData=True)
+    groupType = Config.get_global("dataloader_variation")
+    train = DataloaderTypes[groupType](os.path.join("datasets", Config.get_global("dataset")), use=Config.get_global("knowns_clss"))
+    unknowns = DataloaderTypes[groupType](os.path.join("datasets", Config.get_global("dataset")), use=Config.get_global("unknowns_clss"), unknownData=True)
     return train, unknowns
 
 
 def checkAttempLoad(root_path=""):
     """
     Creates the training, testing, and validaton datasets and saves them in Saves/Data.pt, Saves/DataTest.pt, and Saves/DataVal.pt.
-    if Config's "attemptLoadData" is true it instead loads the datasets from the files and does not create them.
+    if Config's "attempt_load_data" is true it instead loads the datasets from the files and does not create them.
     This is so that the validation and testing data does not get mixed up which would invalidate the validation data.
     """
     # get the data and create a test set and train set
@@ -1232,10 +1232,10 @@ def checkAttempLoad(root_path=""):
     print("Reading datasets to create test and train sets")
 
     train, unknowns = getDatagroup()
-    train, val = torch.utils.data.random_split(train, [len(train) - int(len(train) * Config.parameters["testlength"][0]), int(len(train) * Config.parameters["testlength"][0])])
+    train, val = torch.utils.data.random_split(train, [len(train) - int(len(train) * Config.get_global("test_length")), int(len(train) * Config.get_global("test_length"))])
 
-    if len(Config.parameters["Unknowns_clss"][0]) > 0:
-        if (Config.parameters["Mix unknowns and validation"][0]):
+    if len(Config.get_global("unknowns_clss")) > 0:
+        if (Config.get_global("mix_unknowns_and_validation")):
             test = torch.utils.data.ConcatDataset([val, unknowns])
         else:
             test = unknowns
@@ -1245,7 +1245,7 @@ def checkAttempLoad(root_path=""):
     if Config.unit_test_mode:
         return train, test, val
 
-    if Config.parameters["attemptLoadData"][0] and os.path.exists(os.path.join(root_path, "Saves", "Data.pt")):
+    if Config.get_global("attempt_load_data") and os.path.exists(os.path.join(root_path, "Saves", "Data.pt")):
         print("Found prior dataset to load")
         try:
             train = torch.load(os.path.join(root_path, "Saves", "Data.pt"))
@@ -1266,10 +1266,10 @@ def checkAttempLoad(root_path=""):
         torch.save(train, os.path.join(root_path, "Saves", "Data.pt"))
         torch.save(test, os.path.join(root_path, "Saves", "DataTest.pt"))
         torch.save(val, os.path.join(root_path, "Saves", "DataVal.pt"))
-        if Config.parameters["attemptLoadData"][0]:
+        if Config.get_global("attempt_load_data"):
             print("No model train and test checkpoint was found, saving datacheckpoints ...")
 
-    if Config.parameters["testlength"][0] == 1 and Config.parameters["num_epochs"][0] == 0:
+    if Config.get_global("test_length") == 1 and Config.get_global("num_epochs") == 0:
         train = test
     return train, test, val
 
@@ -1300,7 +1300,7 @@ if __name__ == "__main__":
     from nids_datasets import DatasetInfo
     print(DatasetInfo('CIC-IDS2017').sum())
     if False:
-        t = DataLoader(DatasetWithFlows(use=[0, 1, 2, 3, 4, 5], unknownData=False, state_worker_loads=True), Config.parameters["batch_size"][0], num_workers=5, pin_memory=True, worker_init_fn=DatasetWithFlows.worker_init_fn)
+        t = DataLoader(DatasetWithFlows(use=[0, 1, 2, 3, 4, 5], unknownData=False, state_worker_loads=True), Config.get_global("batch_size"), num_workers=5, pin_memory=True, worker_init_fn=DatasetWithFlows.worker_init_fn)
         startTime = time.time()
         for b, a in tqdm.tqdm(enumerate(t)):
             pass

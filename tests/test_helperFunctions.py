@@ -14,14 +14,14 @@ def test_seenModels():
 
 
 def test_loopOverUnknowns():
-    unknowns_before_change = Config.parameters["Unknowns_clss"][0]
-    knowns_before_change = Config.parameters["Knowns_clss"][0]
+    unknowns_before_change = Config.get_global("unknowns_clss")
+    knowns_before_change = Config.get_global("knowns_clss")
     assert len([x for x in unknowns_before_change if x in knowns_before_change]) == 0
     assert len([x for x in knowns_before_change if x in unknowns_before_change]) == 0
     new_unknowns = [1, 2, 3]
     Config.loopOverUnknowns(new_unknowns)
-    unknowns_after_change = Config.parameters["Unknowns_clss"][0]
-    knowns_after_change = Config.parameters["Knowns_clss"][0]
+    unknowns_after_change = Config.get_global("unknowns_clss")
+    knowns_after_change = Config.get_global("knowns_clss")
     assert len(unknowns_after_change) == len(new_unknowns)
     assert all([x == y for x, y in zip(new_unknowns, unknowns_after_change)])
     assert len([x for x in unknowns_after_change if x in knowns_after_change]) == 0

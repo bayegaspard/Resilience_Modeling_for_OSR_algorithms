@@ -8,14 +8,16 @@ import threading
 import psycopg2.extras
 import sys
 import os
-import math
 import networkFeed
 # from ..ML_Model import ModelStruct  # for autocomplete
 sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))) + "/ML_Model")
+from cfg import config_interface
 import ModelStruct
 import helperFunctions
 
+
+cfg = config_interface()
 
 # read permitted mac addresses
 # TODO: replace ALL SQL with SqlAlchemy (easier and safer queries)
@@ -33,7 +35,7 @@ class ServerDataLoader(object):
         print("Initialized ServerDataLoader")
 
     def connectDatabase(self):
-        creds = dbManager.db_credentials("owrt-dev2", "postgres", "127.0.0.1", "joe", 5433)
+        creds = dbManager.db_credentials(cfg("DB_name"), cfg("DB_user"), cfg("DB_host"), cfg("DB_pw"), cfg("DB_port"))
         self.dbConn = dbManager._connect_db(creds)
         self.dbConn.autocommit = True
 
@@ -299,8 +301,8 @@ class ModelInstance(object):
                 # self.model = ModelStruct.get_model(path="Saves/models/MVP_model.pth")  # Use debug = True to use unitTesting dataset
                 self.loaded = True
             elif save_name == "train":
-                ModelStruct.Config.parameters["Dataset"][0] = "UnitTesting"
-                ModelStruct.Config.parameters["num_epochs"][0] = 1
+                ModelStruct.Config.set_global("dataset", "UnitTesting")
+                ModelStruct.Config.set_global("num_epochs", 1)
                 self.model = ModelStruct.Conv1DClassifier()
                 ModelStruct.train_model(self.model)
                 self.loaded = True
@@ -325,7 +327,7 @@ class DataLoaderInterface(object):
     def connectModel(self):
         # The connection message is excessive
         # print(f"[{self.mac}]: Connecting model")
-        ModelStruct.Config.parameters["Dataset"][0] = "UnitTesting"
+        ModelStruct.Config.set_global("dataset", "UnitTesting")
         self.model = loader.getModelInstance(mac=self.mac)
         if self.model is None:
             print("ModelInstance not found")
@@ -376,7 +378,7 @@ class DataLoaderInterface(object):
 
 # Pyro5.config.COMPRESSION = True
 # Pyro5.config.SERIALIZER = "marshal"
-daemon = Pyro5.api.Daemon(port=58116)
+daemon = Pyro5.api.Daemon(port=cfg("pyro_port"))
 uri = daemon.register(DataLoaderInterface, objectId="dataloader")
 
 
