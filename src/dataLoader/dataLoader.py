@@ -305,6 +305,8 @@ class ModelInstance(object):
                 ModelStruct.Config.set_global("num_epochs", 1)
                 self.model = ModelStruct.Conv1DClassifier()
                 ModelStruct.train_model(self.model)
+                save_name = ModelStruct.Config.get_global("Saveloc")
+                self.model.savePoint(save_name)
                 self.loaded = True
             else:
                 self.model = ModelStruct.get_model(path=f"Saves/models/{save_name}")  # Use debug = True to use unitTesting dataset

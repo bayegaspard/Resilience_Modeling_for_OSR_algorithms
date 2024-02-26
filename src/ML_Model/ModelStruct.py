@@ -844,6 +844,7 @@ def get_model(path=None, debug=False):
             Config.set_global("dataset", "UnitTesting")
             Config.set_global("num_epochs", 1)
         train_model(model)
+        model.savePoint(pathFound)
     return model
 
 
