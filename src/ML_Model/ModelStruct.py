@@ -607,8 +607,8 @@ class AttackTrainingClassification(nn.Module):
             final_matrix = None
             for batch in self.train_loader:
                 outputs = self.end(self(batch[0]))
-                outputs_arg = torch.argmax(outputs, dim=1).detach().numpy()
-                labels = batch[1][:, 1].detach().numpy()
+                outputs_arg = torch.argmax(outputs, dim=1).detach().cpu().numpy()
+                labels = batch[1][:, 1].detach().cpu().numpy()
                 if final_matrix is None:
                     final_matrix = confusion_matrix(labels, outputs_arg, labels=range(len(Dataload.CLASSLIST)))
                 else:
