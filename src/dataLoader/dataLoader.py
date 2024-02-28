@@ -301,14 +301,16 @@ class ModelInstance(object):
                 # self.model = ModelStruct.get_model(path="Saves/models/MVP_model.pth")  # Use debug = True to use unitTesting dataset
                 self.loaded = True
             elif save_name == "train":
+                print("Training new model has been selected.")
                 ModelStruct.Config.set_global("dataset", "UnitTesting")
                 ModelStruct.Config.set_global("num_epochs", 1)
                 self.model = ModelStruct.Conv1DClassifier()
                 ModelStruct.train_model(self.model)
                 save_name = ModelStruct.Config.get_global("Saveloc")
-                self.model.savePoint(save_name)
+                self.model.savePoint("Saves/models/" + save_name, exact_name=True)
                 self.loaded = True
             else:
+                print(f"Trying to load model {save_name}")
                 self.model = ModelStruct.get_model(path=f"Saves/models/{save_name}")  # Use debug = True to use unitTesting dataset
                 self.loaded = True
         except Exception as e:

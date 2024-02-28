@@ -476,7 +476,7 @@ class AttackTrainingClassification(nn.Module):
         info = {
             "date_of_creation": self.date_of_creation if self.date_of_creation is not None else datetime.now(),
             "latest_update": datetime.now(),
-            "untrained": self.untrained if epoch == 0 else False,
+            "untrained": self.untrained if (epoch == 0 and exact_name == False) else False,
             "confusion_matrix": self.gen_confusion(),
             "LISTCLASS": Dataload.LISTCLASS,
             "fileName": path if exact_name else f"/Epoch{epoch:03d}{Config.get_global('OOD_type')}.pth"
@@ -840,11 +840,13 @@ def get_model(path=None, debug=False):
     model = initialize_model(pathFound)
 
     if model.untrained:
+        print("Model was found but needs to be trained.")
         if debug == True:
+            print("...also, model was untrained with debug==true, training on debug data instead.")
             Config.set_global("dataset", "UnitTesting")
             Config.set_global("num_epochs", 1)
         train_model(model)
-        model.savePoint(pathFound)
+        model.savePoint(pathFound, exact_name=True)
     return model
 
 
