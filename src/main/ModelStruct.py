@@ -4,6 +4,7 @@ from torch.nn import functional as F
 import os
 from tqdm import tqdm
 import time
+import re
 from sender import sender
 
 ### user defined functions
@@ -382,20 +383,29 @@ class AttackTrainingClassification(nn.Module):
         rah = out_argmax
         mask = rah == 15
         indices_of_true_values = mask.nonzero(as_tuple=False).squeeze()
-        #print(indices_of_true_values)
         selected_data = data[indices_of_true_values]
         is_empty = (selected_data.size(0) == 0)
+
+        def is_valid_hexadecimal(s):
+            # Define a regular expression for valid hexadecimal characters
+            hex_pattern = re.compile(r'^[0-9a-fA-F]+$')
+
+            # Use the pattern to match the string
+            return bool(hex_pattern.match(s))
+
         if(is_empty == False):
             # Convert the tensor to a NumPy array
-            selected_data_cpu = data.cpu()
+            selected_data_cpu = selected_data.cpu()
             integer_tensor = selected_data_cpu.to(dtype=torch.int)
             integer_array = integer_tensor.numpy()
 
             # Convert integers in the second dimension to hexadecimal
             hex_array = np.vectorize(hex)(integer_array).astype(str)
-            hex_strings = [''.join(format(int(byte, 16), '02x') for byte in row).rstrip('0') for row in hex_array]
+            hex_strings = [''.join(format(int(byte, 16), '02x') for byte in row if is_valid_hexadecimal(byte)).rstrip('0') for row in hex_array]
             np.set_printoptions(threshold=np.inf, linewidth=np.inf)
+            print(indices_of_true_values)
             print(len(hex_strings))
+            #sender.(hex_strings)
 
 
         if False:
