@@ -113,22 +113,26 @@ class AttackTrainingClassification(nn.Module):
         self.end.end_type = mode
         self.batch_fdHook = None
 
-        self.sequencePackage = nn.Sequential()
+        sequencePackageExceptLastFullyConnected = nn.Sequential()
         if self.end.end_type == "DOC":
-            self.sequencePackage.append(DOC_Module())
+            sequencePackageExceptLastFullyConnected.append(DOC_Module())
 
-        self.sequencePackage.append(self.flatten)
-        self.sequencePackage.append(self.fc1)
-        self.sequencePackage.append(self.activation)
-        self.sequencePackage.append(self.addedLayers)
-        self.sequencePackage.append(self.dropout)
-        if self.end.end_type != "COOL":
-            self.sequencePackage.append(self.fc2)
-        else:
-            self.sequencePackage.append(self.COOL)
+        sequencePackageExceptLastFullyConnected.append(self.flatten)
+        sequencePackageExceptLastFullyConnected.append(self.fc1)
+        sequencePackageExceptLastFullyConnected.append(self.activation)
+        sequencePackageExceptLastFullyConnected.append(self.addedLayers)
+        sequencePackageExceptLastFullyConnected.append(self.dropout)
 
         if Config.dataparallel:
-            self.sequencePackage = nn.DataParallel(self.sequencePackage)
+            sequencePackageExceptLastFullyConnected = nn.DataParallel(sequencePackageExceptLastFullyConnected)
+
+        self.sequencePackage = nn.Sequential()
+        if self.end.end_type != "COOL":
+            self.sequencePackage.append(sequencePackageExceptLastFullyConnected)
+            self.sequencePackage.append(self.fc2)
+        else:
+            self.sequencePackage.append(sequencePackageExceptLastFullyConnected)
+            self.sequencePackage.append(self.COOL)
 
         self.batch_saves_identifier = "No Identification Set"
         if False:
@@ -187,7 +191,7 @@ class AttackTrainingClassification(nn.Module):
                     if self.batch_fdHook is not None and self.batch_fdHook.rm is not None:
                         self.batch_fdHook.rm.remove()
                     self.batch_fdHook = Distance_Types.forwardHook()
-                    self.batch_fdHook.rm = self.flatten.register_forward_hook(self.batch_fdHook)
+                    self.batch_fdHook.rm = self.fc2.register_forward_hook(self.batch_fdHook)
 
                     #  Training Phase
                     self.train()
@@ -365,7 +369,7 @@ class AttackTrainingClassification(nn.Module):
             # This bit of code generates the stability metrics (Incomplete)
             if generateStability:
                 self.batch_fdHook.class_vals = predictions
-                self.batch_fdHook.rm = self.flatten.register_forward_hook(self.batch_fdHook)
+                self.batch_fdHook.rm = self.fc2.register_forward_hook(self.batch_fdHook)
                 self(batch)
                 self.batch_fdHook.rm.remove()
                 new_data.datashiftFactor = np.array([self.batch_fdHook.distances[x].detach() for x in self.batch_fdHook.distances.keys()]).sum()
@@ -607,8 +611,8 @@ class AttackTrainingClassification(nn.Module):
             final_matrix = None
             for batch in self.train_loader:
                 outputs = self.end(self(batch[0]))
-                outputs_arg = torch.argmax(outputs, dim=1).detach().numpy()
-                labels = batch[1][:, 1].detach().numpy()
+                outputs_arg = torch.argmax(outputs, dim=1).detach().cpu().numpy()
+                labels = batch[1][:, 1].detach().cpu().numpy()
                 if final_matrix is None:
                     final_matrix = confusion_matrix(labels, outputs_arg, labels=range(len(Dataload.CLASSLIST)))
                 else:
@@ -716,11 +720,10 @@ class Conv1DClassifier(AttackTrainingClassification):
         sequencePackage.append(self.layer1)
         sequencePackage.append(self.layer2)
         if self.end.end_type != "DOC":
+            sequencePackage.append(self.sequencePackage)
             if Config.dataparallel:
-                sequencePackage.append(self.sequencePackage.module)
                 self.sequencePackage = nn.DataParallel(sequencePackage)
             else:
-                sequencePackage.append(self.sequencePackage)
                 self.sequencePackage = sequencePackage
 
 
@@ -742,11 +745,10 @@ class FullyConnected(AttackTrainingClassification):
         sequencePackage.append(self.layer1)
         sequencePackage.append(self.layer2)
         if self.end.end_type != "DOC":
+            sequencePackage.append(self.sequencePackage)
             if Config.dataparallel:
-                sequencePackage.append(self.sequencePackage.module)
                 self.sequencePackage = nn.DataParallel(sequencePackage)
             else:
-                sequencePackage.append(self.sequencePackage)
                 self.sequencePackage = sequencePackage
 
 
