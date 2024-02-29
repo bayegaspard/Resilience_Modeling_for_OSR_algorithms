@@ -43,3 +43,6 @@ CREATE TABLE PACK_LABEL (
   FOREIGN KEY (MODEL_ID) REFERENCES MODEL (MODEL_ID),
   FOREIGN KEY (PACK_CLASS) REFERENCES CLASS (CLASS_NAME)
 );
+
+INSERT INTO model(model_id) VALUES (1);
+INSERT INTO class (class_name, model_id) VALUES ('BENIGN', 1),('Infiltration', 1), ('Bot', 1), ('PortScan', 1), ('DDoS', 1), ('FTP-Patator', 1), ('SSH-Patator', 1), ('DoS slowloris', 1), ('DoS Slowhttptest', 1), ('DoS Hulk', 1), ('DoS GoldenEye', 1), ('Heartbleed', 1), ('Web Attack – Brute Force', 1), ('Web Attack – XSS', 1), ('Web Attack – Sql Injection', 1);
