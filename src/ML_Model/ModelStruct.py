@@ -721,7 +721,7 @@ class Conv1DClassifier(AttackTrainingClassification):
         sequencePackage.append(self.layer2)
         if self.end.end_type != "DOC":
             if Config.dataparallel:
-                sequencePackage = nn.DataParallel(sequencePackage)
+                sequencePackage = nn.Sequential(nn.DataParallel(sequencePackage))
             sequencePackage.append(self.sequencePackage)
             self.sequencePackage = sequencePackage
 
@@ -745,7 +745,7 @@ class FullyConnected(AttackTrainingClassification):
         sequencePackage.append(self.layer2)
         if self.end.end_type != "DOC":
             if Config.dataparallel:
-                sequencePackage = nn.DataParallel(sequencePackage)
+                sequencePackage = nn.Sequential(nn.DataParallel(sequencePackage))
             sequencePackage.append(self.sequencePackage)
             self.sequencePackage = sequencePackage
 
