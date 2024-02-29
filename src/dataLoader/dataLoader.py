@@ -1,5 +1,7 @@
 from operator import countOf
 import Pyro5.api
+import numpy as np
+
 import dbManager
 import math
 import parser as packetParse
@@ -249,10 +251,9 @@ class ServerDataLoader(object):
     def insertLabels(self, ids, data, model_id):
         print(f"[model:{model_id}]: Inserting packet labels to database")
         id_pred_conf = zip(ids, data.predictions_string, data.prediction_confidence)
-
+        print(data.predictions_string)
         with self.dbConn.cursor() as cursor:
             values = b','.join([cursor.mogrify("(%s, %s, %s, %s)", (str(model_id), str(x[0]), str(x[1]), str(x[2].item()))) for x in id_pred_conf])
-
             try:
                 cursor.execute(f"INSERT INTO pack_label (MODEL_ID, PACK_ID, PACK_CLASS, PACK_CONFIDENCE) VALUES {values.decode()};")
                 self.dbConn.commit()
@@ -274,12 +275,14 @@ class ServerDataLoader(object):
             return None
         print(f"Received payload of length {len(payload['ttl'])}")
         ids = self.insertPackets(payload=payload)
-        payload = payload.drop(columns=['src', 'dest', 'time', 'srcport', 'destport'])
+        strippedPayload = payload.drop(columns=['src', 'dest', 'time', 'srcport', 'destport'])
         # strip columns that can't be passed into the model
         for _, model in self.modelInstances.items():
             if not model.loaded:
                 continue
-            dataObj = model.feed(payload)
+            dataObj = model.feed(strippedPayload)
+            #benignArray = [string for string in dataObj.predictions_string if string  == "BENIGN"]
+            #print(benignArray)
             # model.warning = self.createWarning(dataObj)
             self.insertLabels(ids=ids, data=dataObj, model_id=1)
 

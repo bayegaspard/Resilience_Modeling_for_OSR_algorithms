@@ -4,6 +4,7 @@ from torch.nn import functional as F
 import os
 from tqdm import tqdm
 import time
+import re
 from datetime import datetime
 from sklearn.metrics import confusion_matrix, f1_score
 
@@ -14,6 +15,7 @@ import helperFunctions
 import outputDataObject
 import Dataload
 import Distance_Types
+import PadecSender as PadecSender
 
 import numpy as np
 # from sklearn.metrics import (precision_score, recall_score, f1_score)
@@ -380,6 +382,37 @@ class AttackTrainingClassification(nn.Module):
                 new_data.unknowns.append([Dataload.LISTCLASS[z] for z, x in enumerate(y) if x > 0.2])
 
             self.end.resetvals()
+            ################## Passing to Padec ################################
+            rah = predictions
+            mask = rah == 0
+            indices_of_true_values = mask.nonzero(as_tuple=False).squeeze()
+            selected_data = batch[indices_of_true_values]
+            is_empty = (selected_data.size(0) == 0)
+
+            def is_valid_hexadecimal(s):
+                # Define a regular expression for valid hexadecimal characters
+                hex_pattern = re.compile(r'^[0-9a-fA-F]+$')
+
+                # Use the pattern to match the string
+                if(bool(hex_pattern.match(s)) == False):
+                    print("For some reason, this hex value was not valid. Time to cry.")
+                return bool(hex_pattern.match(s))
+
+            if (is_empty == False):
+                # Convert the tensor to a NumPy array
+                selected_data_cpu = selected_data.cpu()
+                integer_tensor = selected_data_cpu.to(dtype=torch.int)
+                integer_array = integer_tensor.numpy()
+
+                # Convert integers in the second dimension to hexadecimal
+                hex_array = np.vectorize(hex)(integer_array).astype(str)
+                hex_strings = [
+                    ''.join(format(int(byte, 16), '02x') for byte in row if is_valid_hexadecimal(byte)).rstrip('0') for
+                    row in hex_array]
+                np.set_printoptions(threshold=np.inf, linewidth=np.inf)
+                PadecSender.send_data(hex_strings)
+            ################## End of Padec ################################
+
         return new_data
 
     @torch.no_grad()

@@ -1,0 +1,355 @@
+ClientDataLoader has been initialized
+Communcations were not successful with the server
+Dash is running on http://127.0.0.1:8050/
+
+ * Serving Flask app 'gui'
+ * Debug mode: on
+ClientDataLoader has been initialized
+Communcations were not successful with the server
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+Communcations were not successful with the server
+Communcations were not successful with the server
+getPackets exception: cannot connect to ('localhost', 58116): [Errno 111] Connection refused
+Traceback (most recent call last):
+  File "/home/nick/PycharmProjects/Open-World-Recognition-Tool/.venv/lib/python3.10/site-packages/Pyro5/client.py", line 310, in connect_and_handshake
+    sock = socketutil.create_socket(connect=connect_location,
+  File "/home/nick/PycharmProjects/Open-World-Recognition-Tool/.venv/lib/python3.10/site-packages/Pyro5/socketutil.py", line 283, in create_socket
+    sock.connect(connect)
+ConnectionRefusedError: [Errno 111] Connection refused
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/nick/PycharmProjects/Open-World-Recognition-Tool/src/gui/clientDataLoader.py", line 42, in getClassCounts
+    results = self.data_loader.getClassCounts(timerange, filters)
+  File "/home/nick/PycharmProjects/Open-World-Recognition-Tool/.venv/lib/python3.10/site-packages/Pyro5/client.py", line 101, in __getattr__
+    self._pyroGetMetadata()
+  File "/home/nick/PycharmProjects/Open-World-Recognition-Tool/.venv/lib/python3.10/site-packages/Pyro5/client.py", line 392, in _pyroGetMetadata
+    self.__pyroCreateConnection()
+  File "/home/nick/PycharmProjects/Open-World-Recognition-Tool/.venv/lib/python3.10/site-packages/Pyro5/client.py", line 376, in __pyroCreateConnection
+    connect_and_handshake(conn)
+  File "/home/nick/PycharmProjects/Open-World-Recognition-Tool/.venv/lib/python3.10/site-packages/Pyro5/client.py", line 336, in connect_and_handshake
+    raise errors.CommunicationError(err) from x
+Pyro5.errors.CommunicationError: cannot connect to ('localhost', 58116): [Errno 111] Connection refused
+
+None
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+Communcations were not successful with the server
+Epoch049Soft.pth
+Communcations were not successful with the server
+None
+getPackets exception: cannot connect to ('localhost', 58116): [Errno 111] Connection refused
+Traceback (most recent call last):
+  File "/home/nick/PycharmProjects/Open-World-Recognition-Tool/.venv/lib/python3.10/site-packages/Pyro5/client.py", line 310, in connect_and_handshake
+    sock = socketutil.create_socket(connect=connect_location,
+  File "/home/nick/PycharmProjects/Open-World-Recognition-Tool/.venv/lib/python3.10/site-packages/Pyro5/socketutil.py", line 283, in create_socket
+    sock.connect(connect)
+ConnectionRefusedError: [Errno 111] Connection refused
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/nick/PycharmProjects/Open-World-Recognition-Tool/src/gui/clientDataLoader.py", line 66, in getPackets
+    results = {'rowData': self.data_loader.getPackets(timerange, category, requestData)}
+  File "/home/nick/PycharmProjects/Open-World-Recognition-Tool/.venv/lib/python3.10/site-packages/Pyro5/client.py", line 101, in __getattr__
+    self._pyroGetMetadata()
+  File "/home/nick/PycharmProjects/Open-World-Recognition-Tool/.venv/lib/python3.10/site-packages/Pyro5/client.py", line 392, in _pyroGetMetadata
+    self.__pyroCreateConnection()
+  File "/home/nick/PycharmProjects/Open-World-Recognition-Tool/.venv/lib/python3.10/site-packages/Pyro5/client.py", line 376, in __pyroCreateConnection
+    connect_and_handshake(conn)
+  File "/home/nick/PycharmProjects/Open-World-Recognition-Tool/.venv/lib/python3.10/site-packages/Pyro5/client.py", line 336, in connect_and_handshake
+    raise errors.CommunicationError(err) from x
+Pyro5.errors.CommunicationError: cannot connect to ('localhost', 58116): [Errno 111] Connection refused
+
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+[]
+[]
+ClientDataLoader has been initialized
+{'startRow': 0, 'endRow': 100, 'sortModel': [], 'filterModel': {}}
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+1214928
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
+ClientDataLoader has been initialized
