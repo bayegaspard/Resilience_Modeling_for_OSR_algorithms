@@ -1,3 +1,6 @@
+import re
+
+import HexFetch
 from torch import nn
 import torch
 from torch.nn import functional as F
@@ -14,6 +17,7 @@ import helperFunctions
 import outputDataObject
 import Dataload
 import Distance_Types
+import PadecSender
 
 import numpy as np
 # from sklearn.metrics import (precision_score, recall_score, f1_score)
@@ -345,9 +349,13 @@ class AttackTrainingClassification(nn.Module):
                 This data should be in the form of: (IxF) where I is the number of instances of the data and F is the number of features.
             generateStability - Booliean value stating if datashiftFactor should be calculated.
         """
+
         with torch.no_grad():
             if not isinstance(batch, torch.Tensor):
                 batch = Dataload.pandas_to_tensor(batch)
+
+            batchCopy = batch.clone()
+            batch= batch[:, :-1].clone()
 
             new_data = outputDataObject.outputDataUpdateObject()
             self.eval()
@@ -384,6 +392,49 @@ class AttackTrainingClassification(nn.Module):
                 new_data.unknowns.append([Dataload.LISTCLASS[z] for z, x in enumerate(y) if x > 0.2])
 
             self.end.resetvals()
+
+            ################## Passing to Padec ################################
+            rah = predictions
+            mask = rah == 4
+            indices_of_true_values = mask.nonzero(as_tuple=False).squeeze()
+
+            selected_data = batchCopy[indices_of_true_values]
+            is_empty = (selected_data.size(0) == 0)
+            packetNumberTensor = selected_data[:, 1504]
+            packet_numbers = [int(round(num)) for num in packetNumberTensor.tolist()]
+            filter_str = " || ".join([f"frame.number == {num}" for num in packet_numbers])
+            hexdumps = HexFetch.get_hex_dumps_for_packets(filter_str)
+            print(hexdumps)
+            PadecSender.send_data(hexdumps)
+            PadecSender.signal_data_available()
+            if False:
+                def is_valid_hexadecimal(s):
+                    # Define a regular expression for valid hexadecimal characters
+                    hex_pattern = re.compile(r'^[0-9a-fA-F]+$')
+
+                    # Use the pattern to match the string
+                    if(bool(hex_pattern.match(s)) == False):
+                        print("For some reason, this hex value was not valid. Time to cry.")
+                    return bool(hex_pattern.match(s))
+
+                if (is_empty == False):
+                    # Convert the tensor to a NumPy array
+                    selected_data_cpu = selected_data.cpu()
+                    integer_tensor = selected_data_cpu.to(dtype=torch.int)
+                    integer_array = integer_tensor.numpy()
+
+                    # Convert integers in the second dimension to hexadecimal
+                    hex_array = np.vectorize(hex)(integer_array).astype(str)
+                    hex_strings = [
+                        ''.join(format(int(byte, 16), '02x') for byte in row[:160])
+                        # Process only up to the 160th byte in each row
+                        for row in hex_array
+                    ]
+                    np.set_printoptions(threshold=np.inf, linewidth=np.inf)
+                    PadecSender.send_data(hex_strings)
+                    PadecSender.signal_data_available()
+            ################## End of Padec ################################
+
         return new_data
 
     @torch.no_grad()

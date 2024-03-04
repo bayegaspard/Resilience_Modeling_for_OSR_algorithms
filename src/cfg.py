@@ -1,12 +1,12 @@
 
 ARGS = {
     "pyro_port": 58116,
-    "DB_name": "owrt-dev2",
+    "DB_name": "OpenSet",
     "DB_user": "postgres",
     "DB_host": "127.0.0.1",
-    "DB_pw": "joe",
-    "DB_port": 5433,
-    "interface": "en0",
+    "DB_pw": "Password",
+    "DB_port": 5432,
+    "interface": "any",
     "Dash_port": 8050
 }
 

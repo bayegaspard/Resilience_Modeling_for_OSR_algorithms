@@ -40,7 +40,11 @@ async def feedNetwork(interface=any, loader=None):
         print("Please stop using WiFi; packets will be discarded. Use Ethernet. Thanks")
     print("Intialized feedNetwork")
 
-    feed = pyshark.LiveCapture(interface=cfg("interface"), use_json=True, include_raw=True)
+    pcapFilePath = "src/pcap/pcapFile.pcap"
+    if os.path.exists(pcapFilePath):
+        os.remove(pcapFilePath)
+
+    feed = pyshark.LiveCapture(interface=cfg("interface"), use_json=True, include_raw=True, output_file=pcapFilePath)
 
     batch = []
     for packet in feed.sniff_continuously():

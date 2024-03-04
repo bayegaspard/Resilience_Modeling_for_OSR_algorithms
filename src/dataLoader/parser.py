@@ -7,13 +7,14 @@ other_protocols = ["OSPF", "SCTP", "GRE", "SWIPE", "MOBILE", "SUN-ND", "SEP", "U
 
 
 def make_df(data):
-	col_names = ["ttl", "total_len", "protocol", "t_delta", "src", "dest", "time", "srcport", "destport"]
+	col_names = ["ttl", "total_len", "protocol", "t_delta", "src", "dest", "time", "srcport", "destport", "number"]
 	cols = [f"payload_byte_{x+1}" for x in range(1500)] + col_names
 	df = pd.DataFrame(data, columns=cols)
 	return df
 
 
 def parsePacket(raw_packet):
+
 	packet = raw_packet
 	# guaranteed fields
 	raw = raw_packet.get_raw_packet()
@@ -59,7 +60,7 @@ def parsePacket(raw_packet):
 				protocol = prot.lower()
 		if protocol == "":
 			protocol = "other"
-	return [byte for byte in raw] + [0 for _ in range(1500 - len(raw))] + [ttl, len(raw), protocol, t_delta, src, dest, time, srcport, destport]
+	return [byte for byte in raw] + [0 for _ in range(1500 - len(raw))] + [ttl, len(raw), protocol, t_delta, src, dest, time, srcport, destport, packet.number]
 
 
 def pcap2df(in_file):
