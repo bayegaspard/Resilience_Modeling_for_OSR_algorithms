@@ -402,11 +402,10 @@ class AttackTrainingClassification(nn.Module):
             is_empty = (selected_data.size(0) == 0)
             packetNumberTensor = selected_data[:, 1504]
             packet_numbers = [int(round(num)) for num in packetNumberTensor.tolist()]
-            filter_str = " || ".join([f"frame.number == {num}" for num in packet_numbers])
-            hexdumps = HexFetch.get_hex_dumps_for_packets(filter_str)
+            hexdumps = HexFetch.get_hex_dumps_for_packets(packet_numbers)
             print(hexdumps)
-            PadecSender.send_data(hexdumps)
-            PadecSender.signal_data_available()
+            #PadecSender.send_data(hexdumps)
+            #PadecSender.signal_data_available()
             if False:
                 def is_valid_hexadecimal(s):
                     # Define a regular expression for valid hexadecimal characters
