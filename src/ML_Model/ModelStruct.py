@@ -355,7 +355,7 @@ class AttackTrainingClassification(nn.Module):
                 batch = Dataload.pandas_to_tensor(batch)
 
             batchCopy = batch.clone()
-            batch= batch[:, :-1].clone()
+            batch= batch[:, :-2].clone()
 
             new_data = outputDataObject.outputDataUpdateObject()
             self.eval()
@@ -394,44 +394,21 @@ class AttackTrainingClassification(nn.Module):
             self.end.resetvals()
 
             ################## Passing to Padec ################################
-            rah = predictions
-            mask = rah == 4
-            indices_of_true_values = mask.nonzero(as_tuple=False).squeeze()
+            if Config.get_global('Padec') == 1:
+                mask = torch.isin(predictions, torch.tensor(Config.get_global("Padec_Values")))
+                indices_of_true_values = mask.nonzero(as_tuple=False).squeeze()
 
-            selected_data = batchCopy[indices_of_true_values]
-            is_empty = (selected_data.size(0) == 0)
-            packetNumberTensor = selected_data[:, 1504]
-            packet_numbers = [int(round(num)) for num in packetNumberTensor.tolist()]
-            hexdumps = HexFetch.get_hex_dumps_for_packets(packet_numbers)
-            print(hexdumps)
-            #PadecSender.send_data(hexdumps)
-            #PadecSender.signal_data_available()
-            if False:
-                def is_valid_hexadecimal(s):
-                    # Define a regular expression for valid hexadecimal characters
-                    hex_pattern = re.compile(r'^[0-9a-fA-F]+$')
-
-                    # Use the pattern to match the string
-                    if(bool(hex_pattern.match(s)) == False):
-                        print("For some reason, this hex value was not valid. Time to cry.")
-                    return bool(hex_pattern.match(s))
-
-                if (is_empty == False):
-                    # Convert the tensor to a NumPy array
-                    selected_data_cpu = selected_data.cpu()
-                    integer_tensor = selected_data_cpu.to(dtype=torch.int)
-                    integer_array = integer_tensor.numpy()
-
-                    # Convert integers in the second dimension to hexadecimal
-                    hex_array = np.vectorize(hex)(integer_array).astype(str)
-                    hex_strings = [
-                        ''.join(format(int(byte, 16), '02x') for byte in row[:160])
-                        # Process only up to the 160th byte in each row
-                        for row in hex_array
-                    ]
-                    np.set_printoptions(threshold=np.inf, linewidth=np.inf)
-                    PadecSender.send_data(hex_strings)
-                    PadecSender.signal_data_available()
+                selected_data = batchCopy[indices_of_true_values]
+                is_empty = (selected_data.size(0) == 0)
+                if not is_empty:
+                    if selected_data.size()[0] > 1:
+                        combined_columns = np.column_stack((selected_data[:, 1504], selected_data[:, 1505])).astype(int)
+                    else:
+                        combined_columns = np.column_stack((selected_data[1504], selected_data[1505])).astype(int)
+                    hexdumps = HexFetch.get_hex_dumps_for_packets(combined_columns)
+                    if hexdumps != None:
+                        PadecSender.send_data(hexdumps)
+                        PadecSender.signal_data_available()
             ################## End of Padec ################################
 
         return new_data

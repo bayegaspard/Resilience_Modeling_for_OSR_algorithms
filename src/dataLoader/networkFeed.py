@@ -55,7 +55,7 @@ async def feedNetwork(interface=any, loader=None):
         if len(batch) > 99:
             try:
                 df = pcap.make_df(batch)
-                print(f"Sending a batch of {len(batch)} packets.")
+                print(f"\nSending a batch of {len(batch)} packets.")
                 loader.newPackets(df)
             except Exception:
                 print("Pyro5 traceback: ")

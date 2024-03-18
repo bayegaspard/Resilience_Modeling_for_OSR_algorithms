@@ -1,7 +1,12 @@
 import os
 import time
 import threading
+import psycopg2
+from src.cfg import config_interface
 from nids_transformers import PADEC
+import json
+
+
 global padec
 
 def initialize():
@@ -21,31 +26,9 @@ def wait_for_data(data_signal_path):
         time.sleep(1)
     print("Data signal detected.")
 
-
-def identify_protocol(packet_hex):
-    # Extract the IP header starting position: skip Ethernet header (14 bytes = 28 hex characters)
-    ip_header_start = 28
-
-    # The Protocol field is the 9th byte of the IP header
-    # Since each byte is 2 hex characters, we add 16 hex characters to the start of the IP header
-    protocol_pos = ip_header_start + 18  # 9 bytes into the IP header, but we start counting from 0
-
-    # Extract the protocol field (2 hex characters)
-    protocol_hex = packet_hex[protocol_pos:protocol_pos + 2]
-
-    # Convert hex to int
-    protocol = int(protocol_hex, 16)
-    print(protocol_hex,protocol),
-
-    # Identify the protocol
-    if protocol == 6 or protocol == 17:
-        return True
-    else:
-        return False
-
 def process_data(data_file_path, lock):
     global padec
-    header = "5e0e8bffb00b581122d37761080045000034000040004006ef4386580d1f8efb"
+    cfg = config_interface()
     print("Consumer starts processing data...")
     while True:
         with lock:
@@ -64,17 +47,37 @@ def process_data(data_file_path, lock):
             with open(data_file_path, 'w') as file:
                 file.writelines(lines)
 
+        parts = data.split(':')#parts[0] is foreign key, parts[1] is the hex string
+
         try:
-            packet_hex = data
-            tags = padec.GenerateTags(packet_hex_stream=packet_hex,
+            tags = padec.GenerateTags(packet_hex_stream=parts[1],
                                       forward_packets_per_second=0,
                                       backward_packets_per_second=0,
                                       bytes_transferred_per_second=0,
-                                      total_tags=10)
+                                      total_tags=5)
             print(tags)
         except Exception as e:
-            if False:
-                print("wow")
+            continue
+
+        try:
+            #(cfg("DB_name"), cfg("DB_user"), cfg("DB_host"), cfg("DB_pw"), cfg("DB_port"))
+            conn = psycopg2.connect(
+                dbname=cfg("DB_name"),
+                user=cfg("DB_user"),
+                password=cfg("DB_pw"),
+                host=cfg("DB_host"),
+                port=cfg("DB_port")
+            )
+            c = conn.cursor()
+            c.execute("INSERT INTO PACK_TAG (PACK_ID, TAGS) VALUES (%s, %s)",
+                      (parts[0], json.dumps(tags)))
+            conn.commit()
+            c.close()
+            conn.close()
+            print("Tags inserted into database!")
+        except Exception as e:
+            print(e)
+
 
     # Process each string in the data list
 def check_for_stop(stop_signal_path):

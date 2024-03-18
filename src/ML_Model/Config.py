@@ -117,7 +117,9 @@ parameters = {
     "var_filtering_threshold": [-20, "If not -1, the model will first apply a varmax layer to the endlayer to know if the 'OOD_type' algorithm should be applied. This will use the number given as the threshold.", [], str],
     "experimental_bit_convolution": [0, "Convolutional network contains an experimental 2 bit convolution over the bits", [0, 1], int],
     "save_loc": ["defaultSave.pth", "Save location for running from __init__", [], str],
-    "use_renamed_packets": [0, "When creating the model, use the renamed packets for clases", [0, 1], int]
+    "use_renamed_packets": [0, "When creating the model, use the renamed packets for clases", [0, 1], int],
+    "Padec": [1, "Toggle whether or not you want to pass data to PADEC", [0, 1], int],
+    "Padec_Values": [[4,3], "List what classes you want the PADEC model to describe", [], list]
 }
 
 

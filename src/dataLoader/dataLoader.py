@@ -212,7 +212,7 @@ class ServerDataLoader(object):
             # temporary, but it works
             values = ""
             payloadColumns = [f"payload_byte_{x+1}" for x in range(1500)]
-            for i in range(1, len(payload['ttl'])):
+            for i in range(0, len(payload['ttl'])):
                 ttl = payload['ttl'][i]
                 total_len = payload['total_len'][i]
                 protocol = payload['protocol'][i]
@@ -227,7 +227,7 @@ class ServerDataLoader(object):
                 if destport == "":
                     destport = 'NULL'
 
-                if i > 1:
+                if i > 0:
                     values += ","
 
                 payloadData = ",".join([str(payload[byteColumn][i]) for byteColumn in payloadColumns])
@@ -274,6 +274,7 @@ class ServerDataLoader(object):
             return None
         print(f"Received payload of length {len(payload['ttl'])}")
         ids = self.insertPackets(payload=payload)
+        payload['unique_id'] = ids
         payload = payload.drop(columns=['src', 'dest', 'time', 'srcport', 'destport'])
         # strip columns that can't be passed into the model
         for _, model in self.modelInstances.items():

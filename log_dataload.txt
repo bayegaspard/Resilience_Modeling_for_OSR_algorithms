@@ -1,42 +1,51 @@
 Initialized ServerDataLoader
 You should supply an interface for listening to the network. Because you didnt, all interfaces are being sniffed
 Intialized feedNetwork
+
 Sending a batch of 100 packets.
 {}
 No models are loaded, so payloads are being ignored.
+
 Sending a batch of 100 packets.
 {}
 No models are loaded, so payloads are being ignored.
+
 Sending a batch of 100 packets.
 {}
 No models are loaded, so payloads are being ignored.
+
 Sending a batch of 100 packets.
 {}
 No models are loaded, so payloads are being ignored.
+
 Sending a batch of 100 packets.
 {}
 No models are loaded, so payloads are being ignored.
+
 Sending a batch of 100 packets.
 {}
 No models are loaded, so payloads are being ignored.
+
 Sending a batch of 100 packets.
 {}
 No models are loaded, so payloads are being ignored.
+
 Sending a batch of 100 packets.
 {}
 No models are loaded, so payloads are being ignored.
+
 Sending a batch of 100 packets.
 {}
 No models are loaded, so payloads are being ignored.
+
 Sending a batch of 100 packets.
 {}
 No models are loaded, so payloads are being ignored.
+
 Sending a batch of 100 packets.
 {}
 No models are loaded, so payloads are being ignored.
-Sending a batch of 100 packets.
-{}
-No models are loaded, so payloads are being ignored.
+ModelInstance not found
 ModelInstance not found
 ModelInstance not found
 ModelInstance not found
@@ -48,334 +57,354 @@ num_epochs has been changed from default values
 Model has identical classes
 Loading  model from Saves/models/Epoch000Soft.pth
 Model has identical classes
+
 Sending a batch of 100 packets.
-{166220909297009: <__main__.ModelInstance object at 0x7feaaaacd810>}
+{166220909297009: <__main__.ModelInstance object at 0x7f9ad7e7d0f0>}
 Received payload of length 100
 Inserting packets to database
-Error getting hex dumps: tshark: Syntax error near ")".
-
-None
+Packets Assessed:  [376948, 376949, 376956, 376973]
+Data written to file.
+Data available signal created.
 [model:1]: Inserting packet labels to database
-General exception: insert or update on table "pack_label" violates foreign key constraint "pack_label_model_id_fkey"
-DETAIL:  Key (model_id)=(1) is not present in table "model".
 
 Sending a batch of 100 packets.
-{166220909297009: <__main__.ModelInstance object at 0x7feaaaacd810>}
+{166220909297009: <__main__.ModelInstance object at 0x7f9ad7e7d0f0>}
 Received payload of length 100
 Inserting packets to database
-Error getting hex dumps: tshark: Syntax error near ")".
-
-None
+Packets Assessed:  [377007, 377027, 377038, 377043, 377050, 377063, 377068, 377075, 377085, 377094]
+Data written to file.
+Data available signal created.
 [model:1]: Inserting packet labels to database
-General exception: insert or update on table "pack_label" violates foreign key constraint "pack_label_model_id_fkey"
-DETAIL:  Key (model_id)=(1) is not present in table "model".
 
 Sending a batch of 100 packets.
-{166220909297009: <__main__.ModelInstance object at 0x7feaaaacd810>}
+{166220909297009: <__main__.ModelInstance object at 0x7f9ad7e7d0f0>}
 Received payload of length 100
 Inserting packets to database
-Error getting hex dumps: tshark: Syntax error near ")".
-
-None
+Packets Assessed:  [377101, 377103, 377114, 377119, 377124, 377129, 377134, 377158, 377175]
+Data written to file.
+Data available signal created.
 [model:1]: Inserting packet labels to database
-General exception: insert or update on table "pack_label" violates foreign key constraint "pack_label_model_id_fkey"
-DETAIL:  Key (model_id)=(1) is not present in table "model".
 
 Sending a batch of 100 packets.
-{166220909297009: <__main__.ModelInstance object at 0x7feaaaacd810>}
+{166220909297009: <__main__.ModelInstance object at 0x7f9ad7e7d0f0>}
 Received payload of length 100
 Inserting packets to database
-Error getting hex dumps: tshark: Syntax error near ")".
-
-None
+Packets Assessed:  [377202, 377281, 377289]
+Data written to file.
+Data available signal created.
 [model:1]: Inserting packet labels to database
-General exception: insert or update on table "pack_label" violates foreign key constraint "pack_label_model_id_fkey"
-DETAIL:  Key (model_id)=(1) is not present in table "model".
 
 Sending a batch of 100 packets.
-{166220909297009: <__main__.ModelInstance object at 0x7feaaaacd810>}
+{166220909297009: <__main__.ModelInstance object at 0x7f9ad7e7d0f0>}
 Received payload of length 100
 Inserting packets to database
-Error getting hex dumps: tshark: Syntax error near ")".
-
-None
+Packets Assessed:  [377306, 377337, 377350, 377351, 377354]
+Data written to file.
+Data available signal created.
 [model:1]: Inserting packet labels to database
-General exception: insert or update on table "pack_label" violates foreign key constraint "pack_label_model_id_fkey"
-DETAIL:  Key (model_id)=(1) is not present in table "model".
 
 Sending a batch of 100 packets.
-{166220909297009: <__main__.ModelInstance object at 0x7feaaaacd810>}
+{166220909297009: <__main__.ModelInstance object at 0x7f9ad7e7d0f0>}
 Received payload of length 100
 Inserting packets to database
-Error getting hex dumps: tshark: Syntax error near ")".
-
-None
+Packets Assessed:  [377452, 377481]
+Data written to file.
+Data available signal created.
 [model:1]: Inserting packet labels to database
-General exception: insert or update on table "pack_label" violates foreign key constraint "pack_label_model_id_fkey"
-DETAIL:  Key (model_id)=(1) is not present in table "model".
 
 Sending a batch of 100 packets.
-{166220909297009: <__main__.ModelInstance object at 0x7feaaaacd810>}
+{166220909297009: <__main__.ModelInstance object at 0x7f9ad7e7d0f0>}
 Received payload of length 100
 Inserting packets to database
-Error getting hex dumps: tshark: Syntax error near ")".
-
-None
+No matching packets.
 [model:1]: Inserting packet labels to database
-General exception: insert or update on table "pack_label" violates foreign key constraint "pack_label_model_id_fkey"
-DETAIL:  Key (model_id)=(1) is not present in table "model".
 
 Sending a batch of 100 packets.
-{166220909297009: <__main__.ModelInstance object at 0x7feaaaacd810>}
+{166220909297009: <__main__.ModelInstance object at 0x7f9ad7e7d0f0>}
 Received payload of length 100
 Inserting packets to database
-Error getting hex dumps: tshark: Syntax error near ")".
-
-None
+Packets Assessed:  [377636, 377648, 377650, 377656]
+Data written to file.
+Data available signal created.
 [model:1]: Inserting packet labels to database
-General exception: insert or update on table "pack_label" violates foreign key constraint "pack_label_model_id_fkey"
-DETAIL:  Key (model_id)=(1) is not present in table "model".
 
 Sending a batch of 100 packets.
-{166220909297009: <__main__.ModelInstance object at 0x7feaaaacd810>}
+{166220909297009: <__main__.ModelInstance object at 0x7f9ad7e7d0f0>}
 Received payload of length 100
 Inserting packets to database
-Error getting hex dumps: tshark: Syntax error near ")".
-
-None
+Packets Assessed:  [377712, 377714, 377722, 377725, 377729]
+Data written to file.
+Data available signal created.
 [model:1]: Inserting packet labels to database
-General exception: insert or update on table "pack_label" violates foreign key constraint "pack_label_model_id_fkey"
-DETAIL:  Key (model_id)=(1) is not present in table "model".
 
 Sending a batch of 100 packets.
-{166220909297009: <__main__.ModelInstance object at 0x7feaaaacd810>}
+{166220909297009: <__main__.ModelInstance object at 0x7f9ad7e7d0f0>}
 Received payload of length 100
 Inserting packets to database
-Error getting hex dumps: tshark: Syntax error near ")".
-
-None
+Packets Assessed:  [377887]
+Data written to file.
+Data available signal created.
 [model:1]: Inserting packet labels to database
-General exception: insert or update on table "pack_label" violates foreign key constraint "pack_label_model_id_fkey"
-DETAIL:  Key (model_id)=(1) is not present in table "model".
 
 Sending a batch of 100 packets.
-{166220909297009: <__main__.ModelInstance object at 0x7feaaaacd810>}
+{166220909297009: <__main__.ModelInstance object at 0x7f9ad7e7d0f0>}
 Received payload of length 100
 Inserting packets to database
-Error getting hex dumps: tshark: Syntax error near ")".
-
-None
+Packets Assessed:  [377932, 377986, 377988, 377989, 377990]
+Data written to file.
+Data available signal created.
 [model:1]: Inserting packet labels to database
-General exception: insert or update on table "pack_label" violates foreign key constraint "pack_label_model_id_fkey"
-DETAIL:  Key (model_id)=(1) is not present in table "model".
 
 Sending a batch of 100 packets.
-{166220909297009: <__main__.ModelInstance object at 0x7feaaaacd810>}
+{166220909297009: <__main__.ModelInstance object at 0x7f9ad7e7d0f0>}
 Received payload of length 100
 Inserting packets to database
-['2453'] ["0000  00 00 03 04 00 06 00 00 00 00 00 00 33 2d 08 00   ............3-..\n0010  45 00 00 74 5f fc 40 00 40 06 b3 99 86 58 0d 1f   E..t_.@.@....X..\n0020  86 58 0d 1f c0 de e2 93 f7 02 25 30 dd e3 de 59   .X........%0...Y\n0030  80 18 02 00 27 55 00 00 01 01 08 0a dd 1c 52 28   ....'U........R(\n0040  dd 1c 52 28 01 00 00 00 02 00 00 00 02 00 e3 13   ..R(............\n0050  86 58 0d 1f 00 00 00 00 00 00 00 00 00 00 00 00   .X..............\n0060  00 00 00 00 00 00 00 00 02 00 da cd 86 58 0d 1f   .............X..\n0070  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   ................\n0080  00 00 00 00                                       ....", '']
-['2453:000003040006000000000000332d0800450000745ffc40004006b39986580d1f86580d1fc0dee293f7022530dde3de5980180200275500000101080add1c5228dd1c522801000000020000000200e31386580d1f00000000000000000000000000000000000000000200dacd86580d1f0000000000000000000000000000000000000000']
-['2453:000003040006000000000000332d0800450000745ffc40004006b39986580d1f86580d1fc0dee293f7022530dde3de5980180200275500000101080add1c5228dd1c522801000000020000000200e31386580d1f00000000000000000000000000000000000000000200dacd86580d1f0000000000000000000000000000000000000000']
+Packets Assessed:  [378002, 378003, 378004, 378006, 378016, 378018, 378020, 378022, 378033, 378036, 378037, 378040, 378041, 378044, 378053, 378055, 378057, 378059, 378061, 378063, 378065, 378066, 378069, 378070, 378073, 378075, 378091, 378096]
+Data written to file.
+Data available signal created.
 [model:1]: Inserting packet labels to database
-General exception: insert or update on table "pack_label" violates foreign key constraint "pack_label_model_id_fkey"
-DETAIL:  Key (model_id)=(1) is not present in table "model".
 
 Sending a batch of 100 packets.
-{166220909297009: <__main__.ModelInstance object at 0x7feaaaacd810>}
+{166220909297009: <__main__.ModelInstance object at 0x7f9ad7e7d0f0>}
 Received payload of length 100
 Inserting packets to database
-['2497'] ["0000  00 00 03 04 00 06 00 00 00 00 00 00 ff ff 08 00   ................\n0010  45 00 00 3c f4 c7 40 00 40 06 1f 06 86 58 0d 1f   E..<..@.@....X..\n0020  86 58 0d 1f 89 42 e3 13 7d dd 13 e5 b7 27 c2 c8   .X...B..}....'..\n0030  80 18 02 00 27 1d 00 00 01 01 08 0a dd 1c 52 2d   ....'.........R-\n0040  dd 1c 52 2d 19 19 a5 14 c8 33 8e 87               ..R-.....3..", '']
-['2497:000003040006000000000000ffff08004500003cf4c7400040061f0686580d1f86580d1f8942e3137ddd13e5b727c2c880180200271d00000101080add1c522ddd1c522d1919a514c8338e87']
-['2497:000003040006000000000000ffff08004500003cf4c7400040061f0686580d1f86580d1f8942e3137ddd13e5b727c2c880180200271d00000101080add1c522ddd1c522d1919a514c8338e87']
+Packets Assessed:  [378103, 378105, 378107, 378109, 378111, 378113, 378115, 378117, 378122, 378124, 378125, 378128, 378129, 378131, 378132, 378134, 378136, 378137, 378140, 378141, 378143, 378144, 378147, 378149, 378151, 378153, 378155, 378156, 378158, 378159, 378161, 378162, 378164, 378165, 378167, 378168, 378169, 378170, 378172, 378174, 378175, 378176, 378178, 378179, 378180, 378182, 378183, 378185, 378186, 378187, 378190, 378191, 378192, 378194, 378196, 378197, 378199, 378200]
+Data written to file.
+Data available signal created.
 [model:1]: Inserting packet labels to database
-General exception: insert or update on table "pack_label" violates foreign key constraint "pack_label_model_id_fkey"
-DETAIL:  Key (model_id)=(1) is not present in table "model".
 
 Sending a batch of 100 packets.
-{166220909297009: <__main__.ModelInstance object at 0x7feaaaacd810>}
+{166220909297009: <__main__.ModelInstance object at 0x7f9ad7e7d0f0>}
 Received payload of length 100
 Inserting packets to database
-['2569', '2572', '2615', '2618', '2639', '2651'] ["0000  00 00 03 04 00 06 00 00 00 00 00 00 00 00 08 00   ................\n0010  45 00 00 44 55 5f 40 00 40 06 be 66 86 58 0d 1f   E..DU_@.@..f.X..\n0020  86 58 0d 1f bc 3d e6 3c 5d f6 98 29 c2 48 fd 8d   .X...=.<]..).H..\n0030  80 18 02 00 27 25 00 00 01 01 08 0a dd 1c 52 3e   ....'%........R>\n0040  dd 1c 52 3e 30 4f 00 e0 e9 7f 00 00 00 00 00 00   ..R>0O..........\n0050  00 00 00 00                                       ....", "0000  00 00 03 04 00 06 00 00 00 00 00 00 00 00 08 00   ................\n0010  45 00 00 3c d8 6f 40 00 40 06 3b 5e 86 58 0d 1f   E..<.o@.@.;^.X..\n0020  86 58 0d 1f e6 3c bc 3d c2 48 fd 91 5d f6 98 39   .X...<.=.H..]..9\n0030  80 18 02 00 27 1d 00 00 01 01 08 0a dd 1c 52 3e   ....'.........R>\n0040  dd 1c 52 3e 30 4f 00 e0 e9 7f 00 00               ..R>0O......", "0000  00 00 03 04 00 06 00 00 00 00 00 00 b4 12 08 00   ................\n0010  45 00 00 44 55 71 40 00 40 06 be 54 86 58 0d 1f   E..DUq@.@..T.X..\n0020  86 58 0d 1f bc 3d e6 3c 5d f6 99 29 c2 48 fe 2d   .X...=.<]..).H.-\n0030  80 18 02 00 27 25 00 00 01 01 08 0a dd 1c 52 3e   ....'%........R>\n0040  dd 1c 52 3e 20 50 00 e0 e9 7f 00 00 00 00 00 00   ..R> P..........\n0050  00 00 00 00                                       ....", "0000  00 00 03 04 00 06 00 00 00 00 00 00 08 00 08 00   ................\n0010  45 00 00 3c d8 8b 40 00 40 06 3b 42 86 58 0d 1f   E..<..@.@.;B.X..\n0020  86 58 0d 1f e6 3c bc 3d c2 48 fe 31 5d f6 99 39   .X...<.=.H.1]..9\n0030  80 18 02 00 27 1d 00 00 01 01 08 0a dd 1c 52 3e   ....'.........R>\n0040  dd 1c 52 3e 20 50 00 e0 e9 7f 00 00               ..R> P......", "0000  00 00 03 04 00 06 00 00 00 00 00 00 64 00 08 00   ............d...\n0010  45 00 00 44 55 7b 40 00 40 06 be 4a 86 58 0d 1f   E..DU{@.@..J.X..\n0020  86 58 0d 1f bc 3d e6 3c 5d f6 99 a9 c2 48 fe 7d   .X...=.<]....H.}\n0030  80 18 02 00 27 25 00 00 01 01 08 0a dd 1c 52 3f   ....'%........R?\n0040  dd 1c 52 3f 98 50 00 e0 e9 7f 00 00 00 00 00 00   ..R?.P..........\n0050  00 00 00 00                                       ....", "0000  00 00 03 04 00 06 00 00 00 00 00 00 65 74 08 00   ............et..\n0010  45 00 00 84 55 80 40 00 40 06 be 05 86 58 0d 1f   E...U.@.@....X..\n0020  86 58 0d 1f bc 3d e6 3c 5d f6 99 c9 c2 48 fe 9d   .X...=.<]....H..\n0030  80 18 02 00 27 65 00 00 01 01 08 0a dd 1c 52 3f   ....'e........R?\n0040  dd 1c 52 3f 00 00 00 07 ea 7f 00 00 00 00 a0 00   ..R?............\n0050  00 00 00 00 00 d0 00 e0 e9 7f 00 00 00 00 00 00   ................\n0060  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   ................\n0070  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   ................\n0080  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   ................\n0090  00 00 00 00                                       ....", '']
-['2569:0000030400060000000000000000080045000044555f40004006be6686580d1f86580d1fbc3de63c5df69829c248fd8d80180200272500000101080add1c523edd1c523e304f00e0e97f00000000000000000000', '2572:000003040006000000000000000008004500003cd86f400040063b5e86580d1f86580d1fe63cbc3dc248fd915df6983980180200271d00000101080add1c523edd1c523e304f00e0e97f0000', '2615:000003040006000000000000b412080045000044557140004006be5486580d1f86580d1fbc3de63c5df69929c248fe2d80180200272500000101080add1c523edd1c523e205000e0e97f00000000000000000000', '2618:000003040006000000000000080008004500003cd88b400040063b4286580d1f86580d1fe63cbc3dc248fe315df6993980180200271d00000101080add1c523edd1c523e205000e0e97f0000', '2639:0000030400060000000000006400080045000044557b40004006be4a86580d1f86580d1fbc3de63c5df699a9c248fe7d80180200272500000101080add1c523fdd1c523f985000e0e97f00000000000000000000', '2651:0000030400060000000000006574080045000084558040004006be0586580d1f86580d1fbc3de63c5df699c9c248fe9d80180200276500000101080add1c523fdd1c523f00000007ea7f00000000a0000000000000d000e0e97f00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000']
-['2569:0000030400060000000000000000080045000044555f40004006be6686580d1f86580d1fbc3de63c5df69829c248fd8d80180200272500000101080add1c523edd1c523e304f00e0e97f00000000000000000000', '2572:000003040006000000000000000008004500003cd86f400040063b5e86580d1f86580d1fe63cbc3dc248fd915df6983980180200271d00000101080add1c523edd1c523e304f00e0e97f0000', '2615:000003040006000000000000b412080045000044557140004006be5486580d1f86580d1fbc3de63c5df69929c248fe2d80180200272500000101080add1c523edd1c523e205000e0e97f00000000000000000000', '2618:000003040006000000000000080008004500003cd88b400040063b4286580d1f86580d1fe63cbc3dc248fe315df6993980180200271d00000101080add1c523edd1c523e205000e0e97f0000', '2639:0000030400060000000000006400080045000044557b40004006be4a86580d1f86580d1fbc3de63c5df699a9c248fe7d80180200272500000101080add1c523fdd1c523f985000e0e97f00000000000000000000', '2651:0000030400060000000000006574080045000084558040004006be0586580d1f86580d1fbc3de63c5df699c9c248fe9d80180200276500000101080add1c523fdd1c523f00000007ea7f00000000a0000000000000d000e0e97f00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000']
+Packets Assessed:  [378202, 378203, 378204, 378206, 378208, 378209, 378211, 378212, 378214, 378215, 378216, 378217, 378219, 378221, 378222, 378223, 378225, 378226, 378227, 378228, 378230, 378231, 378233, 378235, 378236, 378238, 378239, 378241, 378243, 378244, 378246, 378247, 378249, 378250, 378251, 378253, 378255, 378256, 378258, 378259, 378261, 378262, 378263, 378264, 378266, 378268, 378269, 378270, 378272, 378273, 378274, 378275, 378277, 378278, 378281, 378282, 378283, 378285, 378286, 378288, 378290, 378291, 378293, 378294, 378296, 378297, 378299, 378300]
+Data written to file.
+Data available signal created.
 [model:1]: Inserting packet labels to database
-General exception: insert or update on table "pack_label" violates foreign key constraint "pack_label_model_id_fkey"
-DETAIL:  Key (model_id)=(1) is not present in table "model".
 
 Sending a batch of 100 packets.
-{166220909297009: <__main__.ModelInstance object at 0x7feaaaacd810>}
+{166220909297009: <__main__.ModelInstance object at 0x7f9ad7e7d0f0>}
 Received payload of length 100
 Inserting packets to database
-['2663', '2666', '2684', '2687', '2711', '2714', '2735', '2747'] ["0000  00 00 03 04 00 06 00 00 00 00 00 00 00 02 08 00   ................\n0010  45 00 00 44 55 85 40 00 40 06 be 40 86 58 0d 1f   E..DU.@.@..@.X..\n0020  86 58 0d 1f bc 3d e6 3c 5d f6 9a 29 c2 48 fe cd   .X...=.<]..).H..\n0030  80 18 02 00 27 25 00 00 01 01 08 0a dd 1c 52 3f   ....'%........R?\n0040  dd 1c 52 3f 10 51 00 e0 e9 7f 00 00 00 00 00 00   ..R?.Q..........\n0050  00 00 00 00                                       ....", "0000  00 00 03 04 00 06 00 00 00 00 00 00 3d 54 08 00   ............=T..\n0010  45 00 00 3c d8 a7 40 00 40 06 3b 26 86 58 0d 1f   E..<..@.@.;&.X..\n0020  86 58 0d 1f e6 3c bc 3d c2 48 fe d1 5d f6 9a 39   .X...<.=.H..]..9\n0030  80 18 02 00 27 1d 00 00 01 01 08 0a dd 1c 52 3f   ....'.........R?\n0040  dd 1c 52 3f 10 51 00 e0 e9 7f 00 00               ..R?.Q......", "0000  00 00 03 04 00 06 00 00 00 00 00 00 c0 7f 08 00   ................\n0010  45 00 00 3c d8 b2 40 00 40 06 3b 1b 86 58 0d 1f   E..<..@.@.;..X..\n0020  86 58 0d 1f e6 3c bc 3d c2 48 ff 15 5d f6 9a 99   .X...<.=.H..]...\n0030  80 18 02 00 27 1d 00 00 01 01 08 0a dd 1c 52 3f   ....'.........R?\n0040  dd 1c 52 3f 80 88 df ea e9 7f 00 00               ..R?........", "0000  00 00 03 04 00 06 00 00 00 00 00 00 54 08 08 00   ............T...\n0010  45 00 00 44 55 8f 40 00 40 06 be 36 86 58 0d 1f   E..DU.@.@..6.X..\n0020  86 58 0d 1f bc 3d e6 3c 5d f6 9a a9 c2 48 ff 1d   .X...=.<]....H..\n0030  80 18 02 00 27 25 00 00 01 01 08 0a dd 1c 52 3f   ....'%........R?\n0040  dd 1c 52 3f 88 51 00 e0 e9 7f 00 00 00 00 00 00   ..R?.Q..........\n0050  00 00 00 00                                       ....", "0000  00 00 03 04 00 06 00 00 00 00 00 00 74 70 08 00   ............tp..\n0010  45 00 00 44 55 99 40 00 40 06 be 2c 86 58 0d 1f   E..DU.@.@..,.X..\n0020  86 58 0d 1f bc 3d e6 3c 5d f6 9b 29 c2 48 ff 6d   .X...=.<]..).H.m\n0030  80 18 02 00 27 25 00 00 01 01 08 0a dd 1c 52 3f   ....'%........R?\n0040  dd 1c 52 3f 00 52 00 e0 e9 7f 00 00 00 00 00 00   ..R?.R..........\n0050  00 00 00 00                                       ....", "0000  00 00 03 04 00 06 00 00 00 00 00 00 44 2e 08 00   ............D...\n0010  45 00 00 3c d8 c3 40 00 40 06 3b 0a 86 58 0d 1f   E..<..@.@.;..X..\n0020  86 58 0d 1f e6 3c bc 3d c2 48 ff 71 5d f6 9b 39   .X...<.=.H.q]..9\n0030  80 18 02 00 27 1d 00 00 01 01 08 0a dd 1c 52 3f   ....'.........R?\n0040  dd 1c 52 3f 00 52 00 e0 e9 7f 00 00               ..R?.R......", '0000  00 00 03 04 00 06 00 00 00 00 00 00 00 00 08 00   ................\n0010  45 00 00 44 55 a3 40 00 40 06 be 22 86 58 0d 1f   E..DU.@.@..".X..\n0020  86 58 0d 1f bc 3d e6 3c 5d f6 9b a9 c2 48 ff bd   .X...=.<]....H..\n0030  80 18 02 00 27 25 00 00 01 01 08 0a dd 1c 52 3f   ....\'%........R?\n0040  dd 1c 52 3f 78 52 00 e0 e9 7f 00 00 00 00 00 00   ..R?xR..........\n0050  00 00 00 00                                       ....', "0000  00 00 03 04 00 06 00 00 00 00 00 00 00 00 08 00   ................\n0010  45 00 00 84 55 a8 40 00 40 06 bd dd 86 58 0d 1f   E...U.@.@....X..\n0020  86 58 0d 1f bc 3d e6 3c 5d f6 9b c9 c2 48 ff dd   .X...=.<]....H..\n0030  80 18 02 00 27 65 00 00 01 01 08 0a dd 1c 52 40   ....'e........R@\n0040  dd 1c 52 3f 00 00 40 08 ea 7f 00 00 00 00 20 00   ..R?..@....... .\n0050  00 00 00 00 80 29 01 e0 e9 7f 00 00 00 00 00 00   .....)..........\n0060  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   ................\n0070  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   ................\n0080  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   ................\n0090  00 00 00 00                                       ....", '']
-['2663:0000030400060000000000000002080045000044558540004006be4086580d1f86580d1fbc3de63c5df69a29c248fecd80180200272500000101080add1c523fdd1c523f105100e0e97f00000000000000000000', '2666:0000030400060000000000003d5408004500003cd8a7400040063b2686580d1f86580d1fe63cbc3dc248fed15df69a3980180200271d00000101080add1c523fdd1c523f105100e0e97f0000', '2684:000003040006000000000000c07f08004500003cd8b2400040063b1b86580d1f86580d1fe63cbc3dc248ff155df69a9980180200271d00000101080add1c523fdd1c523f8088dfeae97f0000', '2687:0000030400060000000000005408080045000044558f40004006be3686580d1f86580d1fbc3de63c5df69aa9c248ff1d80180200272500000101080add1c523fdd1c523f885100e0e97f00000000000000000000', '2711:0000030400060000000000007470080045000044559940004006be2c86580d1f86580d1fbc3de63c5df69b29c248ff6d80180200272500000101080add1c523fdd1c523f005200e0e97f00000000000000000000', '2714:000003040006000000000000442e08004500003cd8c3400040063b0a86580d1f86580d1fe63cbc3dc248ff715df69b3980180200271d00000101080add1c523fdd1c523f005200e0e97f0000', '2735:000003040006000000000000000008004500004455a340004006be2286580d1f86580d1fbc3de63c5df69ba9c248ffbd80180200272500000101080add1c523fdd1c523f785200e0e97f00000000000000000000', '2747:000003040006000000000000000008004500008455a840004006bddd86580d1f86580d1fbc3de63c5df69bc9c248ffdd80180200276500000101080add1c5240dd1c523f00004008ea7f00000000200000000000802901e0e97f00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000']
-['2663:0000030400060000000000000002080045000044558540004006be4086580d1f86580d1fbc3de63c5df69a29c248fecd80180200272500000101080add1c523fdd1c523f105100e0e97f00000000000000000000', '2666:0000030400060000000000003d5408004500003cd8a7400040063b2686580d1f86580d1fe63cbc3dc248fed15df69a3980180200271d00000101080add1c523fdd1c523f105100e0e97f0000', '2684:000003040006000000000000c07f08004500003cd8b2400040063b1b86580d1f86580d1fe63cbc3dc248ff155df69a9980180200271d00000101080add1c523fdd1c523f8088dfeae97f0000', '2687:0000030400060000000000005408080045000044558f40004006be3686580d1f86580d1fbc3de63c5df69aa9c248ff1d80180200272500000101080add1c523fdd1c523f885100e0e97f00000000000000000000', '2711:0000030400060000000000007470080045000044559940004006be2c86580d1f86580d1fbc3de63c5df69b29c248ff6d80180200272500000101080add1c523fdd1c523f005200e0e97f00000000000000000000', '2714:000003040006000000000000442e08004500003cd8c3400040063b0a86580d1f86580d1fe63cbc3dc248ff715df69b3980180200271d00000101080add1c523fdd1c523f005200e0e97f0000', '2735:000003040006000000000000000008004500004455a340004006be2286580d1f86580d1fbc3de63c5df69ba9c248ffbd80180200272500000101080add1c523fdd1c523f785200e0e97f00000000000000000000', '2747:000003040006000000000000000008004500008455a840004006bddd86580d1f86580d1fbc3de63c5df69bc9c248ffdd80180200276500000101080add1c5240dd1c523f00004008ea7f00000000200000000000802901e0e97f00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000']
+Packets Assessed:  [378302, 378303, 378305, 378306, 378308, 378309, 378310, 378312, 378313, 378315, 378317, 378318, 378320, 378321, 378322, 378323, 378325, 378327, 378328, 378329, 378330, 378332, 378334, 378335, 378338, 378339, 378341, 378342, 378344, 378345, 378346, 378348, 378350, 378351, 378353, 378356, 378357, 378358, 378360, 378361, 378363, 378365, 378366, 378367, 378368, 378371, 378372, 378373, 378374, 378376, 378377, 378380, 378381, 378382, 378383, 378386, 378387, 378388, 378390, 378392, 378393, 378394, 378396, 378398, 378399]
+Data written to file.
+Data available signal created.
 [model:1]: Inserting packet labels to database
-General exception: insert or update on table "pack_label" violates foreign key constraint "pack_label_model_id_fkey"
-DETAIL:  Key (model_id)=(1) is not present in table "model".
 
 Sending a batch of 100 packets.
-{166220909297009: <__main__.ModelInstance object at 0x7feaaaacd810>}
+{166220909297009: <__main__.ModelInstance object at 0x7f9ad7e7d0f0>}
 Received payload of length 100
 Inserting packets to database
-['2786', '2788', '2799', '2813', '2816'] ["0000  00 00 03 04 00 06 00 00 00 00 00 00 00 00 08 00   ................\n0010  45 00 00 3c 7b ad 40 00 40 06 98 20 86 58 0d 1f   E..<{.@.@.. .X..\n0020  86 58 0d 1f ce d4 c7 c9 97 1d 5e 24 cd 60 4b 35   .X........^$.`K5\n0030  80 18 02 00 27 1d 00 00 01 01 08 0a dd 1c 52 44   ....'.........RD\n0040  dd 1c 52 44 b0 70 19 13 ea 7f 00 00               ..RD.p......", "0000  00 00 03 04 00 06 00 00 00 00 00 00 00 00 08 00   ................\n0010  45 00 00 44 7f 4b 40 00 40 06 94 7a 86 58 0d 1f   E..D.K@.@..z.X..\n0020  86 58 0d 1f c7 c9 ce d4 cd 60 4b 35 97 1d 5e 2c   .X.......`K5..^,\n0030  80 18 02 00 27 25 00 00 01 01 08 0a dd 1c 52 44   ....'%........RD\n0040  dd 1c 52 44 b0 70 19 13 ea 7f 00 00 00 00 00 00   ..RD.p..........\n0050  10 00 00 00                                       ....", "0000  00 00 03 04 00 06 00 00 00 00 00 00 00 00 08 00   ................\n0010  45 00 00 3c 7b b5 40 00 40 06 98 18 86 58 0d 1f   E..<{.@.@....X..\n0020  86 58 0d 1f ce d4 c7 c9 97 1d 5e 44 cd 60 4b 55   .X........^D.`KU\n0030  80 18 02 00 27 1d 00 00 01 01 08 0a dd 1c 52 44   ....'.........RD\n0040  dd 1c 52 44 b0 70 19 13 ea 7f 00 00               ..RD.p......", "0000  00 00 03 04 00 06 00 00 00 00 00 00 00 00 08 00   ................\n0010  45 00 00 44 7f 55 40 00 40 06 94 70 86 58 0d 1f   E..D.U@.@..p.X..\n0020  86 58 0d 1f c7 c9 ce d4 cd 60 4b c5 97 1d 5e 7c   .X.......`K...^|\n0030  80 18 02 00 27 25 00 00 01 01 08 0a dd 1c 52 44   ....'%........RD\n0040  dd 1c 52 44 58 74 00 80 ea 7f 00 00 00 00 00 00   ..RDXt..........\n0050  00 00 00 00                                       ....", "0000  00 00 03 04 00 06 00 00 00 00 00 00 00 00 08 00   ................\n0010  45 00 00 3c 7b bf 40 00 40 06 98 0e 86 58 0d 1f   E..<{.@.@....X..\n0020  86 58 0d 1f ce d4 c7 c9 97 1d 5e 80 cd 60 4b d5   .X........^..`K.\n0030  80 18 02 00 27 1d 00 00 01 01 08 0a dd 1c 52 44   ....'.........RD\n0040  dd 1c 52 44 58 74 00 80 ea 7f 00 00               ..RDXt......", '']
-['2786:000003040006000000000000000008004500003c7bad40004006982086580d1f86580d1fced4c7c9971d5e24cd604b3580180200271d00000101080add1c5244dd1c5244b0701913ea7f0000', '2788:00000304000600000000000000000800450000447f4b40004006947a86580d1f86580d1fc7c9ced4cd604b35971d5e2c80180200272500000101080add1c5244dd1c5244b0701913ea7f00000000000010000000', '2799:000003040006000000000000000008004500003c7bb540004006981886580d1f86580d1fced4c7c9971d5e44cd604b5580180200271d00000101080add1c5244dd1c5244b0701913ea7f0000', '2813:00000304000600000000000000000800450000447f5540004006947086580d1f86580d1fc7c9ced4cd604bc5971d5e7c80180200272500000101080add1c5244dd1c524458740080ea7f00000000000000000000', '2816:000003040006000000000000000008004500003c7bbf40004006980e86580d1f86580d1fced4c7c9971d5e80cd604bd580180200271d00000101080add1c5244dd1c524458740080ea7f0000']
-['2786:000003040006000000000000000008004500003c7bad40004006982086580d1f86580d1fced4c7c9971d5e24cd604b3580180200271d00000101080add1c5244dd1c5244b0701913ea7f0000', '2788:00000304000600000000000000000800450000447f4b40004006947a86580d1f86580d1fc7c9ced4cd604b35971d5e2c80180200272500000101080add1c5244dd1c5244b0701913ea7f00000000000010000000', '2799:000003040006000000000000000008004500003c7bb540004006981886580d1f86580d1fced4c7c9971d5e44cd604b5580180200271d00000101080add1c5244dd1c5244b0701913ea7f0000', '2813:00000304000600000000000000000800450000447f5540004006947086580d1f86580d1fc7c9ced4cd604bc5971d5e7c80180200272500000101080add1c5244dd1c524458740080ea7f00000000000000000000', '2816:000003040006000000000000000008004500003c7bbf40004006980e86580d1f86580d1fced4c7c9971d5e80cd604bd580180200271d00000101080add1c5244dd1c524458740080ea7f0000']
+Packets Assessed:  [378401, 378402, 378404, 378405, 378406, 378408, 378410, 378411, 378413, 378414, 378415, 378417, 378419, 378420, 378421, 378422, 378424, 378425, 378426, 378429, 378430, 378431, 378433, 378435, 378437, 378438, 378440, 378441, 378443, 378444, 378446, 378447, 378449, 378450, 378452, 378453, 378454, 378456, 378457, 378459, 378461, 378462, 378463, 378465, 378466, 378468, 378469, 378470, 378472, 378473, 378474, 378477, 378478, 378479, 378481, 378483, 378485, 378486, 378488, 378489, 378490, 378492, 378494, 378495, 378497]
+Data written to file.
+Data available signal created.
 [model:1]: Inserting packet labels to database
-General exception: insert or update on table "pack_label" violates foreign key constraint "pack_label_model_id_fkey"
-DETAIL:  Key (model_id)=(1) is not present in table "model".
 
 Sending a batch of 100 packets.
-{166220909297009: <__main__.ModelInstance object at 0x7feaaaacd810>}
+{166220909297009: <__main__.ModelInstance object at 0x7f9ad7e7d0f0>}
 Received payload of length 100
 Inserting packets to database
-['2860', '2882', '2907', '2919', '2928', '2930', '2934', '2940', '2955'] ["0000  00 00 03 04 00 06 00 00 00 00 00 00 00 00 08 00   ................\n0010  45 00 00 44 7f 68 40 00 40 06 94 5d 86 58 0d 1f   E..D.h@.@..].X..\n0020  86 58 0d 1f c7 c9 ce d4 cd 60 4c c5 97 1d 5f 1c   .X.......`L..._.\n0030  80 18 02 00 27 25 00 00 01 01 08 0a dd 1c 52 45   ....'%........RE\n0040  dd 1c 52 45 48 75 00 80 ea 7f 00 00 00 00 00 00   ..REHu..........\n0050  00 00 00 00                                       ....", "0000  00 00 03 04 00 06 00 00 00 00 00 00 00 00 08 00   ................\n0010  45 00 00 44 7f 70 40 00 40 06 94 55 86 58 0d 1f   E..D.p@.@..U.X..\n0020  86 58 0d 1f c7 c9 ce d4 cd 60 4d 35 97 1d 5f 6c   .X.......`M5.._l\n0030  80 18 02 00 27 25 00 00 01 01 08 0a dd 1c 52 45   ....'%........RE\n0040  dd 1c 52 45 b0 70 19 13 ea 7f 00 00 00 00 00 00   ..RE.p..........\n0050  10 00 00 00                                       ....", "0000  00 00 03 04 00 06 00 00 00 00 00 00 00 00 08 00   ................\n0010  45 00 00 44 7f 7b 40 00 40 06 94 4a 86 58 0d 1f   E..D.{@.@..J.X..\n0020  86 58 0d 1f c7 c9 ce d4 cd 60 4d c5 97 1d 5f bc   .X.......`M..._.\n0030  80 18 02 00 27 25 00 00 01 01 08 0a dd 1c 52 45   ....'%........RE\n0040  dd 1c 52 45 38 76 00 80 ea 7f 00 00 00 00 00 00   ..RE8v..........\n0050  00 00 00 00                                       ....", '0000  00 00 03 04 00 06 00 00 00 00 00 00 00 00 08 00   ................\n0010  45 00 00 84 7f 80 40 00 40 06 94 05 86 58 0d 1f   E.....@.@....X..\n0020  86 58 0d 1f c7 c9 ce d4 cd 60 4d e5 97 1d 5f dc   .X.......`M..._.\n0030  80 18 02 00 27 65 00 00 01 01 08 0a dd 1c 52 45   ....\'e........RE\n0040  dd 1c 52 45 00 00 40 0a ea 7f 00 00 00 00 20 00   ..RE..@....... .\n0050  00 00 00 00 c0 22 01 80 ea 7f 00 00 00 00 00 00   ....."..........\n0060  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   ................\n0070  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   ................\n0080  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   ................\n0090  00 00 00 00                                       ....', "0000  00 00 03 04 00 06 00 00 00 00 00 00 00 00 08 00   ................\n0010  45 00 00 3c 7c 02 40 00 40 06 97 cb 86 58 0d 1f   E..<|.@.@....X..\n0020  86 58 0d 1f ce d4 c7 c9 97 1d 60 04 cd 60 4e 35   .X........`..`N5\n0030  80 18 02 00 27 1d 00 00 01 01 08 0a dd 1c 52 45   ....'.........RE\n0040  dd 1c 52 45 b0 70 19 13 ea 7f 00 00               ..RE.p......", "0000  00 00 03 04 00 06 00 00 00 00 00 00 00 00 08 00   ................\n0010  45 00 00 44 7f 84 40 00 40 06 94 41 86 58 0d 1f   E..D..@.@..A.X..\n0020  86 58 0d 1f c7 c9 ce d4 cd 60 4e 35 97 1d 60 0c   .X.......`N5..`.\n0030  80 18 02 00 27 25 00 00 01 01 08 0a dd 1c 52 45   ....'%........RE\n0040  dd 1c 52 45 b0 70 19 13 ea 7f 00 00 00 00 00 00   ..RE.p..........\n0050  10 00 00 00                                       ....", "0000  00 00 03 04 00 06 00 00 00 00 00 00 00 00 08 00   ................\n0010  45 00 00 3c 7c 05 40 00 40 06 97 c8 86 58 0d 1f   E..<|.@.@....X..\n0020  86 58 0d 1f ce d4 c7 c9 97 1d 60 10 cd 60 4e 55   .X........`..`NU\n0030  80 18 02 00 27 1d 00 00 01 01 08 0a dd 1c 52 45   ....'.........RE\n0040  dd 1c 52 45 b0 76 00 80 ea 7f 00 00               ..RE.v......", "0000  00 00 03 04 00 06 00 00 00 00 00 00 00 00 08 00   ................\n0010  45 00 00 3c 7c 09 40 00 40 06 97 c4 86 58 0d 1f   E..<|.@.@....X..\n0020  86 58 0d 1f ce d4 c7 c9 97 1d 60 24 cd 60 4e 55   .X........`$.`NU\n0030  80 18 02 00 27 1d 00 00 01 01 08 0a dd 1c 52 45   ....'.........RE\n0040  dd 1c 52 45 b0 70 19 13 ea 7f 00 00               ..RE.p......", "0000  00 00 03 04 00 06 00 00 00 00 00 00 00 00 08 00   ................\n0010  45 00 00 44 7f 8f 40 00 40 06 94 36 86 58 0d 1f   E..D..@.@..6.X..\n0020  86 58 0d 1f c7 c9 ce d4 cd 60 4e c5 97 1d 60 5c   .X.......`N...`\\\n0030  80 18 02 00 27 25 00 00 01 01 08 0a dd 1c 52 46   ....'%........RF\n0040  dd 1c 52 46 28 77 00 80 ea 7f 00 00 00 00 00 00   ..RF(w..........\n0050  00 00 00 00                                       ....", '']
-['2860:00000304000600000000000000000800450000447f6840004006945d86580d1f86580d1fc7c9ced4cd604cc5971d5f1c80180200272500000101080add1c5245dd1c524548750080ea7f00000000000000000000', '2882:00000304000600000000000000000800450000447f7040004006945586580d1f86580d1fc7c9ced4cd604d35971d5f6c80180200272500000101080add1c5245dd1c5245b0701913ea7f00000000000010000000', '2907:00000304000600000000000000000800450000447f7b40004006944a86580d1f86580d1fc7c9ced4cd604dc5971d5fbc80180200272500000101080add1c5245dd1c524538760080ea7f00000000000000000000', '2919:00000304000600000000000000000800450000847f8040004006940586580d1f86580d1fc7c9ced4cd604de5971d5fdc80180200276500000101080add1c5245dd1c52450000400aea7f00000000200000000000c0220180ea7f00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000', '2928:000003040006000000000000000008004500003c7c024000400697cb86580d1f86580d1fced4c7c9971d6004cd604e3580180200271d00000101080add1c5245dd1c5245b0701913ea7f0000', '2930:00000304000600000000000000000800450000447f8440004006944186580d1f86580d1fc7c9ced4cd604e35971d600c80180200272500000101080add1c5245dd1c5245b0701913ea7f00000000000010000000', '2934:000003040006000000000000000008004500003c7c054000400697c886580d1f86580d1fced4c7c9971d6010cd604e5580180200271d00000101080add1c5245dd1c5245b0760080ea7f0000', '2940:000003040006000000000000000008004500003c7c094000400697c486580d1f86580d1fced4c7c9971d6024cd604e5580180200271d00000101080add1c5245dd1c5245b0701913ea7f0000', '2955:00000304000600000000000000000800450000447f8f40004006943686580d1f86580d1fc7c9ced4cd604ec5971d605c80180200272500000101080add1c5246dd1c524628770080ea7f00000000000000000000']
-['2860:00000304000600000000000000000800450000447f6840004006945d86580d1f86580d1fc7c9ced4cd604cc5971d5f1c80180200272500000101080add1c5245dd1c524548750080ea7f00000000000000000000', '2882:00000304000600000000000000000800450000447f7040004006945586580d1f86580d1fc7c9ced4cd604d35971d5f6c80180200272500000101080add1c5245dd1c5245b0701913ea7f00000000000010000000', '2907:00000304000600000000000000000800450000447f7b40004006944a86580d1f86580d1fc7c9ced4cd604dc5971d5fbc80180200272500000101080add1c5245dd1c524538760080ea7f00000000000000000000', '2919:00000304000600000000000000000800450000847f8040004006940586580d1f86580d1fc7c9ced4cd604de5971d5fdc80180200276500000101080add1c5245dd1c52450000400aea7f00000000200000000000c0220180ea7f00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000', '2928:000003040006000000000000000008004500003c7c024000400697cb86580d1f86580d1fced4c7c9971d6004cd604e3580180200271d00000101080add1c5245dd1c5245b0701913ea7f0000', '2930:00000304000600000000000000000800450000447f8440004006944186580d1f86580d1fc7c9ced4cd604e35971d600c80180200272500000101080add1c5245dd1c5245b0701913ea7f00000000000010000000', '2934:000003040006000000000000000008004500003c7c054000400697c886580d1f86580d1fced4c7c9971d6010cd604e5580180200271d00000101080add1c5245dd1c5245b0760080ea7f0000', '2940:000003040006000000000000000008004500003c7c094000400697c486580d1f86580d1fced4c7c9971d6024cd604e5580180200271d00000101080add1c5245dd1c5245b0701913ea7f0000', '2955:00000304000600000000000000000800450000447f8f40004006943686580d1f86580d1fc7c9ced4cd604ec5971d605c80180200272500000101080add1c5246dd1c524628770080ea7f00000000000000000000']
+Packets Assessed:  [378503, 378505, 378507, 378508, 378510, 378511, 378514, 378516, 378519, 378526, 378528, 378530, 378532, 378534, 378536, 378538, 378551, 378553, 378555, 378557, 378559, 378561, 378564, 378567, 378571, 378573, 378575, 378577, 378579, 378581, 378583, 378585, 378593, 378594, 378595, 378596, 378597, 378599, 378600]
+Data written to file.
+Data available signal created.
 [model:1]: Inserting packet labels to database
-General exception: insert or update on table "pack_label" violates foreign key constraint "pack_label_model_id_fkey"
-DETAIL:  Key (model_id)=(1) is not present in table "model".
 
 Sending a batch of 100 packets.
-{166220909297009: <__main__.ModelInstance object at 0x7feaaaacd810>}
+{166220909297009: <__main__.ModelInstance object at 0x7f9ad7e7d0f0>}
 Received payload of length 100
 Inserting packets to database
-['2958', '2967', '3055'] ["0000  00 00 03 04 00 06 00 00 00 00 00 00 00 00 08 00   ................\n0010  45 00 00 3c 7c 13 40 00 40 06 97 ba 86 58 0d 1f   E..<|.@.@....X..\n0020  86 58 0d 1f ce d4 c7 c9 97 1d 60 60 cd 60 4e d5   .X........``.`N.\n0030  80 18 02 00 27 1d 00 00 01 01 08 0a dd 1c 52 46   ....'.........RF\n0040  dd 1c 52 46 28 77 00 80 ea 7f 00 00               ..RF(w......", "0000  00 00 03 04 00 06 00 00 00 00 00 00 00 00 08 00   ................\n0010  45 00 00 84 7f 94 40 00 40 06 93 f1 86 58 0d 1f   E.....@.@....X..\n0020  86 58 0d 1f c7 c9 ce d4 cd 60 4e e5 97 1d 60 7c   .X.......`N...`|\n0030  80 18 02 00 27 65 00 00 01 01 08 0a dd 1c 52 46   ....'e........RF\n0040  dd 1c 52 46 00 00 20 5d ea 7f 00 00 00 00 20 00   ..RF.. ]...... .\n0050  00 00 00 00 40 4e 01 80 ea 7f 00 00 00 00 00 00   ....@N..........\n0060  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   ................\n0070  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   ................\n0080  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   ................\n0090  00 00 00 00                                       ....", "0000  00 00 03 04 00 06 00 00 00 00 00 00 00 00 08 00   ................\n0010  45 00 00 3c 7c 1e 40 00 40 06 97 af 86 58 0d 1f   E..<|.@.@....X..\n0020  86 58 0d 1f ce d4 c7 c9 97 1d 60 a4 cd 60 4f 35   .X........`..`O5\n0030  80 18 02 00 27 1d 00 00 01 01 08 0a dd 1c 52 48   ....'.........RH\n0040  dd 1c 52 48 10 71 19 13 ea 7f 00 00               ..RH.q......", '']
-['2958:000003040006000000000000000008004500003c7c134000400697ba86580d1f86580d1fced4c7c9971d6060cd604ed580180200271d00000101080add1c5246dd1c524628770080ea7f0000', '2967:00000304000600000000000000000800450000847f944000400693f186580d1f86580d1fc7c9ced4cd604ee5971d607c80180200276500000101080add1c5246dd1c52460000205dea7f00000000200000000000404e0180ea7f00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000', '3055:000003040006000000000000000008004500003c7c1e4000400697af86580d1f86580d1fced4c7c9971d60a4cd604f3580180200271d00000101080add1c5248dd1c524810711913ea7f0000']
-['2958:000003040006000000000000000008004500003c7c134000400697ba86580d1f86580d1fced4c7c9971d6060cd604ed580180200271d00000101080add1c5246dd1c524628770080ea7f0000', '2967:00000304000600000000000000000800450000847f944000400693f186580d1f86580d1fc7c9ced4cd604ee5971d607c80180200276500000101080add1c5246dd1c52460000205dea7f00000000200000000000404e0180ea7f00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000', '3055:000003040006000000000000000008004500003c7c1e4000400697af86580d1f86580d1fced4c7c9971d60a4cd604f3580180200271d00000101080add1c5248dd1c524810711913ea7f0000']
+Packets Assessed:  [378603, 378604, 378606, 378607, 378609, 378611, 378612, 378614, 378615, 378616, 378618, 378620, 378621, 378623, 378625, 378626, 378628, 378629, 378630, 378632, 378634, 378635, 378637, 378641, 378643, 378645, 378647, 378649, 378651, 378653, 378655, 378661, 378663, 378665, 378667, 378669, 378671, 378673, 378675, 378697]
+Data written to file.
+Data available signal created.
 [model:1]: Inserting packet labels to database
-General exception: insert or update on table "pack_label" violates foreign key constraint "pack_label_model_id_fkey"
-DETAIL:  Key (model_id)=(1) is not present in table "model".
 
 Sending a batch of 100 packets.
-{166220909297009: <__main__.ModelInstance object at 0x7feaaaacd810>}
+{166220909297009: <__main__.ModelInstance object at 0x7f9ad7e7d0f0>}
 Received payload of length 100
 Inserting packets to database
-['3062', '3078', '3081'] ["0000  00 00 03 04 00 06 00 00 00 00 00 00 00 00 08 00   ................\n0010  45 00 00 44 7f 98 40 00 40 06 94 2d 86 58 0d 1f   E..D..@.@..-.X..\n0020  86 58 0d 1f c7 c9 ce d4 cd 60 4f 35 97 1d 60 ac   .X.......`O5..`.\n0030  80 18 02 00 27 25 00 00 01 01 08 0a dd 1c 52 4b   ....'%........RK\n0040  dd 1c 52 48 10 71 19 13 ea 7f 00 00 00 00 00 00   ..RH.q..........\n0050  10 00 00 00                                       ....", "0000  00 00 03 04 00 06 00 00 00 00 00 00 00 00 08 00   ................\n0010  45 00 00 3c 7c 25 40 00 40 06 97 a8 86 58 0d 1f   E..<|%@.@....X..\n0020  86 58 0d 1f ce d4 c7 c9 97 1d 60 c4 cd 60 4f 55   .X........`..`OU\n0030  80 18 02 00 27 1d 00 00 01 01 08 0a dd 1c 52 4b   ....'.........RK\n0040  dd 1c 52 4b 10 71 19 13 ea 7f 00 00               ..RK.q......", "0000  00 00 03 04 00 06 00 00 00 00 00 00 00 00 08 00   ................\n0010  45 00 00 44 7f 9d 40 00 40 06 94 28 86 58 0d 1f   E..D..@.@..(.X..\n0020  86 58 0d 1f c7 c9 ce d4 cd 60 4f 55 97 1d 60 cc   .X.......`OU..`.\n0030  80 18 02 00 27 25 00 00 01 01 08 0a dd 1c 52 4b   ....'%........RK\n0040  dd 1c 52 4b 10 71 19 13 ea 7f 00 00 00 00 00 00   ..RK.q..........\n0050  00 00 00 00                                       ....", '']
-['3062:00000304000600000000000000000800450000447f9840004006942d86580d1f86580d1fc7c9ced4cd604f35971d60ac80180200272500000101080add1c524bdd1c524810711913ea7f00000000000010000000', '3078:000003040006000000000000000008004500003c7c254000400697a886580d1f86580d1fced4c7c9971d60c4cd604f5580180200271d00000101080add1c524bdd1c524b10711913ea7f0000', '3081:00000304000600000000000000000800450000447f9d40004006942886580d1f86580d1fc7c9ced4cd604f55971d60cc80180200272500000101080add1c524bdd1c524b10711913ea7f00000000000000000000']
-['3062:00000304000600000000000000000800450000447f9840004006942d86580d1f86580d1fc7c9ced4cd604f35971d60ac80180200272500000101080add1c524bdd1c524810711913ea7f00000000000010000000', '3078:000003040006000000000000000008004500003c7c254000400697a886580d1f86580d1fced4c7c9971d60c4cd604f5580180200271d00000101080add1c524bdd1c524b10711913ea7f0000', '3081:00000304000600000000000000000800450000447f9d40004006942886580d1f86580d1fc7c9ced4cd604f55971d60cc80180200272500000101080add1c524bdd1c524b10711913ea7f00000000000000000000']
+Packets Assessed:  [378730, 378800]
+Data written to file.
+Data available signal created.
 [model:1]: Inserting packet labels to database
-General exception: insert or update on table "pack_label" violates foreign key constraint "pack_label_model_id_fkey"
-DETAIL:  Key (model_id)=(1) is not present in table "model".
 
 Sending a batch of 100 packets.
-{166220909297009: <__main__.ModelInstance object at 0x7feaaaacd810>}
+{166220909297009: <__main__.ModelInstance object at 0x7f9ad7e7d0f0>}
 Received payload of length 100
 Inserting packets to database
-Error getting hex dumps: tshark: Syntax error near ")".
-
-None
+Packets Assessed:  [378803, 378805, 378815, 378899]
+Data written to file.
+Data available signal created.
 [model:1]: Inserting packet labels to database
-General exception: insert or update on table "pack_label" violates foreign key constraint "pack_label_model_id_fkey"
-DETAIL:  Key (model_id)=(1) is not present in table "model".
 
 Sending a batch of 100 packets.
-{166220909297009: <__main__.ModelInstance object at 0x7feaaaacd810>}
+{166220909297009: <__main__.ModelInstance object at 0x7f9ad7e7d0f0>}
 Received payload of length 100
 Inserting packets to database
-['3349'] ['0000  00 00 03 04 00 06 00 00 00 00 00 00 30 2c 08 00   ............0,..\n0010  45 00 00 3a e5 99 40 00 40 06 57 22 7f 00 00 01   E..:..@.@.W"....\n0020  7f 00 00 01 15 38 a8 d4 c1 48 76 87 71 a4 57 ad   .....8...Hv.q.W.\n0030  80 18 29 f8 fe 2e 00 00 01 01 08 0a 89 d0 2c 8e   ..)...........,.\n0040  89 d0 2c 8e 5a 00 00 00 05 49                     ..,.Z....I', '']
-['3349:000003040006000000000000302c08004500003ae5994000400657227f0000017f0000011538a8d4c148768771a457ad801829f8fe2e00000101080a89d02c8e89d02c8e5a0000000549']
-['3349:000003040006000000000000302c08004500003ae5994000400657227f0000017f0000011538a8d4c148768771a457ad801829f8fe2e00000101080a89d02c8e89d02c8e5a0000000549']
+Packets Assessed:  [378941, 378974]
+Data written to file.
+Data available signal created.
 [model:1]: Inserting packet labels to database
-General exception: insert or update on table "pack_label" violates foreign key constraint "pack_label_model_id_fkey"
-DETAIL:  Key (model_id)=(1) is not present in table "model".
 
 Sending a batch of 100 packets.
-{166220909297009: <__main__.ModelInstance object at 0x7feaaaacd810>}
+{166220909297009: <__main__.ModelInstance object at 0x7f9ad7e7d0f0>}
 Received payload of length 100
 Inserting packets to database
-Error getting hex dumps: tshark: Syntax error near ")".
-
-None
+Packets Assessed:  [379092, 379096]
+Data written to file.
+Data available signal created.
 [model:1]: Inserting packet labels to database
-General exception: insert or update on table "pack_label" violates foreign key constraint "pack_label_model_id_fkey"
-DETAIL:  Key (model_id)=(1) is not present in table "model".
 
 Sending a batch of 100 packets.
-{166220909297009: <__main__.ModelInstance object at 0x7feaaaacd810>}
+{166220909297009: <__main__.ModelInstance object at 0x7f9ad7e7d0f0>}
 Received payload of length 100
 Inserting packets to database
-Error getting hex dumps: tshark: Syntax error near ")".
-
-None
+Packets Assessed:  [379108, 379116, 379140, 379146, 379168, 379172]
+Data written to file.
+Data available signal created.
 [model:1]: Inserting packet labels to database
-General exception: insert or update on table "pack_label" violates foreign key constraint "pack_label_model_id_fkey"
-DETAIL:  Key (model_id)=(1) is not present in table "model".
 
 Sending a batch of 100 packets.
-{166220909297009: <__main__.ModelInstance object at 0x7feaaaacd810>}
+{166220909297009: <__main__.ModelInstance object at 0x7f9ad7e7d0f0>}
 Received payload of length 100
 Inserting packets to database
-Error getting hex dumps: tshark: Syntax error near ")".
-
-None
+Packets Assessed:  [379214, 379259, 379272, 379292]
+Data written to file.
+Data available signal created.
 [model:1]: Inserting packet labels to database
-General exception: insert or update on table "pack_label" violates foreign key constraint "pack_label_model_id_fkey"
-DETAIL:  Key (model_id)=(1) is not present in table "model".
 
 Sending a batch of 100 packets.
-{166220909297009: <__main__.ModelInstance object at 0x7feaaaacd810>}
+{166220909297009: <__main__.ModelInstance object at 0x7f9ad7e7d0f0>}
 Received payload of length 100
 Inserting packets to database
-['3710'] ['0000  00 00 03 04 00 06 00 00 00 00 00 00 00 00 08 00   ................\n0010  45 00 00 3a e5 9e 40 00 40 06 57 1d 7f 00 00 01   E..:..@.@.W.....\n0020  7f 00 00 01 15 38 a8 d4 c1 48 7e 62 71 a9 b1 71   .....8...H~bq..q\n0030  80 18 36 f0 fe 2e 00 00 01 01 08 0a 89 d0 2f dc   ..6.........../.\n0040  89 d0 2f dc 5a 00 00 00 05 49                     ../.Z....I', '']
-['3710:000003040006000000000000000008004500003ae59e40004006571d7f0000017f0000011538a8d4c1487e6271a9b171801836f0fe2e00000101080a89d02fdc89d02fdc5a0000000549']
-['3710:000003040006000000000000000008004500003ae59e40004006571d7f0000017f0000011538a8d4c1487e6271a9b171801836f0fe2e00000101080a89d02fdc89d02fdc5a0000000549']
+Packets Assessed:  [379338, 379382]
+Data written to file.
+Data available signal created.
 [model:1]: Inserting packet labels to database
-General exception: insert or update on table "pack_label" violates foreign key constraint "pack_label_model_id_fkey"
-DETAIL:  Key (model_id)=(1) is not present in table "model".
 
 Sending a batch of 100 packets.
-{166220909297009: <__main__.ModelInstance object at 0x7feaaaacd810>}
+{166220909297009: <__main__.ModelInstance object at 0x7f9ad7e7d0f0>}
 Received payload of length 100
 Inserting packets to database
-Error getting hex dumps: tshark: Syntax error near ")".
-
-None
+Packets Assessed:  [379428]
+Data written to file.
+Data available signal created.
 [model:1]: Inserting packet labels to database
-General exception: insert or update on table "pack_label" violates foreign key constraint "pack_label_model_id_fkey"
-DETAIL:  Key (model_id)=(1) is not present in table "model".
 
 Sending a batch of 100 packets.
-{166220909297009: <__main__.ModelInstance object at 0x7feaaaacd810>}
+{166220909297009: <__main__.ModelInstance object at 0x7f9ad7e7d0f0>}
 Received payload of length 100
 Inserting packets to database
-Error getting hex dumps: tshark: Syntax error near ")".
-
-None
+Packets Assessed:  [379516]
+Data written to file.
+Data available signal created.
 [model:1]: Inserting packet labels to database
-General exception: insert or update on table "pack_label" violates foreign key constraint "pack_label_model_id_fkey"
-DETAIL:  Key (model_id)=(1) is not present in table "model".
 
 Sending a batch of 100 packets.
-{166220909297009: <__main__.ModelInstance object at 0x7feaaaacd810>}
+{166220909297009: <__main__.ModelInstance object at 0x7f9ad7e7d0f0>}
 Received payload of length 100
 Inserting packets to database
-['4061'] ['0000  00 00 03 04 00 06 00 00 00 00 00 00 30 2c 08 00   ............0,..\n0010  45 00 00 3a e5 a4 40 00 40 06 57 17 7f 00 00 01   E..:..@.@.W.....\n0020  7f 00 00 01 15 38 a8 d4 c1 48 86 3d 71 ae c1 3a   .....8...H.=q..:\n0030  80 18 52 ea fe 2e 00 00 01 01 08 0a 89 d0 33 58   ..R...........3X\n0040  89 d0 33 58 5a 00 00 00 05 49                     ..3XZ....I', '']
-['4061:000003040006000000000000302c08004500003ae5a44000400657177f0000017f0000011538a8d4c148863d71aec13a801852eafe2e00000101080a89d0335889d033585a0000000549']
-['4061:000003040006000000000000302c08004500003ae5a44000400657177f0000017f0000011538a8d4c148863d71aec13a801852eafe2e00000101080a89d0335889d033585a0000000549']
+No matching packets.
 [model:1]: Inserting packet labels to database
-General exception: insert or update on table "pack_label" violates foreign key constraint "pack_label_model_id_fkey"
-DETAIL:  Key (model_id)=(1) is not present in table "model".
 
 Sending a batch of 100 packets.
-{166220909297009: <__main__.ModelInstance object at 0x7feaaaacd810>}
+{166220909297009: <__main__.ModelInstance object at 0x7f9ad7e7d0f0>}
 Received payload of length 100
 Inserting packets to database
-Error getting hex dumps: tshark: Syntax error near ")".
-
-None
+Packets Assessed:  [379753]
+Data written to file.
+Data available signal created.
 [model:1]: Inserting packet labels to database
-General exception: insert or update on table "pack_label" violates foreign key constraint "pack_label_model_id_fkey"
-DETAIL:  Key (model_id)=(1) is not present in table "model".
 
 Sending a batch of 100 packets.
-{166220909297009: <__main__.ModelInstance object at 0x7feaaaacd810>}
+{166220909297009: <__main__.ModelInstance object at 0x7f9ad7e7d0f0>}
 Received payload of length 100
 Inserting packets to database
-Error getting hex dumps: tshark: Syntax error near ")".
-
-None
+No matching packets.
 [model:1]: Inserting packet labels to database
-General exception: insert or update on table "pack_label" violates foreign key constraint "pack_label_model_id_fkey"
-DETAIL:  Key (model_id)=(1) is not present in table "model".
 
 Sending a batch of 100 packets.
+{166220909297009: <__main__.ModelInstance object at 0x7f9ad7e7d0f0>}
+Received payload of length 100
+Inserting packets to database
+Packets Assessed:  [379975]
+Data written to file.
+Data available signal created.
+[model:1]: Inserting packet labels to database
+
+Sending a batch of 100 packets.
+{166220909297009: <__main__.ModelInstance object at 0x7f9ad7e7d0f0>}
+Received payload of length 100
+Inserting packets to database
+Packets Assessed:  [380012, 380051, 380063]
+Data written to file.
+Data available signal created.
+[model:1]: Inserting packet labels to database
+
+Sending a batch of 100 packets.
+{166220909297009: <__main__.ModelInstance object at 0x7f9ad7e7d0f0>}
+Received payload of length 100
+Inserting packets to database
+No matching packets.
+[model:1]: Inserting packet labels to database
+
+Sending a batch of 100 packets.
+{166220909297009: <__main__.ModelInstance object at 0x7f9ad7e7d0f0>}
+Received payload of length 100
+Inserting packets to database
+Packets Assessed:  [380262]
+Data written to file.
+Data available signal created.
+[model:1]: Inserting packet labels to database
+
+Sending a batch of 100 packets.
+{166220909297009: <__main__.ModelInstance object at 0x7f9ad7e7d0f0>}
+Received payload of length 100
+Inserting packets to database
+Packets Assessed:  [380341, 380375, 380391, 380393]
+Data written to file.
+Data available signal created.
+[model:1]: Inserting packet labels to database
+
+Sending a batch of 100 packets.
+{166220909297009: <__main__.ModelInstance object at 0x7f9ad7e7d0f0>}
+Received payload of length 100
+Inserting packets to database
+No matching packets.
+[model:1]: Inserting packet labels to database
+
+Sending a batch of 100 packets.
+{166220909297009: <__main__.ModelInstance object at 0x7f9ad7e7d0f0>}
+Received payload of length 100
+Inserting packets to database
+Packets Assessed:  [380541]
+Data written to file.
+Data available signal created.
+[model:1]: Inserting packet labels to database
+
+Sending a batch of 100 packets.
+{166220909297009: <__main__.ModelInstance object at 0x7f9ad7e7d0f0>}
+Received payload of length 100
+Inserting packets to database
+No matching packets.
+[model:1]: Inserting packet labels to database
+
+Sending a batch of 100 packets.
+{166220909297009: <__main__.ModelInstance object at 0x7f9ad7e7d0f0>}
+Received payload of length 100
+Inserting packets to database
+Packets Assessed:  [380789]
+Data written to file.
+Data available signal created.
+[model:1]: Inserting packet labels to database
+
+Sending a batch of 100 packets.
+{166220909297009: <__main__.ModelInstance object at 0x7f9ad7e7d0f0>}
+Received payload of length 100
+Inserting packets to database
+No matching packets.
+[model:1]: Inserting packet labels to database
+
+Sending a batch of 100 packets.
+{166220909297009: <__main__.ModelInstance object at 0x7f9ad7e7d0f0>}
+Received payload of length 100
+Inserting packets to database
